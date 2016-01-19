@@ -247,7 +247,6 @@
       cache: {}
     };
 
-    jsio.path = jsioPath;
     jsio.addPath = jsioPath.add;
 
     jsio.setEnv = function(envCtor) {
@@ -271,9 +270,9 @@
         ENV.loadModule = loadModule;
       }
 
-      jsio.path.cache['jsio'] = cloneFrom ? cloneFrom.path.cache.jsio : ENV.getPath();
+      jsioPath.cache['jsio'] = cloneFrom ? cloneFrom.path.cache.jsio : ENV.getPath();
       if (envCtor == ENV_browser) {
-        jsio.path.set(ENV.getPath());
+        jsioPath.set(ENV.getPath());
       }
     };
 
