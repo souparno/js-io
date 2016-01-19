@@ -477,28 +477,6 @@ var vm = require('vm');
           syntax(code, path);
         } catch (e) {}
       };
-
-      this.fetch = function(path) {
-        var xhr = new XHR();
-        try {
-          xhr.open('GET', path, false);
-          xhr.send(null);
-        } catch (e) {
-          ENV.log('e:', e);
-          return false; // firefox file://
-        }
-
-        if (xhr.status == 404 || // all browsers, http://
-          xhr.status == -1100 || // safari file://
-          // XXX: We have no way to tell in opera if a file exists and is empty, or is 404
-          // XXX: Use flash?
-          //(!failed && xhr.status == 0 && !xhr.responseText && EXISTS)) // opera
-          false) {
-          return false;
-        }
-
-        return xhr.responseText;
-      };
     };
 
     var failedFetch = {};
