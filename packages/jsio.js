@@ -1,6 +1,9 @@
+var fs = require('fs');
+var path = require('path');
+var vm = require('vm');
+
 (function() {
   function init(cloneFrom) {
-
     var INITIAL_FILE = '<initial file>';
     var MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
     var DEBUG = true;
@@ -34,14 +37,6 @@
 
     // Utility functions
     var util = {
-      bind: function(context, method /*, args... */ ) {
-        var args = SLICE.call(arguments, 2);
-        return function() {
-          method = (typeof method == 'string' ? context[method] : method);
-          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
-        };
-      },
-
       buildPath: function() {
         var pieces = [];
         for (var i = 0, n = arguments.length; i < n; ++i) {
@@ -274,11 +269,7 @@
       var Module = module.constructor;
 
       var parent = module.parent;
-      var req = util.bind(parent, parent && parent.require || require);
 
-      var fs = req('fs');
-      var path = req('path');
-      var vm = req('vm');
 
       this.requireCache = require.cache;
       this.main = require.main;
