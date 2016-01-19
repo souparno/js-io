@@ -1,10 +1,10 @@
-//import .logger as logger;
+import .logger as logger;
 
 exports = {
 
   add: function (a, b) {
-    //logger.print(a+b);
-    console.log(a+b);
+    logger.print(a+b);
+    //console.log(a+b);
   }
 
 }

@@ -50,11 +50,6 @@
 
     // Utility functions
     var util = {
-      // `util.bind` returns a function that, when called, will execute
-      // the method passed in with the provided context and any additional
-      // arguments passed to `util.bind`.
-      //       util.bind(obj, 'f', a) -> function() { return obj.f(a); }
-      //       util.bind(obj, g, a, b, c) -> function() { return g.call(g, a, b, c); }
       bind: function(context, method /*, args... */ ) {
         var args = SLICE.call(arguments, 2);
         return function() {
@@ -63,61 +58,6 @@
         };
       },
 
-      // `util.addEndSlash` accepts a string.  That string is returned with a `/`
-      // appended if the string did not already end in a `/`.
-      // addEndSlash: function(str) {
-      //   return rexpEndSlash.test(str) ? str : str + '/';
-      // },
-
-      // `util.removeEndSlash` accepts a string.  It removes a trailing `/` if
-      // one is found.
-      // removeEndSlash: function(str) {
-      //   return str.replace(rexpEndSlash, '');
-      // },
-
-      // `util.relative` accepts two paths (strings) and returns the second path
-      // relative to the first.
-      //
-      //  - if `path` starts with `relativeTo`, then strip `path` off the
-      //    `relativeTo` part
-      //
-      //         util.relative('abc/def/', 'abc') -> 'def'
-      //
-      //  - if `path` starts with some substring of `relativeTo`, remove
-      //    this substring and add `../` for each remaining segment of
-      //    `relativeTo`.
-      //
-      //         util.relative('abc/def/', 'abc/hij') -> '../def'
-      //
-      // relative: function (relativeTo, path) {
-      //   var len = relativeTo.length;
-      //   if (path.substring(0, len) == relativeTo) {
-      //     // if the relative path now starts with a path separator
-      //     // either (/ or \), remove it
-      //     /* Note: we're casting a boolean to an int by adding len to it */
-      //     return path.slice(len + /[\/\\]/.test(path.charAt(len)));
-      //   }
-      //
-      //   var sA = util.removeEndSlash(path).split(ENV.pathSep),
-      //     sB = util.removeEndSlash(relativeTo).split(ENV.pathSep),
-      //     i = 0;
-      //
-      //   /* Count how many segments match. */
-      //   while(sA[i] == sB[i]) { ++i; }
-      //
-      //   if (i) {
-      //     /* If at least some segments matched, remove them.  The result is our new path. */
-      //     path = sA.slice(i).join(ENV.pathSep);
-      //
-      //     /* Prepend `../` for each segment remaining in `relativeTo`. */
-      //     for (var j = sB.length - i; j > 0; --j) { path = '../' + path; }
-      //   }
-      //
-      //   return path;
-      // },
-
-      // `buildPath` accepts an arbitrary number of string arguments to concatenate into a path.
-      //     util.buildPath('a', 'b', 'c/', 'd/') -> 'a/b/c/d/'
       buildPath: function() {
         var pieces = [];
         for (var i = 0, n = arguments.length; i < n; ++i) {
@@ -234,9 +174,18 @@
       }
     };
 
-    // construct the top-level jsio object
-    var jsio = util.bind(this, _require, null, null, null);
+    var jsio = function() {
+      //var args = SLICE.call(['null', 'null', 'null'], 2);
+      var args  = [null, null, null];
+      return _require.apply(this, args.concat(SLICE.call(arguments, 0)));
+    };
 
+
+
+
+
+
+    //var jsio = _require.call(this);
     jsio.__util = util;
     jsio.__init__ = init;
 
@@ -865,6 +814,7 @@
 
       // require is bound to a module's (or global) context -- we can override this
       // by using opts.exportInto
+
       var exportInto = opts.exportInto || boundContext || ENV.global;
 
       // parse the import request(s)
@@ -1031,67 +981,8 @@
       }
     });
 
-    // CommonJS syntax
-    // jsio.addCmd(function(context, request, opts, imports) {
-    //
-    //   //    ./../b -> ..b
-    //   //    ../../b -> ...b
-    //   //    ../b -> ..b
-    //   //    ./b -> .b
-    //
-    //   var match = request.match(/^\s*[\w.0-9$\/\-:\\]+\s*$/);
-    //   if (match) {
-    //
-    //     var req = util.resolveRelativePath(match[0]),
-    //       isRelative = req.charAt(0) == '.';
-    //
-    //     req = req
-    //       // .replace(/^\//, '') // remove any leading slash
-    //       .replace(/\.\.\//g, '.') // replace relative path indicators with dots
-    //       .replace(/\.\//g, '')
-    //       .replace(/\/+$/g, '');
-    //
-    //     if (ENV.pathSep === '\\' && req.match(/^[a-zA-Z]:.*/)) {
-    //       // leave absolute windows paths (start with drive letter) alone
-    //     } else {
-    //       // any remaining slashes are path separators
-    //      req = req.replace(/\//g, '.');
-    //     }
-    //
-    //     imports[0] = { from: (isRelative ? '.' : '') + req, original: request };
-    //     return true;
-    //   }
-    // });
-
-    // jsio.install = function() {
-    //   jsio('from .base import *');
-    //   GLOBAL['logger'] = logging.get('jsiocore');
-    // };
-
-    // jsio.eval = function (src, path) {
-    //   path = ENV.getCwd() || '/';
-    //   var moduleDef = new ModuleDef(path);
-    //   moduleDef.src = src;
-    //   applyPreprocessors(path, moduleDef, ["import", "cls"], {});
-    //   execModuleDef(ENV.global, moduleDef);
-    // };
-
-    // jsio.clone = util.bind(null, init, jsio);
-    //
-    // // in node, defines jsio as a module that can be imported
-    // var moduleInfo = util.resolveModulePath('jsio')[0];
-    // if (moduleInfo) {
-    //   jsio.__modules[moduleInfo.path] = new ModuleDef(moduleInfo.path);
-    //   jsio.__modules[moduleInfo.path].exports = jsio;
-    // }
-
     return jsio;
   }
 
   module.exports = init(null, {});
-  // if (typeof exports != 'undefined') {
-  //   module.exports = J;
-  // } else {
-  //   jsio = J;
-  // }
 })();
