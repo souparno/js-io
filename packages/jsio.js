@@ -595,25 +595,23 @@
 
         applyPreprocessors(fromDir, moduleDef, ["import"], opts);
       }
-
-      // any additional preprocessors?
-      if (opts.preprocessors) {
-        applyPreprocessors(fromDir, moduleDef, opts.preprocessors, opts);
-      }
-
       return moduleDef;
     }
 
     function applyPreprocessors(path, moduleDef, names, opts) {
-      var options = {
-        dontExport: true,
-        dontPreprocess: true
-      };
-      var request = 'import jsio.preprocessors.import';
-      var p = _require.apply(this, [{}, ENV.getPath(), 'jsio.js', request, options]);
-      if (p && typeof p == 'function') {
-        p(path, moduleDef, opts);
-      }
+      var p = (function() {
+        var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
+
+        function replace(raw, p1, p2, p3) {
+          if (!/\/\//.test(p1)) {
+            return p1 + 'jsio(\'' + p2 + '\')' + p3;
+          }
+          return raw;
+        }
+        return function(path, moduleDef, opts) {
+          moduleDef.src = moduleDef.src.replace(importExpr, replace);
+        }
+      }()(path, moduleDef, opts));
     }
 
     function execModuleDef(context, moduleDef) {
