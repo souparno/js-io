@@ -1,26 +1,10 @@
 (function() {
   function init(cloneFrom) {
-    // We expect this code to be minified before production use, so we may
-    // write code slightly more verbosely than we otherwise would.
 
     var INITIAL_FILE = '<initial file>';
     var MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
-
-    // Should we parse syntax errors in the browser?
     var DEBUG = true;
-
-    // Store a reference to the slice function for converting objects of
-    // type arguments to type array.
     var SLICE = Array.prototype.slice;
-
-    // js.io supports multiple JavaScript environments such as node.js and
-    // most web browsers (IE, Firefox, WebKit).  The ENV object wraps
-    // any utility functions that contain environment-specific code (e.g.
-    // reading a file using node's `fs` library or a browser's
-    // `XMLHttpRequest`).  Running js.io in other JavaScript environments
-    // is as easy as implementing an environment object that conforms to
-    // the abstract interface for an environment (provided below) and
-    // calling `jsio.setEnv()`.
     var ENV;
 
     // Checks if the last character in a string is `/`.
@@ -663,7 +647,14 @@
         ctx.exports = {};
       }
 
-      ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory, moduleDef.filename);
+      ctx.jsio = (function(context, method) {
+        var args = SLICE.call(arguments, 2);
+        return function() {
+          args = args.concat(SLICE.call(arguments, 0));
+          return method.apply(context, args);
+        };
+      }(this, _require, ctx, moduleDef.directory, moduleDef.filename));
+
       ctx.require = function(request, opts) {
         if (!opts) {
           opts = {};
@@ -861,9 +852,7 @@
         return true;
       }
     });
-
     return jsio;
   }
-
   module.exports = init();
 })();
