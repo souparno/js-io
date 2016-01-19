@@ -249,6 +249,7 @@
 
     jsio.path = jsioPath;
     jsio.addPath = util.bind(jsioPath, 'add');
+    //add.apply(jsioPath);
     jsio.addCmd = util.bind(jsio.__cmds, 'push');
 
     jsio.setEnv = function(envCtor) {
@@ -292,14 +293,22 @@
 
     var boundJsio;
     var localJsio = function(req) {
-      if (!boundJsio) {
-        boundJsio = util.bind(this, _require, {}, ENV.getPath(), 'jsio.js');
-      }
+      //if (!boundJsio) {
+        //        boundJsio = util.bind(this, _require, {}, ENV.getPath(), 'jsio.js');
+        //boundJsio = _require.apply(this, [{}, ENV.getPath(), 'jsio.js']);
+        //        console.log(boundJsio.toString());
+
+        boundJsio = function(req, options) {
+          return _require.apply(this, [{}, ENV.getPath(), 'jsio.js', req, options]);
+        };
+      //}
 
       return boundJsio(req, {
         dontExport: true,
         dontPreprocess: true
       });
+
+      //_require.apply(this, [{}, ENV.getPath(), 'jsio.js', request, options]);
     };
 
     /*
