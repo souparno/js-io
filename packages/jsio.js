@@ -248,9 +248,7 @@
     };
 
     jsio.path = jsioPath;
-    jsio.addPath = util.bind(jsioPath, 'add');
-    //add.apply(jsioPath);
-    jsio.addCmd = util.bind(jsio.__cmds, 'push');
+    jsio.addPath = jsioPath.add;
 
     jsio.setEnv = function(envCtor) {
       if (!envCtor && cloneFrom) {
@@ -595,6 +593,7 @@
 
         applyPreprocessors(fromDir, moduleDef, ["import"], opts);
       }
+
       return moduleDef;
     }
 
@@ -831,11 +830,7 @@
       return retVal;
     }
 
-    // DEFINE SYNTAX FOR JSIO('cmd')
-
-    // from myPackage import myFunc
-    // external myPackage import myFunc
-    jsio.addCmd(function(context, request, opts, imports) {
+    jsio.__cmds.push(function(context, request, opts, imports) {
       var match = request.match(/^\s*(from|external)\s+([\w.\-$]+)\s+(import|grab)\s+(.*)$/);
       if (match) {
         imports.push({
@@ -853,7 +848,7 @@
     });
 
     // import myPackage
-    jsio.addCmd(function(context, request, opts, imports) {
+    jsio.__cmds.push(function(context, request, opts, imports) {
       var match = request.match(/^\s*import\s+(.*)$/);
       if (match) {
         match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
