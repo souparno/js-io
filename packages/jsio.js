@@ -291,16 +291,6 @@
 
     jsio.main = ENV && ENV.main;
 
-    var localJsio = function(req) {
-      var options = {
-        dontExport: true,
-        dontPreprocess: true
-      };
-
-      return _require.apply(this, [{}, ENV.getPath(), 'jsio.js', req, options]);
-    };
-
-
     function ENV_node() {
       var Module = module.constructor;
 
@@ -615,10 +605,15 @@
     }
 
     function applyPreprocessors(path, moduleDef, names, opts) {
-        var p = localJsio('import jsio.preprocessors.import');
-        if (p && typeof p == 'function') {
-          p(path, moduleDef, opts);
-        }
+      var options = {
+        dontExport: true,
+        dontPreprocess: true
+      };
+      var request = 'import jsio.preprocessors.import';
+      var p = _require.apply(this, [{}, ENV.getPath(), 'jsio.js', request, options]);
+      if (p && typeof p == 'function') {
+        p(path, moduleDef, opts);
+      }
     }
 
     function execModuleDef(context, moduleDef) {
