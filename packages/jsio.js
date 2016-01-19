@@ -615,20 +615,10 @@
     }
 
     function applyPreprocessors(path, moduleDef, names, opts) {
-      for (var i = 0, len = names.length; i < len; ++i) {
-        var p = getPreprocessor(names[i]);
-
-        // if we have a recursive import and p isn't a function, just
-        // skip it (handles the case where a preprocessor imports
-        // other modules).
+        var p = localJsio('import jsio.preprocessors.import');
         if (p && typeof p == 'function') {
           p(path, moduleDef, opts);
         }
-      }
-    }
-
-    function getPreprocessor(name) {
-      return localJsio('import jsio.preprocessors.import');
     }
 
     function execModuleDef(context, moduleDef) {
