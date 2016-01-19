@@ -293,34 +293,15 @@
 
     var boundJsio;
     var localJsio = function(req) {
-      //if (!boundJsio) {
-        //        boundJsio = util.bind(this, _require, {}, ENV.getPath(), 'jsio.js');
-        //boundJsio = _require.apply(this, [{}, ENV.getPath(), 'jsio.js']);
-        //        console.log(boundJsio.toString());
 
-        boundJsio = function(req, options) {
-          return _require.apply(this, [{}, ENV.getPath(), 'jsio.js', req, options]);
-        };
-      //}
-
-      return boundJsio(req, {
+      var options = {
         dontExport: true,
         dontPreprocess: true
-      });
+      };
 
-      //_require.apply(this, [{}, ENV.getPath(), 'jsio.js', request, options]);
+      return _require.apply(this, [{}, ENV.getPath(), 'jsio.js', req, options]);
     };
 
-    /*
-    function ENV_abstract() {
-      this.global = null;
-      this.getCwd = function() {};
-      this.getPath = function() {};
-      this.eval = function(code, path) {};
-      this.fetch = function(path) { return contentsOfPath; };
-      this.log = function(args...) {};
-    }
-    */
 
     function ENV_node() {
       var Module = module.constructor;
