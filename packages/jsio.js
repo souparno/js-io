@@ -247,8 +247,6 @@
       cache: {}
     };
 
-    jsio.addPath = jsioPath.add;
-
     jsio.setEnv = function(envCtor) {
       if (!envCtor && cloneFrom) {
         ENV = new cloneFrom.__env.constructor(util);
