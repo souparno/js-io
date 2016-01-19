@@ -174,18 +174,10 @@
       }
     };
 
-    var jsio = function() {
-      //var args = SLICE.call(['null', 'null', 'null'], 2);
-      var args  = [null, null, null];
-      return _require.apply(this, args.concat(SLICE.call(arguments, 0)));
+    var jsio = function(request) {
+      return _require.apply(this, [null, null, null, request]);
     };
 
-
-
-
-
-
-    //var jsio = _require.call(this);
     jsio.__util = util;
     jsio.__init__ = init;
 
