@@ -891,5 +891,5 @@
     return jsio;
   }
 
-  module.exports = init(null, {});
+  module.exports = init();
 })();
