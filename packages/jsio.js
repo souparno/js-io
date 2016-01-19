@@ -175,7 +175,7 @@
     };
 
     var jsio = function(request) {
-      return _require.apply(this, [null, null, null, request]);
+      _require.apply(this, [null, null, null, request]);
     };
 
     jsio.__util = util;
