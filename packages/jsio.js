@@ -291,9 +291,7 @@
 
     jsio.main = ENV && ENV.main;
 
-    var boundJsio;
     var localJsio = function(req) {
-
       var options = {
         dontExport: true,
         dontPreprocess: true
@@ -328,30 +326,6 @@
       };
 
       this.pathSep = path.sep;
-
-      // var parentPath = util.splitPath(module.parent.filename);
-      // module.parent.require = function(request, opts) {
-      //   if (!opts) { opts = {}; }
-      //   opts.dontExport = true;
-      //   return _require({}, parentPath.directory, parentPath.filename, request, opts);
-      // };
-
-      // this.log = function() {
-      //   var msg;
-      //   try {
-      //     msg = Array.prototype.map.call(arguments, function(a) {
-      //         if ((a instanceof Error) && a.message) {
-      //           return 'Error:' + a.message + '\nStack:' + a.stack + '\nArguments:' + a.arguments;
-      //         }
-      //         return (typeof a == 'string' ? a : JSON.stringify(a));
-      //       }).join(' ') + '\n';
-      //   } catch(e) {
-      //     msg = Array.prototype.join.call(arguments, ' ') + '\n';
-      //   }
-      //
-      //   process.stderr.write(msg);
-      //   return msg;
-      // };
 
       this.getPath = function() {
         return __dirname;
@@ -575,24 +549,6 @@
         var path = possible.path,
           cachedVersion = srcCache[path];
 
-        // if (cachedVersion) {
-        //   // extract a non-absolute dirname from the cache key: absolute paths
-        //   // built into the cache are made relative during compile time since
-        //   // absolute paths won't match between host and target device. Use
-        //   // the cache key as the relative path so future imports can also
-        //   // successfully lookup paths in the cache.
-        //   var match = path.match(/^(.*\/)[^\\\/]+$/);
-        //   possible.directory = match && match[1] || "";
-        //   possible.src = cachedVersion.src;
-        //   possible.pre = true;
-        //   return possible;
-        // }
-
-        /*if (/^\.\//.test(path)) {
-          // remove one path segment for each dot from the cwd
-          path = addEndSlash(ENV.getCwd()) + path;
-        }*/
-
         src = ENV.fetch(path);
 
         if (src !== false) {
@@ -605,19 +561,6 @@
 
       return false;
     }
-
-    // function processStack() {
-    //   return importStack.map(function (item, index) {
-    //     var stack = index == 0 ? new Error().stack : importStack[index - 1].stack;
-    //     var i = stack.indexOf(item.path);
-    //     if (i >= 0) {
-    //       item.line = ':' + parseInt(stack.substring(i + item.path.length + 1));
-    //     }
-    //
-    //     return (index + 1) + ': "' + item.friendlyPath + '" ' + item.path + (item.line || '');
-    //   });
-    // }
-
     // load a module from a file
     function loadModule(baseLoader, fromDir, fromFile, item, opts) {
       var modulePath = item.from;
@@ -644,19 +587,6 @@
       }
 
       var moduleDef = findModule(possibilities);
-      // if (!moduleDef) {
-      //   if (opts.suppressErrors) { return false; }
-      //   var paths = [];
-      //   for (var i = 0, p; p = possibilities[i]; ++i) { paths.push(p.path); }
-      //   var e = new Error("Could not import `" + modulePath + "`\n"
-      //     + "\tlooked in:\n"
-      //       + "\t\t" + paths.join('\n\t\t') + "\n"
-      //       + "\tImport Stack:\n"
-      //       + "\t\t" + processStack().join("\n\t\t"));
-      //   e.code = MODULE_NOT_FOUND;
-      //   throw e;
-      // }
-
       // a (potentially) nicer way to refer to a module -- how it was referenced in code when it was first imported
       moduleDef.friendlyPath = modulePath;
 
@@ -770,11 +700,6 @@
         id: modulePath,
         exports: ctx.exports
       };
-      /*if (!dontAddBase && modulePath != 'jsio.base') {
-        ctx.jsio('from jsio.base import *', {dontPreprocess: true});
-        ctx.logging.__create(modulePath, ctx);
-      }*/
-
       // TODO: FIX for "trailing ." case
       ctx.jsio.__jsio = jsio;
       ctx.jsio.__env = jsio.__env;
