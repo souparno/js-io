@@ -8,7 +8,7 @@ var vm = require('vm');
     var MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
     var DEBUG = true;
     var SLICE = Array.prototype.slice;
-    var ENV;
+    var ENV = new ENV_node();
 
     // Checks if the last character in a string is `/`.
     var rexpEndSlash = /(\/|\\)$/;
@@ -218,23 +218,11 @@ var vm = require('vm');
       cache: {}
     };
 
-    jsio.setEnv = function(envCtor) {
-      if (typeof envCtor == 'string') {
-        envCtor = ({
-          node: ENV_node
-        })[envCtor];
-      }
-
-      ENV = new envCtor(util);
-      this.__env = ENV;
-      this.__dir = ENV.getCwd();
-    };
-
-    jsio.setEnv('node');
+    jsio.__env = ENV;
+    jsio.__dir = ENV.getCwd();
     jsio.main = ENV && ENV.main;
 
     function ENV_node() {
-      //console.trace();
       var Module = module.constructor;
       var parent = module.parent;
 
