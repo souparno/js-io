@@ -333,25 +333,20 @@ var vm = require('vm');
       var possibilities = util.resolveModulePath(modulePath, fromDir);
       var moduleDef = findModule(possibilities);
       moduleDef.friendlyPath = modulePath;
-      applyPreprocessors(fromDir, moduleDef, opts);
+      moduleDef.src = applyPreprocessors(fromDir, moduleDef, opts);
       return moduleDef;
     };
 
     function applyPreprocessors(fromDir, moduleDef, opts) {
-      (function() {
-        var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
-
-        function replace(raw, p1, p2, p3) {
+      var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
+      return moduleDef.src.replace(importExpr,
+        function(raw, p1, p2, p3) {
           if (!/\/\//.test(p1)) {
             return p1 + 'jsio(\'' + p2 + '\')' + p3;
           }
           return raw;
-        }
-        return function(fromDir, moduleDef, opts) {
-          moduleDef.src = moduleDef.src.replace(importExpr, replace);
-        }
-      }()(fromDir, moduleDef, opts));
-    }
+        });
+    };
 
     function resolveImportRequest(request) {
       var imports = [];
