@@ -157,9 +157,6 @@ var vm = require('vm');
       _require.apply(this, [null, null, null, request]);
     };
 
-    jsio.__util = util;
-    jsio.__init__ = init;
-
     var srcCache;
     jsio.setCache = function(cache) {
       srcCache = jsio.__srcCache = cache;
@@ -227,42 +224,26 @@ var vm = require('vm');
     };
 
     jsio.setEnv = function(envCtor) {
-      if (!envCtor && cloneFrom) {
-        ENV = new cloneFrom.__env.constructor(util);
-      } else {
-        if (typeof envCtor == 'string') {
-          envCtor = ({
-            node: ENV_node,
-            browser: ENV_browser
-          })[envCtor] || ENV_browser;
-        }
-
-        ENV = new envCtor(util);
+      if (typeof envCtor == 'string') {
+        envCtor = ({
+          node: ENV_node,
+          browser: ENV_browser
+        })[envCtor] || ENV_browser;
       }
 
+      ENV = new envCtor(util);
       this.__env = ENV;
       this.__dir = ENV.getCwd();
-
       if (!ENV.loadModule) {
         ENV.loadModule = loadModule;
       }
-
       jsioPath.cache['jsio'] = cloneFrom ? cloneFrom.path.cache.jsio : ENV.getPath();
       if (envCtor == ENV_browser) {
         jsioPath.set(ENV.getPath());
       }
     };
 
-    if (cloneFrom) {
-      jsio.setEnv();
-    } else if (typeof JSIO_ENV_CTOR !== 'undefined') {
-      jsio.setEnv(JSIO_ENV_CTOR);
-    } else if (typeof process !== 'undefined' && process.version) {
-      jsio.setEnv('node');
-    } else if (typeof XMLHttpRequest != 'undefined' || typeof ActiveXObject != 'undefined') {
-      jsio.setEnv('browser');
-    }
-
+    jsio.setEnv('node');
     jsio.main = ENV && ENV.main;
 
     function ENV_node() {
@@ -563,33 +544,6 @@ var vm = require('vm');
       }()(path, moduleDef, opts));
     }
 
-    function execModuleDef(context, moduleDef) {
-      var src = moduleDef.src;
-      delete moduleDef.src;
-
-      var code = "(function(_){with(_){delete _;return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}}})";
-
-      var exports = moduleDef.exports = context.exports;
-
-      var fn = ENV.eval(code, moduleDef.path, src);
-      fn = fn(context);
-
-      fn.call(exports);
-
-      if (exports != context.module.exports) {
-        // Emulate node.js-style ability to reassign module.exports:
-        //   module.exports = ...
-        //
-        // Note that in node.js and js.io, setting `module.exports` invalidates
-        // the context's `exports` alias. See
-        // http://nodejs.org/api/modules.html#modules_exports_alias for more
-        moduleDef.exports = context.module.exports;
-      } else {
-        // js.io-style ability to override exports directly (`exports = `)
-        moduleDef.exports = context.exports;
-      }
-    }
-
     function resolveImportRequest(context, request, opts) {
       var cmds = jsio.__cmds,
         imports = [],
@@ -656,9 +610,6 @@ var vm = require('vm');
       fromDir = fromDir || './';
       fromFile = fromFile || INITIAL_FILE;
 
-      // require is bound to a module's (or global) context -- we can override this
-      // by using opts.exportInto
-
       var exportInto = opts.exportInto || boundContext || ENV.global;
 
       // parse the import request(s)
@@ -666,123 +617,113 @@ var vm = require('vm');
         numImports = imports.length,
         retVal = numImports > 1 ? {} : null;
 
-      // import each requested item
-      for (var i = 0; i < numImports; ++i) {
-        var item = imports[i];
-        var modulePath = item.from;
-        var modules = jsio.__modules;
-        var path;
-        var moduleDef;
-        var err;
+      var item = imports[0];
+      var modulePath = item.from;
+      var modules = jsio.__modules;
+      var path;
+      var moduleDef;
+      var err;
 
-        try {
-          moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts);
-        } catch (e) {
-          err = e;
-        }
+      try {
+        moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts);
+      } catch (e) {
+        err = e;
+      }
 
-        if (moduleDef) {
-          path = moduleDef.path;
-        } else if (moduleDef === false) {
-          return false;
-        }
+      if (moduleDef) {
+        path = moduleDef.path;
+      } else if (moduleDef === false) {
+        return false;
+      }
 
-        if (err) {
-          if (opts.suppressErrors) {
-            return false;
+      if (moduleDef) {
+        importStack.push({
+          friendlyPath: moduleDef.friendlyPath,
+          path: moduleDef.path,
+          stack: new Error().stack
+        });
+      }
+
+      // eval any packages that we don't know about already
+      if (!(path in modules)) {
+        modules[path] = moduleDef;
+      }
+
+      if (!moduleDef.exports) {
+        var newContext = makeContext(opts.context, modulePath, moduleDef, item.dontAddBase);
+        if (item.dontUseExports) {
+          var src = [';(function(){'],
+            k = 1;
+          for (var j in item['import']) {
+            newContext.exports[j] = undefined;
+            src[k++] = 'if(typeof ' + j + '!="undefined"&&exports.' + j + '==undefined)exports.' + j + '=' + j + ';';
           }
-          if (!err.jsioLogged) {
-            ENV.log(
-              '\nError loading module:\n',
-              '    [[', request, ']]\n',
-              '    requested by:', fromDir + fromFile, '\n',
-              '    current directory:', jsio.__env.getCwd(), '\n',
-              '  ' + err.stack.split('\n').join('\n  '));
-            err.jsioLogged = true;
+          src[k] = '})();';
+          moduleDef.src += src.join('');
+        }
+
+        var src = moduleDef.src;
+        delete moduleDef.src;
+        var code = "(function(_){with(_){delete _;return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}}})";
+        var exports = moduleDef.exports = newContext.exports;
+        var fn = ENV.eval(code, moduleDef.path, src);
+        fn = fn(newContext);
+        fn.call(exports);
+        if (exports != newContext.module.exports) {
+          moduleDef.exports = newContext.module.exports;
+        } else {
+          moduleDef.exports = newContext.exports;
+        }
+      }
+
+      importStack.pop();
+
+      var module = moduleDef.exports;
+
+      // return the module if we're only importing one module
+      if (numImports == 1) {
+        retVal = module;
+      }
+
+      if (!opts.dontExport) {
+        // add the module to the current context
+        if (item.as) {
+          // remove trailing/leading dots
+          var as = item.as.match(/^\.*(.*?)\.*$/)[1],
+            segments = as.split('.'),
+            kMax = segments.length - 1,
+            c = exportInto;
+
+          // build the object in the context
+          for (var k = 0; k < kMax; ++k) {
+            var segment = segments[k];
+            if (!segment) continue;
+            if (!c[segment]) {
+              c[segment] = {};
+            }
+            c = c[segment];
           }
 
-          throw err;
-        }
+          c[segments[kMax]] = module;
 
-        if (moduleDef) {
-          importStack.push({
-            friendlyPath: moduleDef.friendlyPath,
-            path: moduleDef.path,
-            stack: new Error().stack
-          });
-        }
-
-        // eval any packages that we don't know about already
-        if (!(path in modules)) {
-          modules[path] = moduleDef;
-        }
-
-        if (!moduleDef.exports) {
-          var newContext = makeContext(opts.context, modulePath, moduleDef, item.dontAddBase);
-          if (item.dontUseExports) {
-            var src = [';(function(){'],
-              k = 1;
-            for (var j in item['import']) {
-              newContext.exports[j] = undefined;
-              src[k++] = 'if(typeof ' + j + '!="undefined"&&exports.' + j + '==undefined)exports.' + j + '=' + j + ';';
-            }
-            src[k] = '})();';
-            moduleDef.src += src.join('');
+          // there can be multiple module imports with this syntax (import foo, bar)
+          if (numImports > 1) {
+            retVal[as] = module;
           }
-
-          execModuleDef(newContext, moduleDef);
-        }
-
-        importStack.pop();
-
-        var module = moduleDef.exports;
-
-        // return the module if we're only importing one module
-        if (numImports == 1) {
-          retVal = module;
-        }
-
-        if (!opts.dontExport) {
-          // add the module to the current context
-          if (item.as) {
-            // remove trailing/leading dots
-            var as = item.as.match(/^\.*(.*?)\.*$/)[1],
-              segments = as.split('.'),
-              kMax = segments.length - 1,
-              c = exportInto;
-
-            // build the object in the context
-            for (var k = 0; k < kMax; ++k) {
-              var segment = segments[k];
-              if (!segment) continue;
-              if (!c[segment]) {
-                c[segment] = {};
-              }
-              c = c[segment];
+        } else if (item['import']) {
+          // there can only be one module import with this syntax
+          // (from foo import bar), so retVal will already be set here
+          if (item['import']['*']) {
+            for (var k in modules[path].exports) {
+              exportInto[k] = module[k];
             }
-
-            c[segments[kMax]] = module;
-
-            // there can be multiple module imports with this syntax (import foo, bar)
-            if (numImports > 1) {
-              retVal[as] = module;
-            }
-          } else if (item['import']) {
-            // there can only be one module import with this syntax
-            // (from foo import bar), so retVal will already be set here
-            if (item['import']['*']) {
-              for (var k in modules[path].exports) {
-                exportInto[k] = module[k];
-              }
-            } else {
-              for (var k in item['import']) {
-                exportInto[item['import'][k]] = module[k];
-              }
+          } else {
+            for (var k in item['import']) {
+              exportInto[item['import'][k]] = module[k];
             }
           }
         }
       }
-
       return retVal;
     }
 
