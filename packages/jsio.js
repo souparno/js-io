@@ -226,35 +226,25 @@ var vm = require('vm');
     jsio.setEnv = function(envCtor) {
       if (typeof envCtor == 'string') {
         envCtor = ({
-          node: ENV_node,
-          browser: ENV_browser
-        })[envCtor] || ENV_browser;
+          node: ENV_node
+        })[envCtor];
       }
 
       ENV = new envCtor(util);
       this.__env = ENV;
       this.__dir = ENV.getCwd();
-      if (!ENV.loadModule) {
-        ENV.loadModule = loadModule;
-      }
-      jsioPath.cache['jsio'] = cloneFrom ? cloneFrom.path.cache.jsio : ENV.getPath();
-      if (envCtor == ENV_browser) {
-        jsioPath.set(ENV.getPath());
-      }
     };
 
     jsio.setEnv('node');
     jsio.main = ENV && ENV.main;
 
     function ENV_node() {
+      //console.trace();
       var Module = module.constructor;
-
       var parent = module.parent;
-
 
       this.requireCache = require.cache;
       this.main = require.main;
-      this.name = 'node';
       this.global = global;
       this.isWindowsNode = (process.platform === 'win32');
 
@@ -300,7 +290,7 @@ var vm = require('vm');
         } catch (e) {
           return false;
         }
-      };
+        };
 
       var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
       this.loadModule = function(baseLoader, fromDir, fromFile, item, opts) {
@@ -351,114 +341,6 @@ var vm = require('vm');
         }
       };
     }
-
-    function ENV_browser() {
-      var XHR = window.XMLHttpRequest || function() {
-          return new ActiveXObject("Msxml2.XMLHTTP");
-        },
-        cwd = null,
-        path = null,
-        JOIN = Array.prototype.join;
-
-      this.name = 'browser';
-      this.global = window;
-      this.pathSep = "/";
-
-      if (!this.global.jsio) {
-        this.global.jsio = jsio;
-      }
-
-      if (window.console && console.log) {
-        if (!console.log.apply || /Android|iPhone|iPad|iPod/.test(navigator.userAgent)) {
-          this.log = function() {
-            var args = JOIN.call(arguments, ' ');
-            console.log(args);
-            return args;
-          };
-        } else {
-          this.log = function() {
-            console.log.apply(console, arguments);
-            return JOIN.call(arguments, ' ');
-          };
-        }
-      } else {
-        this.log = function() {
-          return JOIN.call(arguments, ' ');
-        };
-      }
-
-      this.getCwd = function() {
-        if (!cwd) {
-          var loc = window.location,
-            path = loc.pathname;
-          cwd = loc.protocol + '//' + loc.host + path.substring(0, path.lastIndexOf('/') + 1);
-        }
-        return cwd;
-      };
-
-      this.getPath = function() {
-        if (!path) {
-          try {
-            var filename = new RegExp('(.*?)' + jsio.__filename + '(\\?.*)?$'),
-              scripts = document.getElementsByTagName('script');
-
-            for (var i = 0, script; script = scripts[i]; ++i) {
-              var result = script.src.match(filename);
-              if (result) {
-                path = result[1];
-                if (/^[A-Za-z]*:\/\//.test(path)) {
-                  path = util.relative(this.getCwd(), path);
-                }
-                break;
-              }
-            }
-          } catch (e) {}
-
-          if (!path) {
-            path = '.';
-          }
-        }
-        return path;
-      };
-
-      var debugHost = location.protocol + '//' + location.host + '/';
-      var debugPath = location.pathname;
-      this.debugPath = function(path) {
-        return util.buildPath(debugHost, path[0] != '/' && debugPath, path);
-      };
-
-      // IE6 won't return an anonymous function from eval, so use the function constructor instead
-      var rawEval = typeof eval('(function(){})') == 'undefined' ? function(src, path) {
-        return (new Function('return ' + src))();
-      } : function(src, path) {
-        var src = src + '\n//@ sourceURL=' + path;
-        return window.eval(src);
-      };
-
-      // provide an eval with reasonable debugging
-      this.eval = function(code, path, origCode) {
-        try {
-          return rawEval(code, this.debugPath(path));
-        } catch (e) {
-          if (e instanceof SyntaxError) {
-            if (DEBUG && this.checkSyntax) {
-              this.checkSyntax(origCode, path);
-            }
-          }
-          throw e;
-        }
-      };
-
-      this.checkSyntax = function(code, path) {
-        try {
-          var syntax = jsio('import jsio.util.syntax', {
-            suppressErrors: true,
-            dontExport: true
-          });
-          syntax(code, path);
-        } catch (e) {}
-      };
-    };
 
     var failedFetch = {};
 
@@ -764,4 +646,4 @@ var vm = require('vm');
     return jsio;
   }
   module.exports = init();
-})();
+}());
