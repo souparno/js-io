@@ -3,7 +3,7 @@ var path = require('path');
 var vm = require('vm');
 
 (function() {
-  function init(cloneFrom) {
+  function init() {
     var INITIAL_FILE = '<initial file>';
     var MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
     var DEBUG = true;
@@ -161,7 +161,7 @@ var vm = require('vm');
     jsio.setCache = function(cache) {
       srcCache = jsio.__srcCache = cache;
     };
-    jsio.setCache(cloneFrom && cloneFrom.__srcCache || {});
+    jsio.setCache({});
 
     jsio.setCachedSrc = function(path, src, locked) {
       if (srcCache[path] && srcCache[path].locked) {
