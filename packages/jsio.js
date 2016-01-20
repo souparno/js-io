@@ -179,7 +179,6 @@ var vm = require('vm');
     };
 
     jsio.__filename = 'jsio.js';
-    jsio.__cmds = [];
     jsio.__jsio = jsio;
     jsio.__require = _require;
     jsio.__modules = {
@@ -290,7 +289,7 @@ var vm = require('vm');
         } catch (e) {
           return false;
         }
-        };
+      };
 
       var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
       this.loadModule = function(baseLoader, fromDir, fromFile, item, opts) {
@@ -426,21 +425,21 @@ var vm = require('vm');
       }()(path, moduleDef, opts));
     }
 
-    function resolveImportRequest(request, opts) {
-      var cmds = jsio.__cmds,
-        imports = [],
-        result = false;
-
-      for (var i = 0, imp; imp = cmds[i]; ++i) {
-        if ((result = imp(request, opts, imports))) {
-          break;
-        }
+    function resolveImportRequest(request) {
+      var  imports = [];
+      var match = request.match(/^\s*import\s+(.*)$/);
+      if (match) {
+        match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
+          imports.push(
+            as ? {
+              from: fullPath,
+              as: as
+            } : {
+              from: fullPath,
+              as: fullPath
+            });
+        });
       }
-
-      if (result !== true) {
-        throw new(typeof SyntaxError != 'undefined' ? SyntaxError : Error)(String(result || 'invalid jsio command: jsio(\'' + request + '\')'));
-      }
-
       return imports;
     }
 
@@ -495,7 +494,7 @@ var vm = require('vm');
       var exportInto = opts.exportInto || boundContext || global;
 
       // parse the import request(s)
-      var imports = resolveImportRequest(request, opts),
+      var imports = resolveImportRequest(request),
         numImports = imports.length,
         retVal = numImports > 1 ? {} : null;
 
@@ -608,24 +607,6 @@ var vm = require('vm');
       }
       return retVal;
     }
-
-    // import myPackage
-    jsio.__cmds.push(function(request, opts, imports) {
-      var match = request.match(/^\s*import\s+(.*)$/);
-      if (match) {
-        match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
-          imports.push(
-            as ? {
-              from: fullPath,
-              as: as
-            } : {
-              from: fullPath,
-              as: fullPath
-            });
-        });
-        return true;
-      }
-    });
     return jsio;
   }
   module.exports = init();
