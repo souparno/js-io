@@ -421,9 +421,8 @@ var vm = require('vm');
       var modulePath = item.from;
       var modules = jsio.__modules;
       var path;
-      var moduleDef;
       var err;
-      moduleDef = loadModule(fromDir, fromFile, item, opts);
+      var moduleDef = loadModule(fromDir, fromFile, item, opts);
 
 
       if (moduleDef) {
