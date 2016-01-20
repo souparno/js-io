@@ -426,13 +426,13 @@ var vm = require('vm');
       }()(path, moduleDef, opts));
     }
 
-    function resolveImportRequest(context, request, opts) {
+    function resolveImportRequest(request, opts) {
       var cmds = jsio.__cmds,
         imports = [],
         result = false;
 
       for (var i = 0, imp; imp = cmds[i]; ++i) {
-        if ((result = imp(context, request, opts, imports))) {
+        if ((result = imp(request, opts, imports))) {
           break;
         }
       }
@@ -495,7 +495,7 @@ var vm = require('vm');
       var exportInto = opts.exportInto || boundContext || global;
 
       // parse the import request(s)
-      var imports = resolveImportRequest(exportInto, request, opts),
+      var imports = resolveImportRequest(request, opts),
         numImports = imports.length,
         retVal = numImports > 1 ? {} : null;
 
@@ -609,7 +609,7 @@ var vm = require('vm');
       return retVal;
     }
 
-    jsio.__cmds.push(function(context, request, opts, imports) {
+    jsio.__cmds.push(function(request, opts, imports) {
       var match = request.match(/^\s*(from|external)\s+([\w.\-$]+)\s+(import|grab)\s+(.*)$/);
       if (match) {
         imports.push({
@@ -627,7 +627,7 @@ var vm = require('vm');
     });
 
     // import myPackage
-    jsio.__cmds.push(function(context, request, opts, imports) {
+    jsio.__cmds.push(function(request, opts, imports) {
       var match = request.match(/^\s*import\s+(.*)$/);
       if (match) {
         match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
