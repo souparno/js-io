@@ -492,7 +492,7 @@ var vm = require('vm');
       fromDir = fromDir || './';
       fromFile = fromFile || INITIAL_FILE;
 
-      var exportInto = opts.exportInto || boundContext || ENV.global;
+      var exportInto = opts.exportInto || boundContext || global;
 
       // parse the import request(s)
       var imports = resolveImportRequest(exportInto, request, opts),
