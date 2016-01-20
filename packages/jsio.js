@@ -609,23 +609,6 @@ var vm = require('vm');
       return retVal;
     }
 
-    jsio.__cmds.push(function(request, opts, imports) {
-      var match = request.match(/^\s*(from|external)\s+([\w.\-$]+)\s+(import|grab)\s+(.*)$/);
-      if (match) {
-        imports.push({
-          from: match[2],
-          dontAddBase: match[1] == 'external',
-          dontUseExports: match[3] == 'grab' || match[1] == 'external',
-          'import': {}
-        });
-
-        match[4].replace(/\s*([\w.\-$*]+)(?:\s+as\s+([\w.\-$]+))?/g, function(_, item, as) {
-          imports[0]['import'][item] = as || item;
-        });
-        return true;
-      }
-    });
-
     // import myPackage
     jsio.__cmds.push(function(request, opts, imports) {
       var match = request.match(/^\s*import\s+(.*)$/);
