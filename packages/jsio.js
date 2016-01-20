@@ -307,37 +307,8 @@ var vm = require('vm');
           }
         }
 
-        try {
-          return baseLoader(null, fromDir, fromFile, item, opts);
-        } catch (e) {
-          if (e.code == MODULE_NOT_FOUND) {
-            var require = req;
-            // lookup node module for relative imports
-            var module;
-            var filename = path.join(fromDir, fromFile);
-            module = this.requireCache[filename];
-            if (!module) {
-              module = new Module(filename);
-              module.filename = filename;
-              module.paths = Module._nodeModulePaths(path.dirname(filename));
-            }
-            var request = item.original || item.from;
-            try {
-              return {
-                exports: module ? module.require(request) : require(request),
-                path: item.from
-              };
-            } catch (e2) {
-              if (e2.code == MODULE_NOT_FOUND) {
-                throw e;
-              }
+        return baseLoader(fromDir, fromFile, item, opts);
 
-              throw e2;
-            }
-          } else {
-            throw e;
-          }
-        }
       };
     }
 
@@ -362,7 +333,7 @@ var vm = require('vm');
       return false;
     }
     // load a module from a file
-    function loadModule(baseLoader, fromDir, fromFile, item, opts) {
+    function loadModule(fromDir, fromFile, item, opts) {
       var modulePath = item.from;
       var possibilities = util.resolveModulePath(modulePath, fromDir);
       for (var i = 0, p; p = possibilities[i]; ++i) {
@@ -495,8 +466,8 @@ var vm = require('vm');
 
       // parse the import request(s)
       var imports = resolveImportRequest(request);
-      var  numImports = imports.length;
-      var  retVal = numImports > 1 ? {} : null;
+      var numImports = imports.length;
+      var retVal = numImports > 1 ? {} : null;
 
       var item = imports[0];
       var modulePath = item.from;
