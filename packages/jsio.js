@@ -291,23 +291,7 @@ var vm = require('vm');
         }
       };
 
-      var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
-      this.loadModule = function(baseLoader, fromDir, fromFile, item, opts) {
-        if (fromFile == INITIAL_FILE && !opts.initialImport) {
-          var stack = new Error().stack;
-          var match;
-          stackRe.lastIndex = 0;
-          do {
-            match = stackRe.exec(stack);
-          } while (match && /jsio\.js$/.test(match[1]));
 
-          if (match) {
-            fromDir = path.dirname(match[1]);
-            fromFile = path.basename(match[1]);
-          }
-        }
-        return baseLoader(fromDir, fromFile, item, opts);
-      };
     }
 
     var failedFetch = {};
@@ -315,8 +299,8 @@ var vm = require('vm');
     function findModule(possibilities) {
       var src;
       for (var i = 0, possible; possible = possibilities[i]; ++i) {
-        var path = possible.path,
-          cachedVersion = srcCache[path];
+        var path = possible.path;
+        var cachedVersion = srcCache[path];
 
         src = ENV.fetch(path);
 
@@ -327,42 +311,34 @@ var vm = require('vm');
           failedFetch[path] = true;
         }
       }
-
       return false;
     }
-    // load a module from a file
-    function loadModule(fromDir, fromFile, item, opts) {
+
+    var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
+    this.loadModule = function(fromDir, fromFile, item, opts) {
+      if (fromFile == INITIAL_FILE && !opts.initialImport) {
+        var stack = new Error().stack;
+        var match;
+        stackRe.lastIndex = 0;
+        do {
+          match = stackRe.exec(stack);
+        } while (match && /jsio\.js$/.test(match[1]));
+
+        if (match) {
+          fromDir = path.dirname(match[1]);
+          fromFile = path.basename(match[1]);
+        }
+      }
       var modulePath = item.from;
       var possibilities = util.resolveModulePath(modulePath, fromDir);
-      for (var i = 0, p; p = possibilities[i]; ++i) {
-        var path = possibilities[i].path;
-        if (!opts.reload && (path in jsio.__modules)) {
-          return possibilities[i];
-        }
-
-        if (path in failedFetch) {
-          possibilities.splice(i--, 1);
-        }
-      }
-
-      if (!possibilities.length) {
-        if (opts.suppressErrors) {
-          return false;
-        }
-        var e = new Error('Could not import `' + item.from + '`' + "\tImport Stack:\n" + "\t\t" + processStack().join("\n\t\t"));
-        e.jsioLogged = true;
-        e.code = MODULE_NOT_FOUND;
-        throw e;
-      }
-
       var moduleDef = findModule(possibilities);
       moduleDef.friendlyPath = modulePath;
       applyPreprocessors(fromDir, moduleDef, opts);
       return moduleDef;
-    }
+    };
 
     function applyPreprocessors(fromDir, moduleDef, opts) {
-      var p = (function() {
+      (function() {
         var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
 
         function replace(raw, p1, p2, p3) {
@@ -456,12 +432,8 @@ var vm = require('vm');
       var path;
       var moduleDef;
       var err;
+      moduleDef = loadModule(fromDir, fromFile, item, opts);
 
-      try {
-        moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts);
-      } catch (e) {
-        err = e;
-      }
 
       if (moduleDef) {
         path = moduleDef.path;
