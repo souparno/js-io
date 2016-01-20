@@ -426,7 +426,7 @@ var vm = require('vm');
     }
 
     function resolveImportRequest(request) {
-      var  imports = [];
+      var imports = [];
       var match = request.match(/^\s*import\s+(.*)$/);
       if (match) {
         match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
@@ -494,9 +494,9 @@ var vm = require('vm');
       var exportInto = opts.exportInto || boundContext || global;
 
       // parse the import request(s)
-      var imports = resolveImportRequest(request),
-        numImports = imports.length,
-        retVal = numImports > 1 ? {} : null;
+      var imports = resolveImportRequest(request);
+      var  numImports = imports.length;
+      var  retVal = numImports > 1 ? {} : null;
 
       var item = imports[0];
       var modulePath = item.from;
