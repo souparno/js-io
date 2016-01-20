@@ -358,12 +358,9 @@ var vm = require('vm');
         ctx.exports = {};
       }
 
-      ctx.jsio = (function(context, method, ctx, directory, filename) {
-        return function(request) {
-          args = [ctx, directory, filename, request];
-          return method.apply(context, args);
-        };
-      }(this, _require, ctx, moduleDef.directory, moduleDef.filename));
+      ctx.jsio = function(request) {
+        return _require.apply(ctx, [ctx, moduleDef.directory, moduleDef.ilename, request]);
+      };
 
       ctx.require = function(request, opts) {
         if (!opts) {
@@ -399,8 +396,6 @@ var vm = require('vm');
       fromFile = fromFile || INITIAL_FILE;
 
       var exportInto = opts.exportInto || boundContext || global;
-
-      // parse the import request(s)
       var imports = resolveImportRequest(request);
       var numImports = imports.length;
       var retVal = numImports > 1 ? {} : null;
