@@ -49,7 +49,6 @@ var vm = require('vm');
             pieces.push(piece);
           }
         }
-
         return util.resolveRelativePath(pieces.join('/'));
       },
 
@@ -178,9 +177,6 @@ var vm = require('vm');
       return srcCache[path];
     };
 
-    jsio.__filename = 'jsio.js';
-    jsio.__jsio = jsio;
-    jsio.__require = _require;
     jsio.__modules = {
       preprocessors: {}
     };
