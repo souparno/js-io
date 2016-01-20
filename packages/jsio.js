@@ -616,10 +616,9 @@ var vm = require('vm');
         ctx.exports = {};
       }
 
-      ctx.jsio = (function(context, method) {
-        var args = SLICE.call(arguments, 2);
-        return function() {
-          args = args.concat(SLICE.call(arguments, 0));
+      ctx.jsio = (function(context, method, ctx, directory, filename) {
+        return function(request) {
+          args = [ctx, directory, filename, request];
           return method.apply(context, args);
         };
       }(this, _require, ctx, moduleDef.directory, moduleDef.filename));
