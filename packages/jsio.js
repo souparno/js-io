@@ -306,9 +306,7 @@ var vm = require('vm');
             fromFile = path.basename(match[1]);
           }
         }
-
         return baseLoader(fromDir, fromFile, item, opts);
-
       };
     }
 
@@ -358,29 +356,12 @@ var vm = require('vm');
       }
 
       var moduleDef = findModule(possibilities);
-      // a (potentially) nicer way to refer to a module -- how it was referenced in code when it was first imported
       moduleDef.friendlyPath = modulePath;
-
-      // cache the base module's path in the path cache so we don't have to
-      // try out all paths the next time we see the same base module.
-      if (moduleDef.baseMod && !(moduleDef.baseMod in jsioPath.cache)) {
-        jsioPath.cache[moduleDef.baseMod] = moduleDef.basePath;
-      }
-
-      // don't apply the standard preprocessors to base.js.  If we're reloading
-      // the source code, always apply them.  We also don't want to run them
-      // if they've been run once -- moduleDef.pre is set to true already
-      // if we're reading the code from the source cache.
-      if (modulePath != 'base' && (opts.reload || !opts.dontPreprocess && !moduleDef.pre)) {
-        moduleDef.pre = true;
-
-        applyPreprocessors(fromDir, moduleDef, ["import"], opts);
-      }
-
+      applyPreprocessors(fromDir, moduleDef, opts);
       return moduleDef;
     }
 
-    function applyPreprocessors(path, moduleDef, names, opts) {
+    function applyPreprocessors(fromDir, moduleDef, opts) {
       var p = (function() {
         var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
 
@@ -390,10 +371,10 @@ var vm = require('vm');
           }
           return raw;
         }
-        return function(path, moduleDef, opts) {
+        return function(fromDir, moduleDef, opts) {
           moduleDef.src = moduleDef.src.replace(importExpr, replace);
         }
-      }()(path, moduleDef, opts));
+      }()(fromDir, moduleDef, opts));
     }
 
     function resolveImportRequest(request) {
