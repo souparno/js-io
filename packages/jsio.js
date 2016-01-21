@@ -442,16 +442,16 @@ var vm = require('vm');
 
         var src = moduleDef.src;
         delete moduleDef.src;
-        var code = "(function(_){with(_){delete _;return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}}})";
-        var exports = moduleDef.exports = newContext.exports;
-        var fn = ENV.eval(code, moduleDef.path, src);
+        var code = "(function(args){" +
+          "with(args){" +
+          "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
+          "}" +
+          "})";
+
+        var fn = eval(code);
         fn = fn(newContext);
-        fn.call(exports);
-        if (exports != newContext.module.exports) {
-          moduleDef.exports = newContext.module.exports;
-        } else {
-          moduleDef.exports = newContext.exports;
-        }
+        fn.call();
+        moduleDef.exports = newContext.exports;
       }
 
       importStack.pop();
