@@ -349,45 +349,6 @@ var vm = require('vm');
       }
       return imports;
     }
-
-    function makeContext(ctx, modulePath, moduleDef, dontAddBase) {
-      if (!ctx) {
-        ctx = {};
-      }
-      if (!ctx.exports) {
-        ctx.exports = {};
-      }
-
-      ctx.jsio = function(request) {
-        return _require.apply(ctx, [ctx, moduleDef.directory, moduleDef.ilename, request]);
-      };
-
-      ctx.require = function(request, opts) {
-        if (!opts) {
-          opts = {};
-        }
-        opts.dontExport = true;
-        return ctx.jsio(request, opts);
-      };
-
-      ctx.require.main = ENV.main;
-
-      ctx.module = {
-        id: modulePath,
-        exports: ctx.exports
-      };
-      // TODO: FIX for "trailing ." case
-      ctx.jsio.__jsio = jsio;
-      ctx.jsio.__env = jsio.__env;
-      ctx.jsio.__dir = moduleDef.directory;
-      ctx.jsio.__filename = moduleDef.filename;
-      ctx.jsio.path = jsioPath;
-
-      ctx.__dirname = moduleDef.directory;
-      ctx.__filename = util.buildPath(ctx.__dirname, moduleDef.filename);
-      return ctx;
-    }
-
     var importStack = [];
 
     function _require(boundContext, fromDir, fromFile, request, opts) {
@@ -428,20 +389,8 @@ var vm = require('vm');
       }
 
       if (!moduleDef.exports) {
-        var newContext = makeContext(opts.context, modulePath, moduleDef, item.dontAddBase);
-        if (item.dontUseExports) {
-          var src = [';(function(){'],
-            k = 1;
-          for (var j in item['import']) {
-            newContext.exports[j] = undefined;
-            src[k++] = 'if(typeof ' + j + '!="undefined"&&exports.' + j + '==undefined)exports.' + j + '=' + j + ';';
-          }
-          src[k] = '})();';
-          moduleDef.src += src.join('');
-        }
-
+        var newContext = {exports:{}};
         var src = moduleDef.src;
-        delete moduleDef.src;
         var code = "(function(args){" +
           "with(args){" +
           "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
