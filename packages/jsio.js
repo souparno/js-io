@@ -1,6 +1,5 @@
 var fs = require('fs');
 var path = require('path');
-var vm = require('vm');
 
 (function() {
   function init() {
@@ -245,10 +244,6 @@ var vm = require('vm');
         return __dirname;
       };
 
-      this.eval = function(code, path) {
-        return vm.runInThisContext(code, path, true);
-      };
-
       this.fetch = function(p) {
         p = util.resolve(this.getCwd(), p);
 
@@ -317,13 +312,13 @@ var vm = require('vm');
       var possibilities = util.resolveModulePath(modulePath, fromDir);
       var moduleDef = findModule(possibilities);
       moduleDef.friendlyPath = modulePath;
-      moduleDef.src = applyPreprocessors(fromDir, moduleDef, opts);
+      moduleDef.src = applyPreprocessors(moduleDef.src, opts);
       return moduleDef;
     };
 
-    function applyPreprocessors(fromDir, moduleDef, opts) {
+    function applyPreprocessors(src, opts) {
       var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
-      return moduleDef.src.replace(importExpr,
+      return src.replace(importExpr,
         function(raw, p1, p2, p3) {
           if (!/\/\//.test(p1)) {
             return p1 + 'jsio(\'' + p2 + '\')' + p3;
@@ -389,14 +384,15 @@ var vm = require('vm');
       }
 
       if (!moduleDef.exports) {
-        var newContext = {exports:{}};
+        var newContext = {
+          exports: {}
+        };
         var src = moduleDef.src;
         var code = "(function(args){" +
           "with(args){" +
           "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
           "}" +
           "})";
-
         var fn = eval(code);
         fn = fn(newContext);
         fn.call();
