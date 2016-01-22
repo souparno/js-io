@@ -272,42 +272,20 @@ var path = require('path');
 
 
     }
-
-    var failedFetch = {};
-
+    
     function findModule(possibilities) {
-      var src;
       for (var i = 0, possible; possible = possibilities[i]; ++i) {
         var path = possible.path;
         var cachedVersion = srcCache[path];
+        var src = ENV.fetch(path);
 
-        src = ENV.fetch(path);
-
-        if (src !== false) {
-          possible.src = src;
-          return possible;
-        } else {
-          failedFetch[path] = true;
-        }
+        possible.src = src;
+        return possible;
       }
       return false;
-    }
+    };
 
-    var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
-    this.loadModule = function(fromDir, fromFile, item, opts) {
-      if (fromFile == INITIAL_FILE && !opts.initialImport) {
-        var stack = new Error().stack;
-        var match;
-        stackRe.lastIndex = 0;
-        do {
-          match = stackRe.exec(stack);
-        } while (match && /jsio\.js$/.test(match[1]));
-
-        if (match) {
-          fromDir = path.dirname(match[1]);
-          fromFile = path.basename(match[1]);
-        }
-      }
+    function loadModule(fromDir, fromFile, item, opts) {
       var modulePath = item.from;
       var possibilities = util.resolveModulePath(modulePath, fromDir);
       var moduleDef = findModule(possibilities);
@@ -354,7 +332,7 @@ var path = require('path');
         };
       }(ctx, moduleDef.directory, moduleDef.filename));
       return ctx;
-    }
+    };
 
     var importStack = [];
 
