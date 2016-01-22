@@ -343,7 +343,19 @@ var path = require('path');
         });
       }
       return imports;
+    };
+
+    function makeContext(ctx, moduleDef) {
+      ctx = {};
+      ctx.exports = {};
+      ctx.jsio = (function(ctx, directory, filename) {
+        return function(request) {
+          return _require.apply(this, [ctx, directory, filename, request]);
+        };
+      }(ctx, moduleDef.directory, moduleDef.filename));
+      return ctx;
     }
+
     var importStack = [];
 
     function _require(boundContext, fromDir, fromFile, request, opts) {
@@ -384,9 +396,7 @@ var path = require('path');
       }
 
       if (!moduleDef.exports) {
-        var newContext = {
-          exports: {}
-        };
+        var newContext = makeContext(opts.context, moduleDef);
         var src = moduleDef.src;
         var code = "(function(args){" +
           "with(args){" +

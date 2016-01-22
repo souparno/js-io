@@ -1,3 +1,3 @@
 # jsio.js
 
-run eample  $node example/app.js
+node -e "var jsio = require('./packages/jsio'); jsio('import .example.app')"
