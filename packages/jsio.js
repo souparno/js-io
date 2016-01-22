@@ -15,16 +15,15 @@ var path = require('path');
     function getModuleDef(path) {
       path += '.js';
       return jsio.__modules[path] || new ModuleDef(path);
-    }
+    };
 
     // Creates an object containing metadata about a module.
     function ModuleDef(path) {
       this.path = path;
       this.friendlyPath = path;
-
       util.splitPath(path, this);
       this.directory = util.resolve(ENV.getCwd(), this.directory);
-    }
+    };
 
     ModuleDef.prototype.setBase = function(baseMod, basePath) {
       this.baseMod = baseMod;
@@ -269,10 +268,8 @@ var path = require('path');
           return false;
         }
       };
+    };
 
-
-    }
-    
     function findModule(possibilities) {
       for (var i = 0, possible; possible = possibilities[i]; ++i) {
         var path = possible.path;
