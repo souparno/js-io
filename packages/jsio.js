@@ -17,12 +17,13 @@ var path = require('path');
       return jsio.__modules[path] || new ModuleDef(path);
     };
 
-    // Creates an object containing metadata about a module.
     function ModuleDef(path) {
+      var i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1;
+
       this.path = path;
       this.friendlyPath = path;
-      util.splitPath(path, this);
-      this.directory = util.resolve(ENV.getCwd(), this.directory);
+      this.filename = path.substring(i);
+      this.directory = util.resolve(ENV.getCwd(), path.substring(0, i));
     };
 
     ModuleDef.prototype.setBase = function(baseMod, basePath) {
@@ -138,15 +139,6 @@ var path = require('path');
           defs.push(moduleDef);
         }
         return defs;
-      },
-      splitPath: function(path, result) {
-        if (!result) {
-          result = {};
-        }
-        var i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1;
-        result.directory = path.substring(0, i);
-        result.filename = path.substring(i);
-        return result;
       }
     };
 
