@@ -14,7 +14,7 @@ var path = require('path');
 
     function getModuleDef(path) {
       path += '.js';
-      return jsio.__modules[path] || new ModuleDef(path);
+      return new ModuleDef(path);
     };
 
     function ModuleDef(path) {
@@ -167,9 +167,7 @@ var path = require('path');
       return srcCache[path];
     };
 
-    jsio.__modules = {
-      preprocessors: {}
-    };
+    jsio.__modules = {};
     var jsioPath = {
       set: function(path) {
         this.value = [];
@@ -312,17 +310,6 @@ var path = require('path');
       return imports;
     };
 
-    function makeContext(ctx, moduleDef) {
-      ctx = {};
-      ctx.exports = {};
-      ctx.jsio = (function(ctx, directory, filename) {
-        return function(request) {
-          return _require.apply(this, [ctx, directory, filename, request]);
-        };
-      }(ctx, moduleDef.directory, moduleDef.filename));
-      return ctx;
-    };
-
     var importStack = [];
 
     function _require(boundContext, fromDir, fromFile, request, opts) {
@@ -330,7 +317,7 @@ var path = require('path');
       fromDir = fromDir || './';
       fromFile = fromFile || INITIAL_FILE;
 
-      var exportInto = opts.exportInto || boundContext || global;
+      var exportInto = boundContext || global;
       var imports = resolveImportRequest(request);
       var numImports = imports.length;
       var retVal = numImports > 1 ? {} : null;
@@ -362,22 +349,25 @@ var path = require('path');
         modules[path] = moduleDef;
       }
 
-      if (!moduleDef.exports) {
-        var newContext = makeContext(opts.context, moduleDef);
-        var src = moduleDef.src;
-        var code = "(function(args){" +
-          "with(args){" +
-          "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
-          "}" +
-          "})";
-        var fn = eval(code);
-        fn = fn(newContext);
-        fn.call();
-        moduleDef.exports = newContext.exports;
-      }
-
+      var ctx = {
+        exports: {},
+        jsio: (function(directory, filename) {
+          return function(request) {
+            _require.apply(ctx, [ctx, directory, filename, request]);
+          };
+        }(moduleDef.directory, moduleDef.filename))
+      };
+      var src = moduleDef.src;
+      var code = "(function(args){" +
+        "with(args){" +
+        "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
+        "}" +
+        "})";
+      var fn = eval(code);
+      fn = fn(ctx);
+      fn();
+      moduleDef.exports = ctx.exports;
       importStack.pop();
-
       var module = moduleDef.exports;
 
       // return the module if we're only importing one module
