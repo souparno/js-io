@@ -322,15 +322,6 @@ var path = require('path');
       var moduleDef = loadModule(fromDir, fromFile, item);
       var path = moduleDef.path;
 
-
-      if (moduleDef) {
-        importStack.push({
-          friendlyPath: moduleDef.friendlyPath,
-          path: moduleDef.path,
-          stack: new Error().stack
-        });
-      }
-
       var ctx = {
         exports: {},
         jsio: (function(directory, filename) {
