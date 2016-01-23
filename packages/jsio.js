@@ -143,7 +143,7 @@ var path = require('path');
     };
 
     var jsio = function(request) {
-      _require.apply(this, [null, null, null, request]);
+      _require.apply(this, [{}, './', INITIAL_FILE, request]);
     };
 
     var srcCache;
@@ -312,29 +312,16 @@ var path = require('path');
 
     var importStack = [];
 
-    function _require(boundContext, fromDir, fromFile, request, opts) {
-      opts = opts || {};
-      fromDir = fromDir || './';
-      fromFile = fromFile || INITIAL_FILE;
-
-      var exportInto = boundContext || global;
+    function _require(exportInto, fromDir, fromFile, request) {
       var imports = resolveImportRequest(request);
-      var numImports = imports.length;
-      var retVal = numImports > 1 ? {} : null;
-
+      var retVal;
       var item = imports[0];
       var modulePath = item.from;
       var modules = jsio.__modules;
-      var path;
       var err;
-      var moduleDef = loadModule(fromDir, fromFile, item, opts);
+      var moduleDef = loadModule(fromDir, fromFile, item);
+      var path = moduleDef.path;
 
-
-      if (moduleDef) {
-        path = moduleDef.path;
-      } else if (moduleDef === false) {
-        return false;
-      }
 
       if (moduleDef) {
         importStack.push({
@@ -342,11 +329,6 @@ var path = require('path');
           path: moduleDef.path,
           stack: new Error().stack
         });
-      }
-
-      // eval any packages that we don't know about already
-      if (!(path in modules)) {
-        modules[path] = moduleDef;
       }
 
       var ctx = {
@@ -371,49 +353,26 @@ var path = require('path');
       var module = moduleDef.exports;
 
       // return the module if we're only importing one module
-      if (numImports == 1) {
+      if (imports.length == 1) {
         retVal = module;
       }
 
-      if (!opts.dontExport) {
-        // add the module to the current context
-        if (item.as) {
-          // remove trailing/leading dots
-          var as = item.as.match(/^\.*(.*?)\.*$/)[1],
-            segments = as.split('.'),
-            kMax = segments.length - 1,
-            c = exportInto;
+      // remove trailing/leading dots
+      var as = item.as.match(/^\.*(.*?)\.*$/)[1],
+        segments = as.split('.'),
+        kMax = segments.length - 1,
+        c = exportInto;
 
-          // build the object in the context
-          for (var k = 0; k < kMax; ++k) {
-            var segment = segments[k];
-            if (!segment) continue;
-            if (!c[segment]) {
-              c[segment] = {};
-            }
-            c = c[segment];
-          }
-
-          c[segments[kMax]] = module;
-
-          // there can be multiple module imports with this syntax (import foo, bar)
-          if (numImports > 1) {
-            retVal[as] = module;
-          }
-        } else if (item['import']) {
-          // there can only be one module import with this syntax
-          // (from foo import bar), so retVal will already be set here
-          if (item['import']['*']) {
-            for (var k in modules[path].exports) {
-              exportInto[k] = module[k];
-            }
-          } else {
-            for (var k in item['import']) {
-              exportInto[item['import'][k]] = module[k];
-            }
-          }
+      // build the object in the context
+      for (var k = 0; k < kMax; ++k) {
+        var segment = segments[k];
+        if (!segment) continue;
+        if (!c[segment]) {
+          c[segment] = {};
         }
+        c = c[segment];
       }
+      c[segments[kMax]] = module;
       return retVal;
     }
     return jsio;
