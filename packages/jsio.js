@@ -140,7 +140,7 @@ var util = {
   }
 };
 
-var jsio = function(request, exportInto, fromDir, fromFile) {
+function jsio(request, exportInto, fromDir, fromFile) {
   exportInto = exportInto || {};
   fromDir = fromDir || './';
   fromFile = fromFile || INITIAL_FILE;
