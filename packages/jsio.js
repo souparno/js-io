@@ -145,11 +145,7 @@ function jsio(request, exportInto, fromDir, fromFile) {
   fromFile = fromFile || INITIAL_FILE;
 
   var imports = resolveImportRequest(request);
-  var retVal;
   var item = imports[0];
-  var modulePath = item.from;
-  var modules = jsio.__modules;
-  var err;
   var moduleDef = loadModule(fromDir, fromFile, item);
   var path = moduleDef.path;
 
@@ -170,8 +166,6 @@ function jsio(request, exportInto, fromDir, fromFile) {
   var fn = eval(code);
   fn = fn(ctx);
   fn();
-  moduleDef.exports = ctx.exports;
-  var module = moduleDef.exports;
 
   // remove trailing/leading dots
   var as = item.as.match(/^\.*(.*?)\.*$/)[1],
@@ -188,7 +182,7 @@ function jsio(request, exportInto, fromDir, fromFile) {
     }
     c = c[segment];
   }
-  c[segments[kMax]] = module;
+  c[segments[kMax]] = ctx.exports;
 };
 
 var srcCache;
