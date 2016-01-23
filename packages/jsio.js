@@ -158,12 +158,11 @@ function jsio(request, exportInto, fromDir, fromFile) {
   var src = moduleDef.src;
   var code = "(function(args){" +
     "with(args){" +
-    "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
+     src +
     "}" +
     "})";
   var fn = eval(code);
   fn = fn(ctx);
-  fn();
 
   // remove trailing/leading dots
   var as = item.as.match(/^\.*(.*?)\.*$/)[1];
