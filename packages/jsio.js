@@ -2,8 +2,7 @@ var fs = require('fs');
 var path = require('path');
 
 var INITIAL_FILE = '<initial file>';
-var MODULE_NOT_FOUND = 'MODULE_NOT_FOUND';
-var DEBUG = true;
+var INITIAL_FOLDER = './';
 var SLICE = Array.prototype.slice;
 var ENV = new ENV_node();
 
@@ -142,7 +141,7 @@ var util = {
 
 function jsio(request, exportInto, fromDir, fromFile) {
   exportInto = exportInto || {};
-  fromDir = fromDir || './';
+  fromDir = fromDir || INITIAL_FOLDER;
   fromFile = fromFile || INITIAL_FILE;
 
   var imports = resolveImportRequest(request);
