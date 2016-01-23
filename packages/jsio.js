@@ -203,7 +203,6 @@ jsio.getCachedSrc = function(path) {
   return srcCache[path];
 };
 
-jsio.__modules = {};
 var jsioPath = {
   set: function(path) {
     this.value = [];
@@ -242,33 +241,12 @@ var jsioPath = {
   cache: {}
 };
 
-jsio.__env = ENV;
-jsio.__dir = ENV.getCwd();
-jsio.main = ENV && ENV.main;
-
 function ENV_node() {
-  var Module = module.constructor;
-  var parent = module.parent;
-
-  this.requireCache = require.cache;
-  this.main = require.main;
-  this.global = global;
-  this.isWindowsNode = (process.platform === 'win32');
-
   var _cwd = process.cwd();
-  this.setCwd = function(cwd) {
-    _cwd = path.resolve(_cwd, cwd);
-  };
+
   this.getCwd = function() {
     return _cwd;
   };
-
-  this.pathSep = path.sep;
-
-  this.getPath = function() {
-    return __dirname;
-  };
-
   this.fetch = function(p) {
     p = util.resolve(this.getCwd(), p);
 
