@@ -156,11 +156,7 @@ function jsio(request, exportInto, fromDir, fromFile) {
     }(moduleDef.directory, moduleDef.filename))
   };
   var src = moduleDef.src;
-  var code = "(function(args){" +
-    "with(args){" +
-     src +
-    "}" +
-    "})";
+  var code = "(function(args){ with(args){" + src + "}});";
   var fn = eval(code);
   fn = fn(ctx);
 
@@ -310,7 +306,13 @@ function resolveImportRequest(request) {
   var match = request.match(/^\s*import\s+(.*)$/);
   if (match) {
     match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
-      imports = as ? {from: fullPath, as: as} : {from: fullPath, as: fullPath};
+      imports = as ? {
+        from: fullPath,
+        as: as
+      } : {
+        from: fullPath,
+        as: fullPath
+      };
     });
   }
   return imports;
