@@ -144,10 +144,8 @@ function jsio(request, exportInto, fromDir, fromFile) {
   fromDir = fromDir || INITIAL_FOLDER;
   fromFile = fromFile || INITIAL_FILE;
 
-  var imports = resolveImportRequest(request);
-  var item = imports[0];
+  var item = resolveImportRequest(request)[0];
   var moduleDef = loadModule(fromDir, fromFile, item);
-  var path = moduleDef.path;
 
   var ctx = {
     exports: {},
