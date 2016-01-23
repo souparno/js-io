@@ -144,7 +144,7 @@ function jsio(request, exportInto, fromDir, fromFile) {
   fromDir = fromDir || INITIAL_FOLDER;
   fromFile = fromFile || INITIAL_FILE;
 
-  var item = resolveImportRequest(request)[0];
+  var item = resolveImportRequest(request);
   var moduleDef = loadModule(fromDir, fromFile, item);
 
   var ctx = {
@@ -329,18 +329,11 @@ function applyPreprocessors(src, opts) {
 };
 
 function resolveImportRequest(request) {
-  var imports = [];
+  var imports = {};
   var match = request.match(/^\s*import\s+(.*)$/);
   if (match) {
     match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
-      imports.push(
-        as ? {
-          from: fullPath,
-          as: as
-        } : {
-          from: fullPath,
-          as: fullPath
-        });
+      imports = as ? {from: fullPath, as: as} : {from: fullPath, as: fullPath};
     });
   }
   return imports;
