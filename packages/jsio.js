@@ -173,11 +173,6 @@ function jsio(request, exportInto, fromDir, fromFile) {
   moduleDef.exports = ctx.exports;
   var module = moduleDef.exports;
 
-  // return the module if we're only importing one module
-  if (imports.length == 1) {
-    retVal = module;
-  }
-
   // remove trailing/leading dots
   var as = item.as.match(/^\.*(.*?)\.*$/)[1],
     segments = as.split('.'),
