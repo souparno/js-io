@@ -142,8 +142,65 @@ var path = require('path');
       }
     };
 
-    var jsio = function(request) {
-      _require.apply(this, [{}, './', INITIAL_FILE, request]);
+    var importStack = [];
+
+    var jsio = function(request, exportInto, fromDir, fromFile) {
+      exportInto = exportInto || {};
+      fromDir = fromDir || './';
+      fromFile = fromFile || INITIAL_FILE;
+
+      var imports = resolveImportRequest(request);
+      var retVal;
+      var item = imports[0];
+      var modulePath = item.from;
+      var modules = jsio.__modules;
+      var err;
+      var moduleDef = loadModule(fromDir, fromFile, item);
+      var path = moduleDef.path;
+
+      var ctx = {
+        exports: {},
+        jsio: (function(directory, filename) {
+          return function(request) {
+            jsio(request, ctx, directory, filename);
+          };
+        }(moduleDef.directory, moduleDef.filename))
+      };
+      var src = moduleDef.src;
+      var code = "(function(args){" +
+        "with(args){" +
+        "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
+        "}" +
+        "})";
+      var fn = eval(code);
+      fn = fn(ctx);
+      fn();
+      moduleDef.exports = ctx.exports;
+      importStack.pop();
+      var module = moduleDef.exports;
+
+      // return the module if we're only importing one module
+      if (imports.length == 1) {
+        retVal = module;
+      }
+
+      // remove trailing/leading dots
+      var as = item.as.match(/^\.*(.*?)\.*$/)[1],
+        segments = as.split('.'),
+        kMax = segments.length - 1,
+        c = exportInto;
+
+      // build the object in the context
+      for (var k = 0; k < kMax; ++k) {
+        var segment = segments[k];
+        if (!segment) continue;
+        if (!c[segment]) {
+          c[segment] = {};
+        }
+        c = c[segment];
+      }
+      c[segments[kMax]] = module;
+      return retVal;
     };
 
     var srcCache;
@@ -309,63 +366,6 @@ var path = require('path');
       }
       return imports;
     };
-
-    var importStack = [];
-
-    function _require(exportInto, fromDir, fromFile, request) {
-      var imports = resolveImportRequest(request);
-      var retVal;
-      var item = imports[0];
-      var modulePath = item.from;
-      var modules = jsio.__modules;
-      var err;
-      var moduleDef = loadModule(fromDir, fromFile, item);
-      var path = moduleDef.path;
-
-      var ctx = {
-        exports: {},
-        jsio: (function(directory, filename) {
-          return function(request) {
-            _require.apply(ctx, [ctx, directory, filename, request]);
-          };
-        }(moduleDef.directory, moduleDef.filename))
-      };
-      var src = moduleDef.src;
-      var code = "(function(args){" +
-        "with(args){" +
-        "return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}" +
-        "}" +
-        "})";
-      var fn = eval(code);
-      fn = fn(ctx);
-      fn();
-      moduleDef.exports = ctx.exports;
-      importStack.pop();
-      var module = moduleDef.exports;
-
-      // return the module if we're only importing one module
-      if (imports.length == 1) {
-        retVal = module;
-      }
-
-      // remove trailing/leading dots
-      var as = item.as.match(/^\.*(.*?)\.*$/)[1],
-        segments = as.split('.'),
-        kMax = segments.length - 1,
-        c = exportInto;
-
-      // build the object in the context
-      for (var k = 0; k < kMax; ++k) {
-        var segment = segments[k];
-        if (!segment) continue;
-        if (!c[segment]) {
-          c[segment] = {};
-        }
-        c = c[segment];
-      }
-      c[segments[kMax]] = module;
-      return retVal;
-    }
     return jsio;
   }
   module.exports = init();
