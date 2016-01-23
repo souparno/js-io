@@ -155,9 +155,7 @@ function jsio(request, exportInto, fromDir, fromFile) {
       };
     }(moduleDef.directory, moduleDef.filename))
   };
-  var src = moduleDef.src;
-  var code = "(function(args){ with(args){" + src + "}});";
-  var fn = eval(code);
+  var fn = eval("(function(args){ with(args){" + moduleDef.src + "}});");
   fn = fn(ctx);
 
   // remove trailing/leading dots
