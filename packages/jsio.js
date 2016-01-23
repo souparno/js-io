@@ -166,21 +166,20 @@ function jsio(request, exportInto, fromDir, fromFile) {
   fn();
 
   // remove trailing/leading dots
-  var as = item.as.match(/^\.*(.*?)\.*$/)[1],
-    segments = as.split('.'),
-    kMax = segments.length - 1,
-    c = exportInto;
+  var as = item.as.match(/^\.*(.*?)\.*$/)[1];
+  var segments = as.split('.');
+  var kMax = segments.length - 1;
 
   // build the object in the context
   for (var k = 0; k < kMax; ++k) {
     var segment = segments[k];
     if (!segment) continue;
-    if (!c[segment]) {
-      c[segment] = {};
+    if (!exportInto[segment]) {
+      exportInto[segment] = {};
     }
-    c = c[segment];
+    exportInto = exportInto[segment];
   }
-  c[segments[kMax]] = ctx.exports;
+  exportInto[segments[kMax]] = ctx.exports;
 };
 
 var srcCache;
