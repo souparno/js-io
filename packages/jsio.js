@@ -194,7 +194,6 @@ function jsio(request, exportInto, fromDir, fromFile) {
     c = c[segment];
   }
   c[segments[kMax]] = module;
-  return retVal;
 };
 
 var srcCache;
