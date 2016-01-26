@@ -144,7 +144,7 @@ function jsio(request, fromDir, fromFile) {
   fromFile = fromFile || INITIAL_FILE;
 
   var item = resolveImportRequest(request);
-  var moduleDef = loadModule(fromDir, fromFile, item);
+  var moduleDef = loadModule(fromDir, item.from);
 
   var ctx = {
     exports: {},
@@ -263,22 +263,18 @@ function findModule(possibilities) {
     var cachedVersion = srcCache[path];
     var src = ENV.fetch(path);
 
-    possible.src = src;
+    possible.src = applyPreprocessors(src);
     return possible;
   }
   return false;
 };
 
-function loadModule(fromDir, fromFile, item, opts) {
-  var modulePath = item.from;
-  var possibilities = util.resolveModulePath(modulePath, fromDir);
-  var moduleDef = findModule(possibilities);
-  moduleDef.friendlyPath = modulePath;
-  moduleDef.src = applyPreprocessors(moduleDef.src, opts);
-  return moduleDef;
+function loadModule(fromDir, fromFile) {
+  var possibilities = util.resolveModulePath(fromFile, fromDir);
+  return findModule(possibilities);
 };
 
-function applyPreprocessors(src, opts) {
+function applyPreprocessors(src) {
   var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
   return src.replace(importExpr,
     function(raw, p1, p2, p3) {
