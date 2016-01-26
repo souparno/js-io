@@ -161,27 +161,6 @@ function jsio(request, fromDir, fromFile) {
   return ctx.exports;
 };
 
-var srcCache;
-jsio.setCache = function(cache) {
-  srcCache = jsio.__srcCache = cache;
-};
-jsio.setCache({});
-
-jsio.setCachedSrc = function(path, src, locked) {
-  if (srcCache[path] && srcCache[path].locked) {
-    console.warn('Cache is ignoring (already present and locked) src ' + path);
-    return;
-  }
-  srcCache[path] = {
-    path: path,
-    src: src,
-    locked: locked
-  };
-};
-jsio.getCachedSrc = function(path) {
-  return srcCache[path];
-};
-
 var jsioPath = {
   set: function(path) {
     this.value = [];
@@ -256,7 +235,6 @@ function ENV_node() {
 function findModule(possibilities) {
   for (var i = 0, possible; possible = possibilities[i]; ++i) {
     var path = possible.path;
-    var cachedVersion = srcCache[path];
     var src = ENV.fetch(path);
 
     possible.src = applyPreprocessors(src);
