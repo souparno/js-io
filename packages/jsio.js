@@ -150,12 +150,8 @@ function jsio(request, fromDir, fromFile) {
     exports: {},
     jsio: (function(directory, filename) {
       return function(request) {
-        var item = resolveImportRequest(request),
-          as = item.as.match(/^\.*(.*?)\.*$/)[1],
-          segments = as.split('.'),
-          kMax = segments.length - 1;
-
-        ctx[segments[kMax]] = jsio(request, directory, filename);
+        var as = resolveImportRequest(request).as;
+        ctx[as] = jsio(request, directory, filename);
       };
     }(moduleDef.directory, moduleDef.filename))
   };
@@ -290,12 +286,16 @@ function resolveImportRequest(request) {
   var match = request.match(/^\s*import\s+(.*)$/);
   if (match) {
     match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
-      imports = as ? {
+
+      as = as || fullPath;
+      as = as.match(/^\.*(.*?)\.*$/)[1];
+
+      var _segments = as.split('.'),
+        _KMax = _segments.length - 1;
+
+      imports = {
         from: fullPath,
-        as: as
-      } : {
-        from: fullPath,
-        as: fullPath
+        as: _segments[_KMax]
       };
     });
   }
