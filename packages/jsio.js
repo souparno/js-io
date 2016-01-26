@@ -161,44 +161,6 @@ function jsio(request, fromDir, fromFile) {
   return ctx.exports;
 };
 
-var jsioPath = {
-  set: function(path) {
-    this.value = [];
-    (typeof path == 'string' ? [path] : path).map(this.add, this);
-  },
-  get: function() {
-    return jsioPath.value.slice(0);
-  },
-  add: function(path) {
-    if (arguments.length == 2) {
-      var from = arguments[0];
-      var to = util.resolve(ENV.getCwd(), arguments[1]);
-      this.cache[from] = to;
-    } else {
-      path = util.resolve(ENV.getCwd(), path);
-      var v = jsioPath.value,
-        len = v.length;
-      for (var i = 0; i < len; ++i) {
-        if (v[i] == path) {
-          return;
-        }
-      }
-      v.push(path);
-    }
-  },
-  remove: function(path) {
-    var v = jsioPath.value,
-      len = v.length;
-    for (var i = 0; i < len; ++i) {
-      if (v[i] == path) {
-        v.splice(i, 1);
-      }
-    }
-  },
-  value: [],
-  cache: {}
-};
-
 function ENV_node() {
   var _cwd = process.cwd();
 
