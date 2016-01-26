@@ -139,8 +139,7 @@ var util = {
   }
 };
 
-function jsio(request, exportInto, fromDir, fromFile) {
-  exportInto = exportInto || {};
+function jsio(request, fromDir, fromFile) {
   fromDir = fromDir || INITIAL_FOLDER;
   fromFile = fromFile || INITIAL_FILE;
 
@@ -151,28 +150,19 @@ function jsio(request, exportInto, fromDir, fromFile) {
     exports: {},
     jsio: (function(directory, filename) {
       return function(request) {
-        jsio(request, ctx, directory, filename);
+        var item = resolveImportRequest(request),
+          as = item.as.match(/^\.*(.*?)\.*$/)[1],
+          segments = as.split('.'),
+          kMax = segments.length - 1;
+
+        ctx[segments[kMax]] = jsio(request, directory, filename);
       };
     }(moduleDef.directory, moduleDef.filename))
   };
+
   var fn = eval("(function(args){ with(args){" + moduleDef.src + "}});");
   fn = fn(ctx);
-
-  // remove trailing/leading dots
-  var as = item.as.match(/^\.*(.*?)\.*$/)[1];
-  var segments = as.split('.');
-  var kMax = segments.length - 1;
-
-  // build the object in the context
-  for (var k = 0; k < kMax; ++k) {
-    var segment = segments[k];
-    if (!segment) continue;
-    if (!exportInto[segment]) {
-      exportInto[segment] = {};
-    }
-    exportInto = exportInto[segment];
-  }
-  exportInto[segments[kMax]] = ctx.exports;
+  return ctx.exports;
 };
 
 var srcCache;
