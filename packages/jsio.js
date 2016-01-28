@@ -95,65 +95,24 @@ var util = {
     return util.buildPath(relative ? directory : '', result.join('/'));
   },
   resolveModulePath: function(modulePath, directory) {
-    // resolve relative paths
-    if (modulePath.charAt(0) == '.') {
-      return [
-        getModuleDef(util.resolveRelativeModule(modulePath, directory)),
-        getModuleDef(util.resolveRelativeModule(modulePath + '.index', directory))
-      ];
-    }
-
-    // resolve absolute paths with respect to jsio packages/
-    var pathSegments = modulePath.split('.');
-    var n = pathSegments.length;
-    for (var i = n; i > 0; --i) {
-      var subpath = pathSegments.slice(0, i).join('.');
-      var value = jsioPath.cache[subpath];
-      var pathString = pathSegments.slice(i).join('/');
-      if (value) {
-        return [
-          getModuleDef(util.buildPath(value, pathString)),
-          getModuleDef(util.buildPath(value, pathString + '/index'))
-        ];
-      }
-    }
-
-    var baseMod = pathSegments[0];
-    var pathString = pathSegments.join('/');
-    var defs = [];
-    var paths = jsioPath.get();
-    var len = paths.length;
-    for (var i = 0; i < len; ++i) {
-      var base = paths[i];
-      var path = util.buildPath(base, pathString);
-
-      var moduleDef = getModuleDef(path);
-      moduleDef.setBase(baseMod, base);
-      defs.push(moduleDef);
-
-      var moduleDef = getModuleDef(path + '/index');
-      moduleDef.setBase(baseMod, base);
-      defs.push(moduleDef);
-    }
-    return defs;
+      return getModuleDef(util.resolveRelativeModule(modulePath, directory));
   }
 };
 
-function jsio(request, fromDir, fromFile) {
+function jsio(request, fromDir) {
   fromDir = fromDir || INITIAL_FOLDER;
-  fromFile = fromFile || INITIAL_FILE;
 
   var item = resolveImportRequest(request);
   var moduleDef = loadModule(fromDir, item.from);
 
   var ctx = {
     exports: {},
-    jsio: (function(directory, filename) {
+    jsio: (function(directory) {
       return function(request) {
         var as = resolveImportRequest(request).as;
-        ctx[as] = jsio(request, directory, filename);
+        ctx[as] = jsio(request, directory);
       };
-    }(moduleDef.directory, moduleDef.filename))
+    }(moduleDef.directory))
   };
 
   var fn = eval("(function(args){ with(args){" + moduleDef.src + "}});");
@@ -179,15 +138,12 @@ function ENV_node() {
 };
 
 function loadModule(fromDir, fromFile) {
-  var possibilities = util.resolveModulePath(fromFile, fromDir);
-  for (var i = 0, possible; possible = possibilities[i]; ++i) {
-    var path = possible.path;
-    var src = ENV.fetch(path);
+  var possible = util.resolveModulePath(fromFile, fromDir);
+  var path = possible.path;
+  var src = ENV.fetch(path);
 
-    possible.src = applyPreprocessors(src);
-    return possible;
-  }
-  return false;
+  possible.src = applyPreprocessors(src);
+  return possible;
 };
 
 function applyPreprocessors(src) {
