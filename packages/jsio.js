@@ -107,12 +107,10 @@ function jsio(request, fromDir) {
 
   var ctx = {
     exports: {},
-    jsio: (function(directory) {
-      return function(request) {
+    jsio: function(request) {
         var as = resolveImportRequest(request).as;
-        ctx[as] = jsio(request, directory);
-      };
-    }(moduleDef.directory))
+        ctx[as] = jsio(request, moduleDef.directory);
+      }
   };
 
   var fn = eval("(function(args){ with(args){" + moduleDef.src + "}});");
@@ -127,8 +125,6 @@ function ENV_node() {
     return _cwd;
   };
   this.fetch = function(p) {
-    p = util.resolve(this.getCwd(), p);
-
     try {
       return fs.readFileSync(p, 'utf8');
     } catch (e) {
