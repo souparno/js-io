@@ -170,22 +170,6 @@ function ENV_node() {
   this.fetch = function(p) {
     p = util.resolve(this.getCwd(), p);
 
-    var filename, lowercaseFilename, files;
-    try {
-      var dirname = path.dirname(p);
-      filename = path.basename(p);
-      lowercaseFilename = filename.toLowerCase();
-      files = fs.readdirSync(dirname);
-    } catch (e) {
-      return false;
-    }
-
-    for (var i = 0, testName; testName = files[i]; ++i) {
-      if (testName.toLowerCase() == lowercaseFilename && testName != filename) {
-        throw "Invalid case when importing [" + p + "].  You probably meant" + testName;
-      }
-    }
-
     try {
       return fs.readFileSync(p, 'utf8');
     } catch (e) {
@@ -194,7 +178,8 @@ function ENV_node() {
   };
 };
 
-function findModule(possibilities) {
+function loadModule(fromDir, fromFile) {
+  var possibilities = util.resolveModulePath(fromFile, fromDir);
   for (var i = 0, possible; possible = possibilities[i]; ++i) {
     var path = possible.path;
     var src = ENV.fetch(path);
@@ -203,11 +188,6 @@ function findModule(possibilities) {
     return possible;
   }
   return false;
-};
-
-function loadModule(fromDir, fromFile) {
-  var possibilities = util.resolveModulePath(fromFile, fromDir);
-  return findModule(possibilities);
 };
 
 function applyPreprocessors(src) {
