@@ -107,7 +107,8 @@ function jsio(request, fromDir) {
 
   var ctx = {
     exports: {},
-    jsio: function(request) {
+    jsio: function(request, fromDir) {
+        //fromDir = fromDir || INITIAL_FOLDER;
         var as = resolveImportRequest(request).as;
         ctx[as] = jsio(request, moduleDef.directory);
       }
