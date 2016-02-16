@@ -17,7 +17,8 @@ function jsio(req, exportInto) {
             }
         },
         item = resolveImportRequest(req),
-        fn = eval(item.from);
+        src = "(function (_) { with (_) {" + loadModule(item.from).src + "}});",
+        fn = eval(src);
 
     fn(args);
     exportInto = exportInto || {};
@@ -26,10 +27,17 @@ function jsio(req, exportInto) {
 
 jsio.__cmds = [];
 
+jsio.setCache = function(cache) {
+    jsio.__srcCache = cache;
+};
+
 jsio.addCmd = function(fn) {
     jsio.__cmds.push(fn);
 };
 
+function loadModule(from) {
+    return jsio.__srcCache[from];
+}
 
 function resolveImportRequest(request) {
     var cmds = jsio.__cmds,
@@ -59,34 +67,17 @@ jsio.addCmd(function(request) {
     return imports;
 });
 
-
-
-function print(args) {
-    with(args) {
-        exports = function(req) {
-            console.log(req);
-        };
+jsio.setCache({
+    "print": {
+        src: "exports = function (req) { console.log(req);}"
+    },
+    "calculator": {
+        src: "jsio('import print as print'); exports = {add: function (a, b) { print(a+b);}}"
+    },
+    "app": {
+        src: "jsio('import calculator as calculator'); calculator.add(2, 3);"
     }
-};
 
-function calculator(args) {
-    with(args) {
-        jsio('import print as print');
-        exports = {
-            add: function(a, b) {
-                print(a + b);
-                return a + b;
-            }
-        }
-    }
-};
-
-function app(args) {
-    with(args) {
-        jsio('import calculator as calculator');
-        //jsio('import print as print');
-        print(calculator.add(2, 3));
-    }
-};
+});
 
 jsio('import app');
