@@ -8,7 +8,6 @@ var util = {
     }
 }
 
-
 function jsio(req, exportInto) {
     var args = {
             exports: {},
@@ -27,13 +26,15 @@ function jsio(req, exportInto) {
 };
 
 jsio.__cmds = [];
+jsio.__preprocessors = [];
+jsio.__modules = {};
 
-jsio.setCache = function(cache) {
-    jsio.__srcCache = cache;
+jsio.setModules = function(modules) {
+    jsio.__modules = modules;
 };
 
 function loadModule(from) {
-    var module = jsio.__srcCache[from];
+    var module = jsio.__modules[from];
     module.src = applyPreprocessors(module.src);
     return module;
 };
@@ -42,15 +43,17 @@ jsio.addCmd = function(fn) {
     jsio.__cmds.push(fn);
 };
 
+jsio.addPreprocessors = function(fn) {
+    jsio.__preprocessors.push(fn);
+}
+
 function applyPreprocessors(src) {
-    var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
-    return src.replace(importExpr,
-        function(raw, p1, p2, p3) {
-            if (!/\/\//.test(p1)) {
-                return p1 + 'jsio(\'' + p2 + '\')' + p3;
-            }
-            return raw;
-        });
+    var preprocessors = jsio.__preprocessors;
+
+    for (var index in preprocessors) {
+        src = preprocessors[index](src);
+    }
+    return src;
 };
 
 function resolveImportRequest(request) {
@@ -65,6 +68,17 @@ function resolveImportRequest(request) {
     }
     return imports;
 };
+
+jsio.addPreprocessors(function(src) {
+    var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
+    return src.replace(importExpr,
+        function(raw, p1, p2, p3) {
+            if (!/\/\//.test(p1)) {
+                return p1 + 'jsio(\'' + p2 + '\')' + p3;
+            }
+            return raw;
+        });
+});
 
 jsio.addCmd(function(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
@@ -81,7 +95,7 @@ jsio.addCmd(function(request) {
     return imports;
 });
 
-jsio.setCache({
+jsio.setModules({
     "print": {
         src: "exports = function (req) { console.log(req);}"
     },
