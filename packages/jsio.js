@@ -8,21 +8,7 @@ var SLICE = Array.prototype.slice;
 var ENV = {
     getCwd: function() {
         return process.cwd();;
-    },
-    fetch: function(p) {
-        try {
-            return fs.readFileSync(p, 'utf8');
-        } catch (e) {
-            return false;
-        }
     }
-};
-// Checks if the last character in a string is `/`.
-var rexpEndSlash = /(\/|\\)$/;
-
-function getModuleDef(path) {
-    path += '.js';
-    return new ModuleDef(path);
 };
 
 function ModuleDef(path) {
@@ -32,11 +18,6 @@ function ModuleDef(path) {
     this.friendlyPath = path;
     this.filename = path.substring(i);
     this.directory = util.resolve(ENV.getCwd(), path.substring(0, i));
-};
-
-ModuleDef.prototype.setBase = function(baseMod, basePath) {
-    this.baseMod = baseMod;
-    this.basePath = basePath + '/' + baseMod;
 };
 
 var HOST = /^([a-z][a-z0-9+\-\.]*:\/\/.*?\/)(.*)$/;
@@ -106,7 +87,8 @@ var util = {
         return util.buildPath(relative ? directory : '', result.join('/'));
     },
     resolveModulePath: function(modulePath, directory) {
-        return getModuleDef(util.resolveRelativeModule(modulePath, directory));
+        var path = util.resolveRelativeModule(modulePath, directory) + ".js";
+        return new ModuleDef(path);
     }
 };
 
@@ -129,12 +111,10 @@ function jsio(request, fromDir) {
     return ctx.exports;
 };
 
-
-
 function loadModule(fromDir, fromFile) {
     var possible = util.resolveModulePath(fromFile, fromDir);
     var path = possible.path;
-    var src = ENV.fetch(path);
+    var src = fs.readFileSync(path, 'utf8');
 
     possible.src = applyPreprocessors(src);
     return possible;
