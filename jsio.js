@@ -6,7 +6,7 @@ var util = {
         }
         return true;
     }
-}
+};
 
 function jsio(req, exportInto) {
     var args = {
