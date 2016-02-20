@@ -26,7 +26,6 @@ function jsio(req, exportInto) {
 };
 
 jsio.__cmds = [];
-jsio.__preprocessors = [];
 jsio.__modules = {};
 
 jsio.setModules = function(modules) {
@@ -34,26 +33,11 @@ jsio.setModules = function(modules) {
 };
 
 function loadModule(from) {
-    var module = jsio.__modules[from];
-    module.src = applyPreprocessors(module.src);
-    return module;
+    return jsio.__modules[from];
 };
 
 jsio.addCmd = function(fn) {
     jsio.__cmds.push(fn);
-};
-
-jsio.addPreprocessors = function(fn) {
-    jsio.__preprocessors.push(fn);
-}
-
-function applyPreprocessors(src) {
-    var preprocessors = jsio.__preprocessors;
-
-    for (var index in preprocessors) {
-        src = preprocessors[index](src);
-    }
-    return src;
 };
 
 function resolveImportRequest(request) {
@@ -68,17 +52,6 @@ function resolveImportRequest(request) {
     }
     return imports;
 };
-
-jsio.addPreprocessors(function(src) {
-    var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
-    return src.replace(importExpr,
-        function(raw, p1, p2, p3) {
-            if (!/\/\//.test(p1)) {
-                return p1 + 'jsio(\'' + p2 + '\')' + p3;
-            }
-            return raw;
-        });
-});
 
 jsio.addCmd(function(request) {
     var match = request.match(/^\s*import\s+(.*)$/),

@@ -1,9 +1,9 @@
-import .logger as logger;
+import example.print as print;
 
 exports = {
 
   add: function (a, b) {
-    logger.print(a+b);
+    print(a+b);
   }
 
 }
