@@ -1,4 +1,3 @@
-;
 (function() {
     function init(cloneFrom) {
         // We expect this code to be minified before production use, so we may
