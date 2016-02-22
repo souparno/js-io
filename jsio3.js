@@ -240,8 +240,142 @@
         };
 
         // construct the top-level jsio object
-        var jsio = util.bind(this, _require, null, null, null);
+        //var jsio = util.bind(this, _require, null, null, null);
+        var importStack = [];
 
+        function jsio(request, boundContext, fromDir, fromFile, opts) {
+            opts = opts || {};
+            fromDir = fromDir || './';
+            fromFile = fromFile || INITIAL_FILE;
+
+            // require is bound to a module's (or global) context -- we can override this
+            // by using opts.exportInto
+            var exportInto = opts.exportInto || boundContext || ENV.global;
+
+            // parse the import request(s)
+            var imports = resolveImportRequest(exportInto, request, opts),
+                numImports = imports.length,
+                retVal = numImports > 1 ? {} : null;
+
+            // import each requested item
+            for (var i = 0; i < numImports; ++i) {
+                var item = imports[i];
+                var modulePath = item.from;
+                var modules = jsio.__modules;
+                var path;
+                var moduleDef;
+                var err;
+
+                try {
+                    moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts);
+                } catch (e) {
+                    err = e;
+                }
+
+                if (moduleDef) {
+                    path = moduleDef.path;
+                } else if (moduleDef === false) {
+                    return false;
+                }
+
+                if (err) {
+                    if (opts.suppressErrors) {
+                        return false;
+                    }
+                    if (!err.jsioLogged) {
+                        ENV.log(
+                            '\nError loading module:\n',
+                            '    [[', request, ']]\n',
+                            '    requested by:', fromDir + fromFile, '\n',
+                            '    current directory:', jsio.__env.getCwd(), '\n',
+                            '  ' + err.stack.split('\n').join('\n  '));
+                        err.jsioLogged = true;
+                    }
+
+                    throw err;
+                }
+
+                if (moduleDef) {
+                    importStack.push({
+                        friendlyPath: moduleDef.friendlyPath,
+                        path: moduleDef.path,
+                        stack: new Error().stack
+                    });
+                }
+
+                // eval any packages that we don't know about already
+                if (!(path in modules)) {
+                    modules[path] = moduleDef;
+                }
+
+                if (!moduleDef.exports) {
+                    var newContext = makeContext(opts.context, modulePath, moduleDef, item.dontAddBase);
+                    if (item.dontUseExports) {
+                        var src = [';(function(){'],
+                            k = 1;
+                        for (var j in item['import']) {
+                            newContext.exports[j] = undefined;
+                            src[k++] = 'if(typeof ' + j + '!="undefined"&&exports.' + j + '==undefined)exports.' + j + '=' + j + ';';
+                        }
+                        src[k] = '})();';
+                        moduleDef.src += src.join('');
+                    }
+
+                    execModuleDef(newContext, moduleDef);
+                }
+
+                importStack.pop();
+
+                var module = moduleDef.exports;
+
+                // return the module if we're only importing one module
+                if (numImports == 1) {
+                    retVal = module;
+                }
+
+                if (!opts.dontExport) {
+                    // add the module to the current context
+                    if (item.as) {
+                        // remove trailing/leading dots
+                        var as = item.as.match(/^\.*(.*?)\.*$/)[1],
+                            segments = as.split('.'),
+                            kMax = segments.length - 1,
+                            c = exportInto;
+
+                        // build the object in the context
+                        for (var k = 0; k < kMax; ++k) {
+                            var segment = segments[k];
+                            if (!segment) continue;
+                            if (!c[segment]) {
+                                c[segment] = {};
+                            }
+                            c = c[segment];
+                        }
+
+                        c[segments[kMax]] = module;
+
+                        // there can be multiple module imports with this syntax (import foo, bar)
+                        if (numImports > 1) {
+                            retVal[as] = module;
+                        }
+                    } else if (item['import']) {
+                        // there can only be one module import with this syntax
+                        // (from foo import bar), so retVal will already be set here
+                        if (item['import']['*']) {
+                            for (var k in modules[path].exports) {
+                                exportInto[k] = module[k];
+                            }
+                        } else {
+                            for (var k in item['import']) {
+                                exportInto[item['import'][k]] = module[k];
+                            }
+                        }
+                    }
+                }
+            }
+
+            return retVal;
+        }
         jsio.__util = util;
         jsio.__init__ = init;
 
@@ -269,7 +403,7 @@
         jsio.__filename = 'jsio.js';
         jsio.__cmds = [];
         jsio.__jsio = jsio;
-        jsio.__require = _require;
+        //jsio.__require = _require;
         jsio.__modules = {
             preprocessors: {}
         };
@@ -827,8 +961,15 @@
                 ctx.exports = {};
             }
 
-            ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory, moduleDef.filename);
-            ctx.require = function(request, opts) {
+            //ctx.jsio = util.bind(this, jsio,request, ctx, moduleDef.directory, moduleDef.filename);
+           
+            ctx.jsio =(function (directory, filename) {
+	      return function (request) {
+	        jsio(request, ctx, directory, filename);
+	       };
+	    }(moduleDef.directory, moduleDef.filename)); 
+
+	    ctx.require = function(request, opts) {
                 if (!opts) {
                     opts = {};
                 }
@@ -842,14 +983,6 @@
                 id: modulePath,
                 exports: ctx.exports
             };
-            /*if (!dontAddBase && modulePath != 'jsio.base') {
-                ctx.jsio('from jsio.base import *', {
-                    dontPreprocess: true
-                });
-                ctx.logging.__create(modulePath, ctx);
-            }*/
-
-            // TODO: FIX for "trailing ." case
             ctx.jsio.__jsio = jsio;
             ctx.jsio.__env = jsio.__env;
             ctx.jsio.__dir = moduleDef.directory;
@@ -861,141 +994,7 @@
             return ctx;
         }
 
-        var importStack = [];
 
-        function _require(boundContext, fromDir, fromFile, request, opts) {
-            opts = opts || {};
-            fromDir = fromDir || './';
-            fromFile = fromFile || INITIAL_FILE;
-
-            // require is bound to a module's (or global) context -- we can override this
-            // by using opts.exportInto
-            var exportInto = opts.exportInto || boundContext || ENV.global;
-
-            // parse the import request(s)
-            var imports = resolveImportRequest(exportInto, request, opts),
-                numImports = imports.length,
-                retVal = numImports > 1 ? {} : null;
-
-            // import each requested item
-            for (var i = 0; i < numImports; ++i) {
-                var item = imports[i];
-                var modulePath = item.from;
-                var modules = jsio.__modules;
-                var path;
-                var moduleDef;
-                var err;
-
-                try {
-                    moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts);
-                } catch (e) {
-                    err = e;
-                }
-
-                if (moduleDef) {
-                    path = moduleDef.path;
-                } else if (moduleDef === false) {
-                    return false;
-                }
-
-                if (err) {
-                    if (opts.suppressErrors) {
-                        return false;
-                    }
-                    if (!err.jsioLogged) {
-                        ENV.log(
-                            '\nError loading module:\n',
-                            '    [[', request, ']]\n',
-                            '    requested by:', fromDir + fromFile, '\n',
-                            '    current directory:', jsio.__env.getCwd(), '\n',
-                            '  ' + err.stack.split('\n').join('\n  '));
-                        err.jsioLogged = true;
-                    }
-
-                    throw err;
-                }
-
-                if (moduleDef) {
-                    importStack.push({
-                        friendlyPath: moduleDef.friendlyPath,
-                        path: moduleDef.path,
-                        stack: new Error().stack
-                    });
-                }
-
-                // eval any packages that we don't know about already
-                if (!(path in modules)) {
-                    modules[path] = moduleDef;
-                }
-
-                if (!moduleDef.exports) {
-                    var newContext = makeContext(opts.context, modulePath, moduleDef, item.dontAddBase);
-                    if (item.dontUseExports) {
-                        var src = [';(function(){'],
-                            k = 1;
-                        for (var j in item['import']) {
-                            newContext.exports[j] = undefined;
-                            src[k++] = 'if(typeof ' + j + '!="undefined"&&exports.' + j + '==undefined)exports.' + j + '=' + j + ';';
-                        }
-                        src[k] = '})();';
-                        moduleDef.src += src.join('');
-                    }
-
-                    execModuleDef(newContext, moduleDef);
-                }
-
-                importStack.pop();
-
-                var module = moduleDef.exports;
-
-                // return the module if we're only importing one module
-                if (numImports == 1) {
-                    retVal = module;
-                }
-
-                if (!opts.dontExport) {
-                    // add the module to the current context
-                    if (item.as) {
-                        // remove trailing/leading dots
-                        var as = item.as.match(/^\.*(.*?)\.*$/)[1],
-                            segments = as.split('.'),
-                            kMax = segments.length - 1,
-                            c = exportInto;
-
-                        // build the object in the context
-                        for (var k = 0; k < kMax; ++k) {
-                            var segment = segments[k];
-                            if (!segment) continue;
-                            if (!c[segment]) {
-                                c[segment] = {};
-                            }
-                            c = c[segment];
-                        }
-
-                        c[segments[kMax]] = module;
-
-                        // there can be multiple module imports with this syntax (import foo, bar)
-                        if (numImports > 1) {
-                            retVal[as] = module;
-                        }
-                    } else if (item['import']) {
-                        // there can only be one module import with this syntax
-                        // (from foo import bar), so retVal will already be set here
-                        if (item['import']['*']) {
-                            for (var k in modules[path].exports) {
-                                exportInto[k] = module[k];
-                            }
-                        } else {
-                            for (var k in item['import']) {
-                                exportInto[item['import'][k]] = module[k];
-                            }
-                        }
-                    }
-                }
-            }
-
-            return retVal;
-        }
 
         // DEFINE SYNTAX FOR JSIO('cmd')
 
