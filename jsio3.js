@@ -243,22 +243,23 @@
         //var jsio = util.bind(this, _require, null, null, null);
         var importStack = [];
 
-        function jsio(request, boundContext, fromDir, fromFile, opts) {
+        function jsio(request, exportInto, fromDir, fromFile, opts) {
             opts = opts || {};
             fromDir = fromDir || './';
             fromFile = fromFile || INITIAL_FILE;
 
             // require is bound to a module's (or global) context -- we can override this
             // by using opts.exportInto
-            var exportInto = opts.exportInto || boundContext || ENV.global;
+            exportInto = exportInto || {};
 
             // parse the import request(s)
             var imports = resolveImportRequest(exportInto, request, opts),
                 numImports = imports.length,
-                retVal = numImports > 1 ? {} : null;
+                retVal = numImports > 1 ? {} : null,
+		i =0;
 
             // import each requested item
-            for (var i = 0; i < numImports; ++i) {
+            //for (var i = 0; i < numImports; ++i) {
                 var item = imports[i];
                 var modulePath = item.from;
                 var modules = jsio.__modules;
@@ -372,7 +373,7 @@
                         }
                     }
                 }
-            }
+           // }
 
             return retVal;
         }
