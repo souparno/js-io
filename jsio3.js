@@ -51,6 +51,13 @@
 
         // Utility functions
         var util = {
+            isEmpty: function(obj) {
+                for (var prop in obj) {
+                    if (obj.hasOwnProperty(prop))
+                        return false;
+                }
+                return true;
+            },
             // `util.bind` returns a function that, when called, will execute
             // the method passed in with the provided context and any additional
             // arguments passed to `util.bind`.
@@ -245,11 +252,11 @@
 
         function jsio(request, exportInto, fromDir, fromFile, opts) {
 
-            var imports = resolveImportRequest(exportInto, request, opts),
-                numImports = imports.length,
-                retVal = numImports > 1 ? {} : null,
-                i = 0,
-                item = imports[i],
+            var item = resolveImportRequest(request),
+                //numImports = imports.length,
+                //retVal = numImports > 1 ? {} : null,
+                //i = 0,
+                //item = imports[i],
                 modulePath = item.from,
                 modules = jsio.__modules,
                 path,
@@ -275,22 +282,6 @@
                 return false;
             }
 
-            if (err) {
-                if (opts.suppressErrors) {
-                    return false;
-                }
-                if (!err.jsioLogged) {
-                    ENV.log(
-                        '\nError loading module:\n',
-                        '    [[', request, ']]\n',
-                        '    requested by:', fromDir + fromFile, '\n',
-                        '    current directory:', jsio.__env.getCwd(), '\n',
-                        '  ' + err.stack.split('\n').join('\n  '));
-                    err.jsioLogged = true;
-                }
-
-                throw err;
-            }
 
             if (moduleDef) {
                 importStack.push({
@@ -305,18 +296,12 @@
                 modules[path] = moduleDef;
             }
 
-                var newContext = makeContext(moduleDef);
-                execModuleDef(newContext, moduleDef);
+            var newContext = makeContext(moduleDef);
+            execModuleDef(newContext, moduleDef);
 
             //importStack.pop();
 
             var module = moduleDef.exports;
-
-            // return the module if we're only importing one module
-            if (numImports == 1) {
-                retVal = module;
-            }
-
             if (!opts.dontExport) {
                 // add the module to the current context
                 if (item.as) {
@@ -338,10 +323,6 @@
 
                     c[segments[kMax]] = module;
 
-                    // there can be multiple module imports with this syntax (import foo, bar)
-                    if (numImports > 1) {
-                        retVal[as] = module;
-                    }
                 } else if (item['import']) {
                     if (item['import']['*']) {
                         for (var k in modules[path].exports) {
@@ -902,7 +883,7 @@
             }
         }
 
-        function resolveImportRequest(context, request, opts) {
+        /*function resolveImportRequest(context, request, opts) {
             var cmds = jsio.__cmds,
                 imports = [],
                 result = false;
@@ -918,28 +899,55 @@
             }
 
             return imports;
-        }
+        }*/
+
+        function resolveImportRequest(request) {
+            var cmds = jsio.__cmds,
+                imports = {};
+
+            for (var index in cmds) {
+                imports = cmds[index](request);
+                if (!util.isEmpty(imports)) {
+                    break;
+                }
+            }
+            return imports;
+        };
+
 
         function makeContext(moduleDef) {
             var ctx = {
                 exports: {},
-		module: {},
+                module: {},
                 jsio: function(req) {
                     jsio(req, ctx, moduleDef.directory, moduleDef.filename);
                 }
             };
 
-	    ctx.module.exports = ctx.exports;
+            ctx.module.exports = ctx.exports;
             return ctx;
         }
 
 
 
         // DEFINE SYNTAX FOR JSIO('cmd')
+        jsio.addCmd(function(request) {
+            var match = request.match(/^\s*import\s+(.*)$/),
+                imports = {};
 
+            if (match) {
+                match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
+                    imports = {
+                        from: from,
+                        as: as || from
+                    };
+                });
+            }
+            return imports;
+        });
         // from myPackage import myFunc
         // external myPackage import myFunc
-        jsio.addCmd(function(context, request, opts, imports) {
+        /*jsio.addCmd(function(context, request, opts, imports) {
             var match = request.match(/^\s*(from|external)\s+([\w.\-$]+)\s+(import|grab)\s+(.*)$/);
             if (match) {
                 imports.push({
@@ -954,10 +962,10 @@
                 });
                 return true;
             }
-        });
+        });*/
 
         // import myPackage
-        jsio.addCmd(function(context, request, opts, imports) {
+        /*jsio.addCmd(function(context, request, opts, imports) {
             var match = request.match(/^\s*import\s+(.*)$/);
             if (match) {
                 match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
@@ -972,10 +980,10 @@
                 });
                 return true;
             }
-        });
+        });*/
 
         // CommonJS syntax
-        jsio.addCmd(function(context, request, opts, imports) {
+        /*jsio.addCmd(function(context, request, opts, imports) {
 
             //    ./../b -> ..b
             //    ../../b -> ...b
@@ -994,7 +1002,7 @@
                     .replace(/\.\//g, '')
                     .replace(/\/+$/g, '');
 
-                if (ENV.pathSep === '\\' && req.match(/^[a-zA-Z]:.*/)) {
+                if (ENV.pathSep === '\\' && req.match(/^[a-zA-Z]:.)) {
                     // leave absolute windows paths (start with drive letter) alone
                 } else {
                     // any remaining slashes are path separators
@@ -1007,7 +1015,7 @@
                 };
                 return true;
             }
-        });
+        });*/
 
         jsio.install = function() {
             jsio('from .base import *');
