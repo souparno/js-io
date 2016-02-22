@@ -248,52 +248,51 @@
 
         function jsio(request, exportInto, fromDir, fromFile) {
 
-            var opts = {};
             fromDir = fromDir || './';
             fromFile = fromFile || INITIAL_FILE;
             exportInto = exportInto || {};
 
             var item = resolveImportRequest(request),
                 modulePath = item.from,
-                moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts),
+                moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item),
                 path = moduleDef.path,
                 newContext = makeContext(moduleDef),
                 module = execModuleDef(newContext, moduleDef);
 
-            if (!opts.dontExport) {
-                // add the module to the current context
-                if (item.as) {
-                    // remove trailing/leading dots
-                    var as = item.as.match(/^\.*(.*?)\.*$/)[1],
-                        segments = as.split('.'),
-                        kMax = segments.length - 1,
-                        c = exportInto;
 
-                    // build the object in the context
-                    for (var k = 0; k < kMax; ++k) {
-                        var segment = segments[k];
-                        if (!segment) continue;
-                        if (!c[segment]) {
-                            c[segment] = {};
-                        }
-                        c = c[segment];
+            // add the module to the current context
+            if (item.as) {
+                // remove trailing/leading dots
+                var as = item.as.match(/^\.*(.*?)\.*$/)[1],
+                    segments = as.split('.'),
+                    kMax = segments.length - 1,
+                    c = exportInto;
+
+                // build the object in the context
+                for (var k = 0; k < kMax; ++k) {
+                    var segment = segments[k];
+                    if (!segment) continue;
+                    if (!c[segment]) {
+                        c[segment] = {};
                     }
+                    c = c[segment];
+                }
 
-                    c[segments[kMax]] = module;
+                c[segments[kMax]] = module;
 
-                } else if (item['import']) {
-                    if (item['import']['*']) {
-                        for (var k in modules[path].exports) {
-                            exportInto[k] = module[k];
-                        }
-                    } else {
-                        for (var k in item['import']) {
-                            exportInto[item['import'][k]] = module[k];
-                        }
+            } else if (item['import']) {
+                if (item['import']['*']) {
+                    for (var k in modules[path].exports) {
+                        exportInto[k] = module[k];
+                    }
+                } else {
+                    for (var k in item['import']) {
+                        exportInto[item['import'][k]] = module[k];
                     }
                 }
             }
         }
+
         jsio.__util = util;
         jsio.__init__ = init;
 
