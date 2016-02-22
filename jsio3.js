@@ -246,62 +246,20 @@
             }
         };
 
-        // construct the top-level jsio object
-        //var jsio = util.bind(this, _require, null, null, null);
-        var importStack = [];
+        function jsio(request, exportInto, fromDir, fromFile) {
 
-        function jsio(request, exportInto, fromDir, fromFile, opts) {
-
-            var item = resolveImportRequest(request),
-                //numImports = imports.length,
-                //retVal = numImports > 1 ? {} : null,
-                //i = 0,
-                //item = imports[i],
-                modulePath = item.from,
-                modules = jsio.__modules,
-                path,
-                moduleDef,
-                err;
-
-
-
-            opts = opts || {};
+            var opts = {};
             fromDir = fromDir || './';
             fromFile = fromFile || INITIAL_FILE;
             exportInto = exportInto || {};
 
-            try {
-                moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts);
-            } catch (e) {
-                err = e;
-            }
+            var item = resolveImportRequest(request),
+                modulePath = item.from,
+                moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item, opts),
+                path = moduleDef.path,
+                newContext = makeContext(moduleDef),
+                module = execModuleDef(newContext, moduleDef);
 
-            if (moduleDef) {
-                path = moduleDef.path;
-            } else if (moduleDef === false) {
-                return false;
-            }
-
-
-            if (moduleDef) {
-                importStack.push({
-                    friendlyPath: moduleDef.friendlyPath,
-                    path: moduleDef.path,
-                    stack: new Error().stack
-                });
-            }
-
-            // eval any packages that we don't know about already
-            if (!(path in modules)) {
-                modules[path] = moduleDef;
-            }
-
-            var newContext = makeContext(moduleDef);
-            execModuleDef(newContext, moduleDef);
-
-            //importStack.pop();
-
-            var module = moduleDef.exports;
             if (!opts.dontExport) {
                 // add the module to the current context
                 if (item.as) {
@@ -556,8 +514,8 @@
             };
 
             var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
-            this.loadModule = function(baseLoader, fromDir, fromFile, item, opts) {
-                if (fromFile == INITIAL_FILE && !opts.initialImport) {
+            this.loadModule = function(baseLoader, fromDir, fromFile, item) {
+                if (fromFile == INITIAL_FILE) {
                     var stack = new Error().stack;
                     var match;
                     stackRe.lastIndex = 0;
@@ -572,7 +530,7 @@
                 }
 
                 try {
-                    return baseLoader(null, fromDir, fromFile, item, opts);
+                    return baseLoader(null, fromDir, fromFile, item);
                 } catch (e) {
                     if (e.code == MODULE_NOT_FOUND) {
                         var require = req;
@@ -787,12 +745,12 @@
         }
 
         // load a module from a file
-        function loadModule(baseLoader, fromDir, fromFile, item, opts) {
+        function loadModule(baseLoader, fromDir, fromFile, item) {
             var modulePath = item.from;
             var possibilities = util.resolveModulePath(modulePath, fromDir);
             for (var i = 0, p; p = possibilities[i]; ++i) {
                 var path = possibilities[i].path;
-                if (!opts.reload && (path in jsio.__modules)) {
+                if ((path in jsio.__modules)) {
                     return possibilities[i];
                 }
 
@@ -838,16 +796,12 @@
             // the source code, always apply them.  We also don't want to run them
             // if they've been run once -- moduleDef.pre is set to true already
             // if we're reading the code from the source cache.
-            if (modulePath != 'base' && (opts.reload || !opts.dontPreprocess && !moduleDef.pre)) {
+            if (modulePath != 'base') {
                 moduleDef.pre = true;
 
-                applyPreprocessors(fromDir, moduleDef, ["import", "inlineSlice"], opts);
+                applyPreprocessors(fromDir, moduleDef, ["import", "inlineSlice"]);
             }
 
-            // any additional preprocessors?
-            if (opts.preprocessors) {
-                applyPreprocessors(fromDir, moduleDef, opts.preprocessors, opts);
-            }
 
             return moduleDef;
         }
@@ -874,13 +828,8 @@
             var exports = context.exports;
             var fn = eval(code);
             fn = fn(context);
+            return context.exports;
 
-
-            if (exports != context.module.exports) {
-                moduleDef.exports = context.module.exports;
-            } else {
-                moduleDef.exports = context.exports;
-            }
         }
 
         /*function resolveImportRequest(context, request, opts) {
