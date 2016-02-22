@@ -253,9 +253,7 @@
             exportInto = exportInto || {};
 
             var item = resolveImportRequest(request),
-                modulePath = item.from,
                 moduleDef = jsio.__env.loadModule(loadModule, fromDir, fromFile, item),
-                path = moduleDef.path,
                 newContext = makeContext(moduleDef),
                 module = execModuleDef(newContext, moduleDef);
 
@@ -277,19 +275,7 @@
                     }
                     c = c[segment];
                 }
-
                 c[segments[kMax]] = module;
-
-            } else if (item['import']) {
-                if (item['import']['*']) {
-                    for (var k in modules[path].exports) {
-                        exportInto[k] = module[k];
-                    }
-                } else {
-                    for (var k in item['import']) {
-                        exportInto[item['import'][k]] = module[k];
-                    }
-                }
             }
         }
 
@@ -822,32 +808,13 @@
         }
 
         function execModuleDef(context, moduleDef) {
-            var code = "(function (_) { with (_) {" + moduleDef.src + "}});";
+            var code = "(function (_) { with (_) {" + moduleDef.src + "}});",
+                fn = eval(code);
 
-            var exports = context.exports;
-            var fn = eval(code);
             fn = fn(context);
             return context.exports;
 
         }
-
-        /*function resolveImportRequest(context, request, opts) {
-            var cmds = jsio.__cmds,
-                imports = [],
-                result = false;
-
-            for (var i = 0, imp; imp = cmds[i]; ++i) {
-                if ((result = imp(context, request, opts, imports))) {
-                    break;
-                }
-            }
-
-            if (result !== true) {
-                throw new(typeof SyntaxError != 'undefined' ? SyntaxError : Error)(String(result || 'invalid jsio command: jsio(\'' + request + '\')'));
-            }
-
-            return imports;
-        }*/
 
         function resolveImportRequest(request) {
             var cmds = jsio.__cmds,
@@ -862,21 +829,16 @@
             return imports;
         };
 
-
         function makeContext(moduleDef) {
             var ctx = {
                 exports: {},
-                module: {},
                 jsio: function(req) {
                     jsio(req, ctx, moduleDef.directory, moduleDef.filename);
                 }
             };
 
-            ctx.module.exports = ctx.exports;
             return ctx;
         }
-
-
 
         // DEFINE SYNTAX FOR JSIO('cmd')
         jsio.addCmd(function(request) {
@@ -893,77 +855,6 @@
             }
             return imports;
         });
-        // from myPackage import myFunc
-        // external myPackage import myFunc
-        /*jsio.addCmd(function(context, request, opts, imports) {
-            var match = request.match(/^\s*(from|external)\s+([\w.\-$]+)\s+(import|grab)\s+(.*)$/);
-            if (match) {
-                imports.push({
-                    from: match[2],
-                    dontAddBase: match[1] == 'external',
-                    dontUseExports: match[3] == 'grab' || match[1] == 'external',
-                    'import': {}
-                });
-
-                match[4].replace(/\s*([\w.\-$*]+)(?:\s+as\s+([\w.\-$]+))?/g, function(_, item, as) {
-                    imports[0]['import'][item] = as || item;
-                });
-                return true;
-            }
-        });*/
-
-        // import myPackage
-        /*jsio.addCmd(function(context, request, opts, imports) {
-            var match = request.match(/^\s*import\s+(.*)$/);
-            if (match) {
-                match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
-                    imports.push(
-                        as ? {
-                            from: fullPath,
-                            as: as
-                        } : {
-                            from: fullPath,
-                            as: fullPath
-                        });
-                });
-                return true;
-            }
-        });*/
-
-        // CommonJS syntax
-        /*jsio.addCmd(function(context, request, opts, imports) {
-
-            //    ./../b -> ..b
-            //    ../../b -> ...b
-            //    ../b -> ..b
-            //    ./b -> .b
-
-            var match = request.match(/^\s*[\w.0-9$\/\-:\\]+\s*$/);
-            if (match) {
-
-                var req = util.resolveRelativePath(match[0]),
-                    isRelative = req.charAt(0) == '.';
-
-                req = req
-                    // .replace(/^\//, '') // remove any leading slash
-                    .replace(/\.\.\//g, '.') // replace relative path indicators with dots
-                    .replace(/\.\//g, '')
-                    .replace(/\/+$/g, '');
-
-                if (ENV.pathSep === '\\' && req.match(/^[a-zA-Z]:.)) {
-                    // leave absolute windows paths (start with drive letter) alone
-                } else {
-                    // any remaining slashes are path separators
-                    req = req.replace(/\//g, '.');
-                }
-
-                imports[0] = {
-                    from: (isRelative ? '.' : '') + req,
-                    original: request
-                };
-                return true;
-            }
-        });*/
 
         jsio.install = function() {
             jsio('from .base import *');

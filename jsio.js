@@ -9,24 +9,55 @@ var util = {
 };
 
 function jsio(req, exportInto) {
-    var args = {
-            exports: {},
-            jsio: function(req) {
-                jsio(req, args);
-            }
-        },
-        item = resolveImportRequest(req),
-        module = loadModule(item.from),
-        src = "(function (_) { with (_) {" + module.src + "}});",
-        fn = eval(src);
-
-    fn(args);
     exportInto = exportInto || {};
-    exportInto[item.as] = args.exports;
+
+    var item = resolveImportRequest(req),
+        moduleDef = loadModule(item.from),
+        newContext = makeContext(),
+        module = execModuleDef(newContext, moduleDef);
+
+    // add the module to the current context
+    if (item.as) {
+        // remove trailing/leading dots
+        var as = item.as.match(/^\.*(.*?)\.*$/)[1],
+            segments = as.split('.'),
+            kMax = segments.length - 1,
+            c = exportInto;
+
+        // build the object in the context
+        for (var k = 0; k < kMax; ++k) {
+            var segment = segments[k];
+            if (!segment) continue;
+            if (!c[segment]) {
+                c[segment] = {};
+            }
+            c = c[segment];
+        }
+        c[segments[kMax]] = module;
+    }
 };
 
 jsio.__cmds = [];
 jsio.__modules = {};
+
+function execModuleDef(context, moduleDef) {
+    var code = "(function (_) { with (_) {" + moduleDef.src + "}});",
+        fn = eval(code);
+
+    fn = fn(context);
+    return context.exports;
+
+}
+
+function makeContext() {
+    var args = {
+        exports: {},
+        jsio: function(req) {
+            jsio(req, args);
+        }
+    };
+    return args;
+}
 
 jsio.setModules = function(modules) {
     jsio.__modules = modules;
@@ -53,6 +84,9 @@ function resolveImportRequest(request) {
     return imports;
 };
 
+// import myPackage as pack
+// OR
+// import myPackage
 jsio.addCmd(function(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
         imports = {};
@@ -67,4 +101,3 @@ jsio.addCmd(function(request) {
     }
     return imports;
 });
-

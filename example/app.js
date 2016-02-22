@@ -1,3 +1,3 @@
-import example.calculator as calculator;
+import example.calculator;
 
-calculator.add(2, 3);
+example.calculator.add(2, 3);
