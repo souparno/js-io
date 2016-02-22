@@ -305,12 +305,10 @@
                 modules[path] = moduleDef;
             }
 
-            if (!moduleDef.exports) {
-                var newContext = makeContext(modulePath, moduleDef, item.dontAddBase);
+                var newContext = makeContext(moduleDef);
                 execModuleDef(newContext, moduleDef);
-            }
 
-            importStack.pop();
+            //importStack.pop();
 
             var module = moduleDef.exports;
 
@@ -345,8 +343,6 @@
                         retVal[as] = module;
                     }
                 } else if (item['import']) {
-                    // there can only be one module import with this syntax
-                    // (from foo import bar), so retVal will already be set here
                     if (item['import']['*']) {
                         for (var k in modules[path].exports) {
                             exportInto[k] = module[k];
@@ -358,8 +354,6 @@
                     }
                 }
             }
-
-            return retVal;
         }
         jsio.__util = util;
         jsio.__init__ = init;
@@ -894,28 +888,16 @@
         }
 
         function execModuleDef(context, moduleDef) {
-            var src = moduleDef.src;
-            delete moduleDef.src;
+            var code = "(function (_) { with (_) {" + moduleDef.src + "}});";
 
-            var code = "(function(_){with(_){delete _;return function $$" + moduleDef.friendlyPath.replace(/[\:\\\/.-]/g, '_') + "(){" + src + "\n}}})";
-
-            var exports = moduleDef.exports = context.exports;
-
-            var fn = ENV.eval(code, moduleDef.path, src);
+            var exports = context.exports;
+            var fn = eval(code);
             fn = fn(context);
 
-            fn.call(exports);
 
             if (exports != context.module.exports) {
-                // Emulate node.js-style ability to reassign module.exports:
-                //   module.exports = ...
-                //
-                // Note that in node.js and js.io, setting `module.exports` invalidates
-                // the context's `exports` alias. See
-                // http://nodejs.org/api/modules.html#modules_exports_alias for more
                 moduleDef.exports = context.module.exports;
             } else {
-                // js.io-style ability to override exports directly (`exports = `)
                 moduleDef.exports = context.exports;
             }
         }
@@ -938,18 +920,16 @@
             return imports;
         }
 
-        function makeContext(modulePath, moduleDef, dontAddBase) {
+        function makeContext(moduleDef) {
             var ctx = {
                 exports: {},
-	        jsio : function (req) {
-		  jsio(req, ctx, moduleDef.directory, moduleDef.filename);
-		}
+		module: {},
+                jsio: function(req) {
+                    jsio(req, ctx, moduleDef.directory, moduleDef.filename);
+                }
             };
 
-	    ctx.module = {
-                id: modulePath,
-                exports: ctx.exports
-            };
+	    ctx.module.exports = ctx.exports;
             return ctx;
         }
 
