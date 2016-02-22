@@ -1,3 +1,1 @@
-# jsio.js
-
-node -e "var jsio = require('./packages/jsio'); jsio('import .example.app')"
+A modular javascript library
