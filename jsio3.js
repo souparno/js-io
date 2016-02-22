@@ -939,36 +939,17 @@
         }
 
         function makeContext(modulePath, moduleDef, dontAddBase) {
-
-	
             var ctx = {
                 exports: {},
 	        jsio : function (req) {
 		  jsio(req, ctx, moduleDef.directory, moduleDef.filename);
 		}
             };
-	    ctx.require = function(request, opts) {
-                if (!opts) {
-                    opts = {};
-                }
-                opts.dontExport = true;
-                return ctx.jsio(request, opts);
-            };
 
-            ctx.require.main = ENV.main;
-
-            ctx.module = {
+	    ctx.module = {
                 id: modulePath,
                 exports: ctx.exports
             };
-            ctx.jsio.__jsio = jsio;
-            ctx.jsio.__env = jsio.__env;
-            ctx.jsio.__dir = moduleDef.directory;
-            ctx.jsio.__filename = moduleDef.filename;
-            ctx.jsio.path = jsioPath;
-
-            ctx.__dirname = moduleDef.directory;
-            ctx.__filename = util.buildPath(ctx.__dirname, moduleDef.filename);
             return ctx;
         }
 
