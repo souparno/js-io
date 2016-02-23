@@ -245,8 +245,9 @@
       }
     };
 
-    function jsio(request, exportInto, fromDir, fromFile) {
+    var importStack = [];
 
+    function jsio(request, exportInto, fromDir, fromFile) {
       fromDir = fromDir || './';
       fromFile = fromFile || INITIAL_FILE;
       exportInto = exportInto || {};
@@ -805,8 +806,7 @@
 
       fn = fn(context);
       return context.exports;
-
-    }
+    };
 
     function resolveImportRequest(request) {
       var cmds = jsio.__cmds,
@@ -828,7 +828,8 @@
           jsio(req, ctx, moduleDef.directory, moduleDef.filename);
         }
       };
-
+      ctx.jsio.__jsio = jsio;
+      
       return ctx;
     }
 
