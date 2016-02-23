@@ -744,9 +744,6 @@
             }
 
             if (!possibilities.length) {
-                if (opts.suppressErrors) {
-                    return false;
-                }
                 var e = new Error('Could not import `' + item.from + '`' + "\tImport Stack:\n" + "\t\t" + processStack().join("\n\t\t"));
                 e.jsioLogged = true;
                 e.code = MODULE_NOT_FOUND;
