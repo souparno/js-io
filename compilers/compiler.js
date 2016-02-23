@@ -231,7 +231,7 @@ exports.run = function(args, opts) {
   }
 
   //logger.info('compiling main program', initial);
-  //compiler.compile('./example/app');
+  compiler.compile(initial);
 
   compiler.generateSrc(opts, function(src) {
     if (opts.appendImport) {

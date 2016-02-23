@@ -35,16 +35,13 @@ exports.setCompiler = function (compiler) {
 }
 
 exports.run = function(args, opts) {
+  
 	if (!args) {
 		var result = optparse(process.argv, optsDef),
 			args = result.args,
 			opts = result.opts;
 	}
-
-	if (opts.help) {
-		usage();
-		process.exit();
-	}
+	
 
 	findMinifier(opts.closurePath);
 
