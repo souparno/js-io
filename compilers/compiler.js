@@ -1,4 +1,4 @@
-//import jsio.util.path as path;
+import jsio.preprocessors.compiler as compiler;
 import .node_interface as _interface;
 
 var JSIO = 'jsio';
@@ -10,8 +10,6 @@ var supportedEnvs = {
   browser: true
 };
 
-var _interface = null;
-
 exports.start = function( /*optional*/ args, opts) {
   if (opts && opts['interface']) {
     _interface = opts['interface'];
@@ -22,7 +20,7 @@ exports.start = function( /*optional*/ args, opts) {
     }
 
     if (!J.__env.name in supportedEnvs) {
-      logger.error("autostart failed: unknown environment.\n\n\tTry using compiler.run(args, opts) instead.");
+      //logger.error("autostart failed: unknown environment.\n\n\tTry using compiler.run(args, opts) instead.");
       return;
     }
     //console.log(J.__env.name);
@@ -37,22 +35,22 @@ exports.start = function( /*optional*/ args, opts) {
     _interface.onError(e);
   }
 }
- 
+
 function getPackage(fileName) {
   try {
     var pkg = eval('(' + J.__env.fetch(fileName) + ')');
-    logger.info('Package definition loaded from', fileName);
+    //logger.info('Package definition loaded from', fileName);
     return pkg;
   } catch (e) {
-    logger.log(J.__env.getCwd())
-    logger.warn('If "' + fileName + '" is a package file, it could not be read.', e);
+    //logger.log(J.__env.getCwd())
+    //logger.warn('If "' + fileName + '" is a package file, it could not be read.', e);
   }
   return false;
 }
 
 exports.setDebugLevel = function(level) {
-  logger.setLevel(level);
-  _interface.logger && _interface.logger.setLevel(level);
+  //logger.setLevel(level);
+  //_interface.logger && _interface.logger.setLevel(level);
 }
 
 /**
@@ -63,19 +61,15 @@ exports.setDebugLevel = function(level) {
  *   - debug : integer - debug level (1 - 5)
  */
 exports.run = function(args, opts) {
+  opts = opts || {};
   J = jsio.__jsio.clone();
 
-  if (opts.cwd) {
-    J.__env.getCwd = function() {
-      return opts.cwd;
-    };
-  }
 
   var debugLevel = 'debug' in opts ? opts.debug : 5;
   exports.setDebugLevel(debugLevel);
 
   var strOpts = JSON.stringify(opts, null, '\t');
-  logger.info('Starting compiler with args: ', args, 'and options:', strOpts.substring(1, strOpts.length - 1));
+  //logger.info('Starting compiler with args: ', args, 'and options:', strOpts.substring(1, strOpts.length - 1));
 
   // use external copy of jsio rather than cached copy
   if (opts.jsioPath) {
@@ -108,7 +102,7 @@ exports.run = function(args, opts) {
     }
   }
 
-  logger.info('js.io path:', JSON.stringify(J.path.get()));
+  //logger.info('js.io path:', JSON.stringify(J.path.get()));
 
   var initial;
 
@@ -116,16 +110,7 @@ exports.run = function(args, opts) {
   // try to maintain consistency with pyjsiocompile
 
   // accept a pkg file as the first argument
-  if (/\.pkg$/.test(args[2])) {
-    var pkg = getPackage(args[2]);
 
-    // was it a valid pkg file?
-    // (our test would also return true for "import foo.bar.pkg")
-    if (pkg != false) {
-      args.splice(2, 1); // consume the argument
-      opts['package'] = pkg; // treat the package the same as if it was specified on the command line
-    }
-  }
 
   // opts.package is probably the filename of the package
   if (typeof opts['package'] == 'string' && /\.pkg$/.test(opts['package'])) {
@@ -191,20 +176,18 @@ exports.run = function(args, opts) {
   // (this will be args[2])
   // We do this after package resolution since the arguments on the
   // command-line should override any settings in the package file.
-  if (args.length > 2) {
-    initial = args[2];
-  }
+
 
   if (!initial) {
-    _interface.onError(new Error('No initial import specified'));
-    return;
+    //_interface.onError(new Error('No initial import specified'));
+    //return;
   }
 
   // pyjsiocompile built the dynamic import table for the net environment
   // which depends on runtime environment and desired transports.  This
   // code does the same thing, building a list of imports that need to
   // happen upon import of the net.env module.
-  logger.info('dynamic imports: ', opts.dynamicImports);
+  //logger.info('dynamic imports: ', opts.dynamicImports);
   if (!opts.dynamicImports) {
     opts.dynamicImports = {};
   }
@@ -220,19 +203,12 @@ exports.run = function(args, opts) {
     }
   }
 
-  var result = initial.match(/^(.*)\.js$/);
-  if (result) {
-    initial = result[1];
-    if (initial.charAt[0] != '/' && initial.charAt[0] != '.') {
-      initial = './' + initial;
-    }
-  }
 
   // run the actual compiler
-  var compiler = J('import jsio.preprocessors.compiler');
+
   compiler.setCompilerOpts({
     debugLevel: debugLevel,
-    compressor: opts.compressor || ('compress' in _interface ? bind(_interface, 'compress') : null),
+    compressor: opts.compressor || null,
     defines: opts.defines,
     path: opts.path,
     autoDetectPaths: true,
@@ -242,7 +218,7 @@ exports.run = function(args, opts) {
     rawOpts: opts
   });
 
-  compiler.compile('import jsio.base');
+  //compiler.compile('import jsio.base');
 
   if (opts.additionalDeps) {
     var deps = opts.additionalDeps;
@@ -254,9 +230,8 @@ exports.run = function(args, opts) {
     }
   }
 
-  logger.info('compiling main program', initial);
-
-  compiler.compile(initial);
+  //logger.info('compiling main program', initial);
+  //compiler.compile('./example/app');
 
   compiler.generateSrc(opts, function(src) {
     if (opts.appendImport) {
@@ -266,7 +241,6 @@ exports.run = function(args, opts) {
     if (opts.footer) {
       src = src + (opts.footer || '');
     }
-
     _interface.onFinish(opts, src);
   });
 }

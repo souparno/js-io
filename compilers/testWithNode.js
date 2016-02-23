@@ -1,3 +1,3 @@
-var jsio = require('../packages2/jsio');
+var jsio = require('../packages/jsio');
 jsio('import .compile');
 

@@ -192,8 +192,9 @@
         return util.buildPath(relative ? directory : '', result.join('/'));
       },
       resolveModulePath: function(modulePath, directory) {
+
         // resolve relative paths
-        if (modulePath.charAt(0) == '.') {
+        if (String(modulePath).charAt(0) == '.') {
           return [
             getModuleDef(util.resolveRelativeModule(modulePath, directory)),
             getModuleDef(util.resolveRelativeModule(modulePath + '.index', directory))
@@ -848,11 +849,6 @@
       }
       return imports;
     });
-
-    jsio.install = function() {
-      jsio('from .base import *');
-      GLOBAL['logger'] = logging.get('jsiocore');
-    };
 
     jsio.eval = function(src, path) {
       path = ENV.getCwd() || '/';
