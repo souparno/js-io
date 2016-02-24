@@ -1,4 +1,4 @@
-var jsio=(function init() {
+var jsio=(function clone() {
   var util = {
     isEmpty: function(obj) {
       for (var prop in obj) {
@@ -38,7 +38,7 @@ var jsio=(function init() {
     }
   };
 
-  jsio.__init__ = init;
+  jsio.__clone__ = clone;
   jsio.__cmds = [];
   jsio.__modules = {};
 

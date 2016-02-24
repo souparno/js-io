@@ -1,7 +1,7 @@
 var jsio = require('./jsio');
 
 function getJsioSrc() {
-  var src = 'var jsio=(' + jsio.__init__.toString(-1) + '());';
+  var src = 'var jsio=(' + jsio.__clone__.toString(-1) + '());';
 
   return src;
 }
