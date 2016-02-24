@@ -1,4 +1,4 @@
-import .print as print;
+import example.print as print;
 
 exports = {
 
