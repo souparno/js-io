@@ -1,4 +1,4 @@
-var jsio=(function clone() {
+var jsio = (function clone() {
   var util = {
     isEmpty: function(obj) {
       for (var prop in obj) {
