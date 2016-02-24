@@ -1,10 +1,8 @@
-var jsio = require('./cc');
+var jsio = require('./jsio');
 
 function getJsioSrc() {
-  var src = jsio.__init__.toString(-1);
-  if (src.substring(0, 8) == 'function') {
-    src = 'var jsio=(' + src + '());';
-  }
+  var src = 'var jsio=(' + jsio.__init__.toString(-1) + '());';
+
   return src;
 }
 

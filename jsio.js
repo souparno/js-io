@@ -87,9 +87,9 @@ var jsio=(function init() {
     return imports;
   };
 
-  // import myPackage as pack
-  // OR
   // import myPackage
+  // OR
+  // import myPackage as pack
   jsio.addCmd(function(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
       imports = {};
