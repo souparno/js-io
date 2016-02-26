@@ -59,8 +59,6 @@ var jsio = (function clone() {
       }
     };
 
-    ctx.jsio.__clone = clone;
-    ctx.jsio.__modules = {};
     return ctx;
   }
 
