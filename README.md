@@ -8,16 +8,12 @@ js.io provides the following:
 
 A module system.
 Dependency graph that works in the client and the browser.
-Support and networking libraries that can be used on either platform.
 
-run the js.io repl:
-
-    $ jsio
-
-or run a js.io-flavored script:
-
-    $ jsio file.js	
-
-or the js.io compiler:
+js.io compiler:
 
     $ jsio-compile
+
+Eample:
+
+    $ node jsio-compile example/app > build.js
+    $ node build.js
