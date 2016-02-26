@@ -9,12 +9,10 @@ var jsio = (function clone() {
     }
   };
 
-  function jsio(req, exportInto, baseLoader) {
-    exportInto = exportInto || {};
-
+  function jsio(req, exportInto, fromDir, baseLoader) {
     var item = resolveImportRequest(req),
-      moduleDef = loadModule(item.from, baseLoader),
-      newContext = makeContext(baseLoader),
+      moduleDef = loadModule(item.from, fromDir, baseLoader),
+      newContext = makeContext(moduleDef.directory, baseLoader),
       module = execModuleDef(newContext, moduleDef);
 
     // add the module to the current context
@@ -51,11 +49,11 @@ var jsio = (function clone() {
 
   }
 
-  function makeContext(baseLoader) {
+  function makeContext(fromDir, baseLoader) {
     var ctx = {
       exports: {},
       jsio: function(req) {
-        jsio(req, ctx, baseLoader);
+        jsio(req, ctx, fromDir, baseLoader);
       }
     };
 
@@ -66,11 +64,11 @@ var jsio = (function clone() {
     jsio.__modules = modules;
   };
 
-  function loadModule(from, baseLoader) {
+  function loadModule(fromFile, fromDir, baseLoader) {
     if (typeof baseLoader == 'function') {
-      jsio.__modules[from] = baseLoader(from);
+      jsio.__modules[fromFile] = baseLoader(fromFile, fromDir);
     }
-    return jsio.__modules[from];
+    return jsio.__modules[fromFile];
   };
 
   jsio.addCmd = function(fn) {
