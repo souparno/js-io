@@ -1,18 +1,19 @@
 var jsio = require('./jsio');
 var fs = require('fs');
 
+var applyPreprocessors = function(src) {
+  var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
+  return src.replace(importExpr,
+    function(raw, p1, p2, p3) {
+      if (!/\/\//.test(p1)) {
+        return p1 + 'jsio(\'' + p2 + '\')' + p3;
+      }
+      return raw;
+    });
+};
+
 function loadModule(path) {
-  var applyPreprocessors = function(src) {
-      var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
-      return src.replace(importExpr,
-        function(raw, p1, p2, p3) {
-          if (!/\/\//.test(p1)) {
-            return p1 + 'jsio(\'' + p2 + '\')' + p3;
-          }
-          return raw;
-        });
-    },
-    result = [],
+  var result = [],
     parts = path.split('.'),
     len = parts.length,
     i = -1;
@@ -34,7 +35,7 @@ function loadModule(path) {
 
 
 function getJsioSrc(argument) {
-  var src = 'jsio=(' + jsio.__clone.toString(-1) + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('import " + argument + "')";
+  var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('import " + argument + "')";
   return src;
 }
 
