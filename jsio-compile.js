@@ -400,22 +400,22 @@ function findModule(possibilities) {
     }
   }
 };
-var count = 1;
+
 // load a module from a file
-function loadModule(path, directory) {
-  var possibilities = util.resolveModulePath(path, directory);
+function loadModule(fromFile, fromDir) {
+  var possibilities = util.resolveModulePath(fromFile, fromDir);
   var moduleDef = findModule(possibilities);
 
-  moduleDef.friendlyPath = path;
+  moduleDef.friendlyPath = fromFile;
   moduleDef.src = applyPreprocessors(moduleDef.src);
   return moduleDef;
-}
+};
 
 
 function getJsioSrc() {
   var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");";
   return src;
-}
+};
 
 var imports = process.argv[2];
 jsio(imports, {}, './', loadModule);
