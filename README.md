@@ -15,5 +15,5 @@ js.io compiler:
 
 Eample:
 
-    $ node jsio-compile example/app > build.js
+    $ node jsio-compile.js 'import .example.app' > build.js
     $ node build.js

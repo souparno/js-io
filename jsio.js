@@ -6,6 +6,12 @@ var jsio = (function clone() {
           return false;
       }
       return true;
+    },
+    isFunction: function(fn) {
+      if (typeof fn == 'function') {
+        return true;
+      }
+      return false;
     }
   };
 
@@ -65,7 +71,7 @@ var jsio = (function clone() {
   };
 
   function loadModule(fromFile, fromDir, baseLoader) {
-    if (typeof baseLoader == 'function') {
+    if (util.isFunction(baseLoader)) {
       jsio.__modules[fromFile] = baseLoader(fromFile, fromDir);
     }
     return jsio.__modules[fromFile];
