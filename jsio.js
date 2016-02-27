@@ -1,4 +1,4 @@
-var jsio = (function clone() {
+var jsio = (function clone(baseLoader) {
   var util = {
     isEmpty: function(obj) {
       for (var prop in obj) {
@@ -15,10 +15,10 @@ var jsio = (function clone() {
     }
   };
 
-  function jsio(req, exportInto, fromDir, baseLoader) {
+  function jsio(req, exportInto, fromDir) {
     var item = resolveImportRequest(req),
-      moduleDef = loadModule(item.from, fromDir, baseLoader),
-      newContext = makeContext(moduleDef.directory, baseLoader),
+      moduleDef = loadModule(item.from, fromDir),
+      newContext = makeContext(moduleDef.directory),
       module = execModuleDef(newContext, moduleDef);
 
     // add the module to the current context
@@ -55,11 +55,11 @@ var jsio = (function clone() {
 
   }
 
-  function makeContext(fromDir, baseLoader) {
+  function makeContext(fromDir) {
     var ctx = {
       exports: {},
       jsio: function(req) {
-        jsio(req, ctx, fromDir, baseLoader);
+        jsio(req, ctx, fromDir);
       }
     };
 
@@ -70,7 +70,7 @@ var jsio = (function clone() {
     jsio.__modules = modules;
   };
 
-  function loadModule(fromFile, fromDir, baseLoader) {
+  function loadModule(fromFile, fromDir) {
     if (util.isFunction(baseLoader)) {
       jsio.__modules[fromFile] = baseLoader(fromFile, fromDir);
     }
