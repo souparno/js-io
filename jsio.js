@@ -52,8 +52,7 @@ var jsio = (function clone(baseLoader) {
 
     fn = fn(context);
     return context.exports;
-
-  }
+  };
 
   function makeContext(fromDir) {
     var ctx = {
@@ -64,7 +63,7 @@ var jsio = (function clone(baseLoader) {
     };
 
     return ctx;
-  }
+  };
 
   jsio.setModules = function(modules) {
     jsio.__modules = modules;
