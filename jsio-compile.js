@@ -418,5 +418,6 @@ function getJsioSrc() {
 };
 
 var imports = process.argv[2];
-jsio(imports, {}, './', loadModule);
+jsio = jsio.__clone(loadModule);
+jsio(imports, {}, './');
 console.log(getJsioSrc());
