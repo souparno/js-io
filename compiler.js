@@ -12,11 +12,12 @@ function getModuleDef(path) {
 };
 
 function ModuleDef(path) {
+  var splitPath = util.splitPath(path, this);
+
+  this.directory = util.resolve(ENV.getCwd(), splitPath.directory);
+  this.filename = splitPath.filename;
   this.path = path;
   this.friendlyPath = path;
-
-  util.splitPath(path, this);
-  this.directory = util.resolve(ENV.getCwd(), this.directory);
 };
 
 var util = {
@@ -185,14 +186,13 @@ var util = {
     }
     return defs;
   },
-  splitPath: function(path, result) {
-    if (!result) {
-      result = {};
-    }
+  splitPath: function(path) {
     var i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1;
-    result.directory = path.substring(0, i);
-    result.filename = path.substring(i);
-    return result;
+
+    return {
+      directory: path.substring(0, i),
+      filename: path.substring(i)
+    }
   }
 };
 
@@ -238,7 +238,6 @@ function findModule(possibilities) {
   }
 };
 
-// load a module from a file
 function loadModule(fromFile, fromDir) {
   var possibilities = util.resolveModulePath(fromFile, fromDir);
   var moduleDef = findModule(possibilities);
@@ -247,7 +246,6 @@ function loadModule(fromFile, fromDir) {
   moduleDef.src = applyPreprocessors(moduleDef.src);
   return moduleDef;
 };
-
 
 function getJsioSrc(imports) {
   var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('" + imports + "', {});";
