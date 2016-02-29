@@ -1,24 +1,25 @@
 var jsio = (function clone(baseLoader) {
   var util = {
-    isEmpty: function(obj) {
-      for (var prop in obj) {
-        if (obj.hasOwnProperty(prop))
-          return false;
-      }
-      return true;
-    },
-    isFunction: function(fn) {
-      if (typeof fn == 'function') {
+      isEmpty: function(obj) {
+        for (var prop in obj) {
+          if (obj.hasOwnProperty(prop))
+            return false;
+        }
         return true;
+      },
+      isFunction: function(fn) {
+        if (typeof fn == 'function') {
+          return true;
+        }
+        return false;
+      },
+      removeDots(str) {
+        str = str.match(/^\.*(.*?)\.*$/)[1];
+
+        return str;
       }
-      return false;
     },
-    removeDots(str) {
-      str = str.match(/^\.*(.*?)\.*$/)[1];
-  
-      return str;
-    }
-  };
+    commands = [];
 
   function jsio(req, exportInto, fromDir) {
     var item = resolveImportRequest(req),
@@ -47,8 +48,11 @@ var jsio = (function clone(baseLoader) {
   };
 
   jsio.__clone = clone;
-  jsio.__cmds = [];
   jsio.__modules = {};
+  
+  jsio.setModules = function(modules) {
+    jsio.__modules = modules;
+  };
 
   function execModuleDef(context, moduleDef) {
     var code = "(function (_) { with (_) {" + moduleDef.src + "}});",
@@ -69,10 +73,6 @@ var jsio = (function clone(baseLoader) {
     return ctx;
   };
 
-  jsio.setModules = function(modules) {
-    jsio.__modules = modules;
-  };
-
   function loadModule(fromFile, fromDir) {
     if (util.isFunction(baseLoader)) {
       jsio.__modules[fromFile] = baseLoader(fromFile, fromDir);
@@ -80,16 +80,15 @@ var jsio = (function clone(baseLoader) {
     return jsio.__modules[fromFile];
   };
 
-  jsio.addCmd = function(fn) {
-    jsio.__cmds.push(fn);
+  function addCmd(fn) {
+    commands.push(fn);
   };
 
   function resolveImportRequest(request) {
-    var cmds = jsio.__cmds,
-      imports = {};
+    var imports = {};
 
-    for (var index in cmds) {
-      imports = cmds[index](request);
+    for (var index in commands) {
+      imports = commands[index](request);
       if (!util.isEmpty(imports)) {
         break;
       }
@@ -100,7 +99,7 @@ var jsio = (function clone(baseLoader) {
   // import myPackage
   // OR
   // import myPackage as pack
-  jsio.addCmd(function(request) {
+  addCmd(function(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
       imports = {};
 

@@ -11,9 +11,9 @@ Dependency graph that works in the client and the browser.
 
 js.io compiler:
 
-    $ jsio-compile
+    $ compiler
 
 Eample:
 
-    $ node jsio-compile.js 'import .example.app' > build.js
+    $ node compiler.js 'import .example.app' > build.js
     $ node build.js
