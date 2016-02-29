@@ -267,38 +267,10 @@ function ENV_node() {
   };
 
   this.pathSep = path.sep;
-
-  // var parentPath = util.splitPath(module.parent.filename);
-  // module.parent.require = function(request, opts) {
-  //   if (!opts) { opts = {}; }
-  //   opts.dontExport = true;
-  //   return _require({}, parentPath.directory, parentPath.filename, request, opts);
-  // };
-
-  this.log = function() {
-    var msg;
-    try {
-      msg = Array.prototype.map.call(arguments, function(a) {
-        if ((a instanceof Error) && a.message) {
-          return 'Error:' + a.message + '\nStack:' + a.stack + '\nArguments:' + a.arguments;
-        }
-        return (typeof a == 'string' ? a : JSON.stringify(a));
-      }).join(' ') + '\n';
-    } catch (e) {
-      msg = Array.prototype.join.call(arguments, ' ') + '\n';
-    }
-
-    process.stderr.write(msg);
-    return msg;
-  };
-
   this.getPath = function() {
     return __dirname;
   };
 
-  this.eval = function(code, path) {
-    return vm.runInThisContext(code, path, true);
-  };
 
   this.fetch = function(p) {
     p = util.resolve(this.getCwd(), p);
