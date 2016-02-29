@@ -4,16 +4,12 @@ js.io is a multi-platform package management and module system for JavaScript. j
 modules can be evaluated in a JavaScript runtime (e.g. node.js) or
 precompiled into a single package for use on the client side.
 
-js.io provides the following:
-
-A module system.
-Dependency graph that works in the client and the browser.
 
 js.io compiler:
 
-    $ compiler
+    $ packages/compiler.js
 
 Eample:
 
-    $ node compiler.js 'import .example.app' > build.js
+    $ node packages/compiler.js 'import .example.app' > build.js
     $ node build.js
