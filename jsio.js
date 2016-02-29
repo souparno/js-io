@@ -13,7 +13,7 @@ var jsio = (function clone(baseLoader) {
       }
       return false;
     },
-    removeTrailingLeadingDots(str) {
+    removeDots(str) {
       str = str.match(/^\.*(.*?)\.*$/)[1];
   
       return str;
@@ -28,7 +28,7 @@ var jsio = (function clone(baseLoader) {
 
     // add the module to the current context
     if (item.as) {
-      var as = util.removeTrailingLeadingDots(item.as),
+      var as = util.removeDots(item.as),
         segments = as.split('.'),
         kMax = segments.length - 1,
         c = exportInto;
