@@ -364,12 +364,9 @@ var applyPreprocessors = function(src) {
 function findModule(possibilities) {
   for (var i = 0, possible; possible = possibilities[i]; ++i) {
     var path = possible.path;
-    var src = ENV.fetch(path);
-
-    if (src !== false) {
-      possible.src = src;
-      return possible;
-    }
+    
+    possible.src = ENV.fetch(path);
+    return possible;
   }
 };
 
