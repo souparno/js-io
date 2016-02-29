@@ -21,39 +21,15 @@ function ModuleDef(path) {
 };
 
 var util = {
-
-  // `util.addEndSlash` accepts a string.  That string is returned with a `/`
-  // appended if the string did not already end in a `/`.
   addEndSlash: function(str) {
     return rexpEndSlash.test(str) ? str : str + '/';
   },
-
-  // `util.removeEndSlash` accepts a string.  It removes a trailing `/` if
-  // one is found.
   removeEndSlash: function(str) {
     return str.replace(rexpEndSlash, '');
   },
-
-  // `util.relative` accepts two paths (strings) and returns the second path
-  // relative to the first.
-  //
-  //  - if `path` starts with `relativeTo`, then strip `path` off the
-  //    `relativeTo` part
-  //
-  //         util.relative('abc/def/', 'abc') -> 'def'
-  //
-  //  - if `path` starts with some substring of `relativeTo`, remove
-  //    this substring and add `../` for each remaining segment of
-  //    `relativeTo`.
-  //
-  //         util.relative('abc/def/', 'abc/hij') -> '../def'
-  //
   relative: function(relativeTo, path) {
     var len = relativeTo.length;
     if (path.substring(0, len) == relativeTo) {
-      // if the relative path now starts with a path separator
-      // either (/ or \), remove it
-      /* Note: we're casting a boolean to an int by adding len to it */
       return path.slice(len + /[\/\\]/.test(path.charAt(len)));
     }
 
@@ -151,40 +127,6 @@ var util = {
         getModuleDef(util.resolveRelativeModule(modulePath + '.index', directory))
       ];
     }
-
-    // resolve absolute paths with respect to jsio packages/
-    var pathSegments = modulePath.split('.');
-    var n = pathSegments.length;
-    for (var i = n; i > 0; --i) {
-      var subpath = pathSegments.slice(0, i).join('.');
-      var value = jsioPath.cache[subpath];
-      var pathString = pathSegments.slice(i).join('/');
-      if (value) {
-        return [
-          getModuleDef(util.buildPath(value, pathString)),
-          getModuleDef(util.buildPath(value, pathString + '/index'))
-        ];
-      }
-    }
-
-    var baseMod = pathSegments[0];
-    var pathString = pathSegments.join('/');
-    var defs = [];
-    var paths = jsioPath.get();
-    var len = paths.length;
-    for (var i = 0; i < len; ++i) {
-      var base = paths[i];
-      var path = util.buildPath(base, pathString);
-
-      var moduleDef = getModuleDef(path);
-      moduleDef.setBase(baseMod, base);
-      defs.push(moduleDef);
-
-      var moduleDef = getModuleDef(path + '/index');
-      moduleDef.setBase(baseMod, base);
-      defs.push(moduleDef);
-    }
-    return defs;
   },
   splitPath: function(path) {
     var i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1;
@@ -213,7 +155,6 @@ function ENV_node() {
       return false;
     }
   };
-
 };
 
 var ENV = new ENV_node();
