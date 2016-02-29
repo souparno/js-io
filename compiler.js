@@ -20,18 +20,6 @@ function ModuleDef(path) {
 };
 
 var util = {
-  // `util.bind` returns a function that, when called, will execute
-  // the method passed in with the provided context and any additional
-  // arguments passed to `util.bind`.
-  //       util.bind(obj, 'f', a) -> function() { return obj.f(a); }
-  //       util.bind(obj, g, a, b, c) -> function() { return g.call(g, a, b, c); }
-  bind: function(context, method /*, args... */ ) {
-    var args = SLICE.call(arguments, 2);
-    return function() {
-      method = (typeof method == 'string' ? context[method] : method);
-      return method.apply(context, args.concat(SLICE.call(arguments, 0)));
-    };
-  },
 
   // `util.addEndSlash` accepts a string.  That string is returned with a `/`
   // appended if the string did not already end in a `/`.
@@ -208,116 +196,16 @@ var util = {
   }
 };
 
-var jsioPath = {
-  set: function(path) {
-    this.value = [];
-    (typeof path == 'string' ? [path] : path).map(this.add, this);
-  },
-  get: function() {
-    return jsioPath.value.slice(0);
-  },
-  add: function(path) {
-    if (arguments.length == 2) {
-      var from = arguments[0];
-      var to = util.resolve(ENV.getCwd(), arguments[1]);
-      this.cache[from] = to;
-    } else {
-      path = util.resolve(ENV.getCwd(), path);
-      var v = jsioPath.value,
-        len = v.length;
-      for (var i = 0; i < len; ++i) {
-        if (v[i] == path) {
-          return;
-        }
-      }
-      v.push(path);
-    }
-  },
-  remove: function(path) {
-    var v = jsioPath.value,
-      len = v.length;
-    for (var i = 0; i < len; ++i) {
-      if (v[i] == path) {
-        v.splice(i, 1);
-      }
-    }
-  },
-  value: [],
-  cache: {}
-}
-
 function ENV_node() {
-  var Module = module.constructor;
-
-  var parent = module.parent;
-  var req = util.bind(parent, parent && parent.require || require);
-  this.requireCache = require.cache;
-  this.main = require.main;
-  this.name = 'node';
-  this.global = global;
-  this.isWindowsNode = (process.platform === 'win32');
 
   var _cwd = process.cwd();
-  this.setCwd = function(cwd) {
-    _cwd = path.resolve(_cwd, cwd);
-  };
 
   this.getCwd = function() {
     return _cwd;
   };
 
-  this.pathSep = path.sep;
-
-  // var parentPath = util.splitPath(module.parent.filename);
-  // module.parent.require = function(request, opts) {
-  //   if (!opts) { opts = {}; }
-  //   opts.dontExport = true;
-  //   return _require({}, parentPath.directory, parentPath.filename, request, opts);
-  // };
-
-  this.log = function() {
-    var msg;
-    try {
-      msg = Array.prototype.map.call(arguments, function(a) {
-        if ((a instanceof Error) && a.message) {
-          return 'Error:' + a.message + '\nStack:' + a.stack + '\nArguments:' + a.arguments;
-        }
-        return (typeof a == 'string' ? a : JSON.stringify(a));
-      }).join(' ') + '\n';
-    } catch (e) {
-      msg = Array.prototype.join.call(arguments, ' ') + '\n';
-    }
-
-    process.stderr.write(msg);
-    return msg;
-  };
-
-  this.getPath = function() {
-    return __dirname;
-  };
-
-  this.eval = function(code, path) {
-    return vm.runInThisContext(code, path, true);
-  };
-
   this.fetch = function(p) {
     p = util.resolve(this.getCwd(), p);
-
-    var filename, lowercaseFilename, files;
-    try {
-      var dirname = path.dirname(p);
-      filename = path.basename(p);
-      lowercaseFilename = filename.toLowerCase();
-      files = fs.readdirSync(dirname);
-    } catch (e) {
-      return false;
-    }
-
-    for (var i = 0, testName; testName = files[i]; ++i) {
-      if (testName.toLowerCase() == lowercaseFilename && testName != filename) {
-        throw "Invalid case when importing [" + p + "].  You probably meant" + testName;
-      }
-    }
 
     try {
       return fs.readFileSync(p, 'utf8');
@@ -326,57 +214,9 @@ function ENV_node() {
     }
   };
 
-  var stackRe = /\((?!module.js)(?:file:\/\/)?(.*?)(:\d+)(:\d+)\)/g;
-  this.loadModule = function(baseLoader, fromDir, fromFile, item, opts) {
-    if (fromFile == INITIAL_FILE && !opts.initialImport) {
-      var stack = new Error().stack;
-      var match;
-      stackRe.lastIndex = 0;
-      do {
-        match = stackRe.exec(stack);
-      } while (match && /jsio\.js$/.test(match[1]));
-
-      if (match) {
-        fromDir = path.dirname(match[1]);
-        fromFile = path.basename(match[1]);
-      }
-    }
-
-    try {
-      return baseLoader(null, fromDir, item, opts);
-    } catch (e) {
-      if (e.code == MODULE_NOT_FOUND) {
-        var require = req;
-        // lookup node module for relative imports
-        var module;
-        var filename = path.join(fromDir, fromFile);
-        module = this.requireCache[filename];
-        if (!module) {
-          module = new Module(filename);
-          module.filename = filename;
-          module.paths = Module._nodeModulePaths(path.dirname(filename));
-        }
-        var request = item.original || item.from;
-        try {
-          return {
-            exports: module ? module.require(request) : require(request),
-            path: item.from
-          };
-        } catch (e2) {
-          if (e2.code == MODULE_NOT_FOUND) {
-            throw e;
-          }
-
-          throw e2;
-        }
-      } else {
-        throw e;
-      }
-    }
-  };
 };
 
-var ENV = new ENV_node(util);
+var ENV = new ENV_node();
 
 var applyPreprocessors = function(src) {
   var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
@@ -392,12 +232,9 @@ var applyPreprocessors = function(src) {
 function findModule(possibilities) {
   for (var i = 0, possible; possible = possibilities[i]; ++i) {
     var path = possible.path;
-    var src = ENV.fetch(path);
 
-    if (src !== false) {
-      possible.src = src;
-      return possible;
-    }
+    possible.src = ENV.fetch(path);
+    return possible;
   }
 };
 
@@ -413,7 +250,7 @@ function loadModule(fromFile, fromDir) {
 
 
 function getJsioSrc(imports) {
-  var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('"+ imports +"', {});";
+  var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('" + imports + "', {});";
   return src;
 };
 
