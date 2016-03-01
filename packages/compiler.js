@@ -189,11 +189,11 @@ function loadModule(fromFile, fromDir) {
 };
 
 function getJsioSrc(imports) {
-  var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('" + imports + "', {});";
+  var src = 'jsio=(' + jsio.__clone.toString() + ')();' + "jsio.setModules(" + JSON.stringify(jsio.__modules) + ");jsio('" + imports + "');";
   return src;
 };
 
 var imports = process.argv[2];
 jsio = jsio.__clone(loadModule);
-jsio(imports, {}, './');
+jsio(imports);
 console.log(getJsioSrc(imports));

@@ -1,5 +1,6 @@
 var jsio = (function clone(baseLoader) {
-  var util = {
+  var SLICE = Array.prototype.slice,
+    util = {
       isEmpty: function(obj) {
         for (var prop in obj) {
           if (obj.hasOwnProperty(prop))
@@ -17,14 +18,24 @@ var jsio = (function clone(baseLoader) {
         str = str.match(/^\.*(.*?)\.*$/)[1];
 
         return str;
+      },
+      bind: function(method) {
+        var args = SLICE.call(arguments, 1);
+
+        return function() {
+          for (var key in arguments) {
+            args.push(arguments[key]);
+          }
+          method(args[0], args[1], args[2]);
+        };
       }
     },
     commands = [];
 
-  function jsio(req, exportInto, fromDir) {
-    var item = resolveImportRequest(req),
+  function _require(exportInto, fromDir, request) {
+    var item = resolveImportRequest(request),
       moduleDef = loadModule(item.from, fromDir),
-      newContext = makeContext(moduleDef.directory),
+      newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef);
 
     // add the module to the current context
@@ -47,9 +58,10 @@ var jsio = (function clone(baseLoader) {
     }
   };
 
+  var jsio = util.bind(_require, {}, './');
   jsio.__clone = clone;
   jsio.__modules = {};
-  
+
   jsio.setModules = function(modules) {
     jsio.__modules = modules;
   };
@@ -62,13 +74,11 @@ var jsio = (function clone(baseLoader) {
     return context.exports;
   };
 
-  function makeContext(fromDir) {
-    var ctx = {
-      exports: {},
-      jsio: function(req) {
-        jsio(req, ctx, fromDir);
-      }
-    };
+  function makeContext(moduleDef) {
+    var ctx = {};
+
+    ctx.exports = {};
+    ctx.jsio = util.bind(_require, ctx, moduleDef.directory);
 
     return ctx;
   };
