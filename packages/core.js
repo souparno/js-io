@@ -1,6 +1,5 @@
 var jsio = (function init(baseLoader) {
-  var SLICE = Array.prototype.slice,
-    util = {
+  var util = {
       isEmpty: function(obj) {
         for (var prop in obj) {
           if (obj.hasOwnProperty(prop))
@@ -19,10 +18,21 @@ var jsio = (function init(baseLoader) {
 
         return str;
       },
-      bind: function(context, method) {
-        var args = SLICE.call(arguments, 2);
+      bind: function(fn) {
+        var args = [],
+          param_length = 0;
+
+        for (var i = 0; i < arguments.length; i++) {
+          if (i) {
+            args[i - 1] = arguments[i];
+          }
+        }
+        param_length = args.length;
         return function() {
-          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+          for (var i = 0; i < arguments.length; i++) {
+            args[param_length + i] = arguments[i];
+          }
+          return fn(args[0], args[1], args[2]);
         };
       }
     },
@@ -56,7 +66,7 @@ var jsio = (function init(baseLoader) {
     return module;
   };
 
-  var jsio = util.bind(this, _require, {}, './');
+  var jsio = util.bind(_require, {}, './');
   jsio.__init = init;
   jsio.__srcCache = {};
 
@@ -76,7 +86,7 @@ var jsio = (function init(baseLoader) {
     var ctx = {};
 
     ctx.exports = {};
-    ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory);
+    ctx.jsio = util.bind(_require, ctx, moduleDef.directory);
     ctx.jsio.__jsio = jsio;
     return ctx;
   };
