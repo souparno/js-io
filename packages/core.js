@@ -19,14 +19,10 @@ var jsio = (function init(baseLoader) {
 
         return str;
       },
-      bind: function(method) {
-        var args = SLICE.call(arguments, 1);
-
+      bind: function(context, method) {
+        var args = SLICE.call(arguments, 2);
         return function() {
-          for (var key in arguments) {
-            args.push(arguments[key]);
-          }
-          return method(args[0], args[1], args[2]);
+          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
         };
       }
     },
@@ -60,7 +56,7 @@ var jsio = (function init(baseLoader) {
     return module;
   };
 
-  var jsio = util.bind(_require, {}, './');
+  var jsio = util.bind(this, _require, {}, './');
   jsio.__init = init;
   jsio.__srcCache = {};
 
@@ -80,10 +76,8 @@ var jsio = (function init(baseLoader) {
     var ctx = {};
 
     ctx.exports = {};
-    ctx.jsio = util.bind(_require, ctx, moduleDef.directory);
-    ctx.jsio.__init = init;
-    ctx.jsio.__srcCache = jsio.__srcCache;
-    ctx.jsio.__jsio = util.bind(_require, {}, './');
+    ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory);
+    ctx.jsio.__jsio = jsio;
     return ctx;
   };
 

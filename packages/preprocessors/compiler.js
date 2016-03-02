@@ -1,12 +1,12 @@
  exports.generateSrc = function buildJsio(callback) {
    function getJsioSrc() {
-     var src = jsio.__init.toString(-1);
+     var src = jsio.__jsio.__init.toString(-1);
      if (src.substring(0, 8) == 'function') {
        src = 'jsio=(' + src + ')();';
      }
      return src;
    }
-   src = getJsioSrc() + "jsio.setCache(" + JSON.stringify(jsio.__srcCache) + ");";
+   src = getJsioSrc() + "jsio.setCache(" + JSON.stringify(jsio.__jsio.__srcCache) + ");";
    callback(src);
  };
 
