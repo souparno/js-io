@@ -1,5 +1,5 @@
 var jsio = require('./packages/jsio');
-var compiler = jsio('import .packages.preprocessors.compiler as compiler');
+var compiler = jsio('import .packages.preprocessors.compiler');
 
 
 function run(imports) {

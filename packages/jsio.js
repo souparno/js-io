@@ -188,4 +188,4 @@ function loadModule(fromFile, fromDir) {
   return moduleDef;
 };
 
-module.exports = jsio.__init__(loadModule);
+module.exports = jsio.__init(loadModule);
