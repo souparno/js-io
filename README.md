@@ -11,5 +11,5 @@ js.io compiler:
 
 Eample:
 
-    $ node testWithNode.js 'import .example.app' > build.js
+    $ node compileExample.js 'import .example.app' > build.js
     $ node build.js
