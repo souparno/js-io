@@ -160,13 +160,14 @@ function ENV_node() {
 
 var ENV = new ENV_node();
 
-function loadModule(fromFile, fromDir, dontPreprocess) {
+function loadModule(fromFile, fromDir, opts) {
   var possibilities = util.resolveModulePath(fromFile, fromDir);
   var moduleDef = findModule(possibilities);
 
   moduleDef.friendlyPath = fromFile;
-  if (!dontPreprocess) {
-    applyPreprocessors(moduleDef, ['import'], dontPreprocess);
+  opts = opts || {};
+  if (!opts.hasOwnProperty('dontPreprocess')) {
+    applyPreprocessors(moduleDef, ['import']);
   }
   return moduleDef;
 };
@@ -179,7 +180,9 @@ var applyPreprocessors = function(moduleDef, names) {
 };
 
 function getPreprocessor(moduleDef, name) {
-  jsio('import .packages.preprocessors.' + name, true)(moduleDef);
+  jsio('import .packages.preprocessors.' + name, {
+    dontPreprocess: true
+  })(moduleDef);
 }
 
 function findModule(possibilities) {

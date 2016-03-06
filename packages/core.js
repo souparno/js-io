@@ -29,9 +29,9 @@ var jsio = (function init(baseLoader) {
     },
     commands = [];
 
-  function _require(exportInto, fromDir, request, dontPreprocess) {
+  function _require(exportInto, fromDir, request, opts) {
     var item = resolveImportRequest(request),
-      moduleDef = loadModule(item.from, fromDir, dontPreprocess),
+      moduleDef = loadModule(item.from, fromDir, opts),
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef);
 
@@ -53,7 +53,6 @@ var jsio = (function init(baseLoader) {
       }
       c[segments[kMax]] = module;
     }
-
     return module;
   };
 
@@ -82,9 +81,9 @@ var jsio = (function init(baseLoader) {
     return ctx;
   };
 
-  function loadModule(fromFile, fromDir, dontPreprocess) {
+  function loadModule(fromFile, fromDir, opts) {
     if (util.isFunction(baseLoader)) {
-      jsio.__srcCache[fromFile] = baseLoader(fromFile, fromDir, dontPreprocess);
+      jsio.__srcCache[fromFile] = baseLoader(fromFile, fromDir, opts);
     }
     return jsio.__srcCache[fromFile];
   };
