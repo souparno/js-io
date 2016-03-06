@@ -6,7 +6,7 @@ function run(imports) {
   compiler.compile(imports);
 
   compiler.generateSrc(function(src) {
-    console.log(src + "jsio('" + imports + "')");
+    console.log(src + "jsio('" + imports + "');");
   });
 };
 

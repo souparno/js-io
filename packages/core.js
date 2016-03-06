@@ -1,5 +1,6 @@
 var jsio = (function init(baseLoader) {
-  var util = {
+  var SLICE = Array.prototype.slice,
+    util = {
       isEmpty: function(obj) {
         for (var prop in obj) {
           if (obj.hasOwnProperty(prop))
@@ -18,29 +19,19 @@ var jsio = (function init(baseLoader) {
 
         return str;
       },
-      bind: function(fn) {
-        var args = [],
-          param_length = 0;
-
-        for (var i = 0; i < arguments.length; i++) {
-          if (i) {
-            args[i - 1] = arguments[i];
-          }
-        }
-        param_length = args.length;
+      bind: function(method) {
+        var args = SLICE.call(arguments, 1);
         return function() {
-          for (var i = 0; i < arguments.length; i++) {
-            args[param_length + i] = arguments[i];
-          }
-          return fn(args[0], args[1], args[2]);
+          var _args = args.concat(SLICE.call(arguments, 0));
+          return method(_args[0], _args[1], _args[2], _args[3]);
         };
       }
     },
     commands = [];
 
-  function _require(exportInto, fromDir, request) {
+  function _require(exportInto, fromDir, request, dontPreprocess) {
     var item = resolveImportRequest(request),
-      moduleDef = loadModule(item.from, fromDir),
+      moduleDef = loadModule(item.from, fromDir, dontPreprocess),
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef);
 
@@ -91,9 +82,9 @@ var jsio = (function init(baseLoader) {
     return ctx;
   };
 
-  function loadModule(fromFile, fromDir) {
+  function loadModule(fromFile, fromDir, dontPreprocess) {
     if (util.isFunction(baseLoader)) {
-      jsio.__srcCache[fromFile] = baseLoader(fromFile, fromDir);
+      jsio.__srcCache[fromFile] = baseLoader(fromFile, fromDir, dontPreprocess);
     }
     return jsio.__srcCache[fromFile];
   };

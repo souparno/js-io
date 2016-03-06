@@ -5,6 +5,7 @@ var HOST = /^([a-z][a-z0-9+\-\.]*:\/\/.*?\/)(.*)$/;
 var PROTOCOL = /^[a-z][a-z0-9+\-\.]*:/;
 var SLICE = Array.prototype.slice;
 
+jsio = jsio.__init(loadModule);
 
 function getModuleDef(path) {
   path += '.js';
@@ -159,16 +160,27 @@ function ENV_node() {
 
 var ENV = new ENV_node();
 
-var applyPreprocessors = function(src) {
-  var importExpr = /^(\s*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
-  return src.replace(importExpr,
-    function(raw, p1, p2, p3) {
-      if (!/\/\//.test(p1)) {
-        return p1 + 'jsio(\'' + p2 + '\')' + p3;
-      }
-      return raw;
-    });
+function loadModule(fromFile, fromDir, dontPreprocess) {
+  var possibilities = util.resolveModulePath(fromFile, fromDir);
+  var moduleDef = findModule(possibilities);
+
+  moduleDef.friendlyPath = fromFile;
+  if (!dontPreprocess) {
+    applyPreprocessors(moduleDef, ['import'], dontPreprocess);
+  }
+  return moduleDef;
 };
+
+
+var applyPreprocessors = function(moduleDef, names) {
+  for (var i = 0, len = names.length; i < len; ++i) {
+    getPreprocessor(moduleDef, names[i]);
+  }
+};
+
+function getPreprocessor(moduleDef, name) {
+  jsio('import .packages.preprocessors.' + name, true)(moduleDef);
+}
 
 function findModule(possibilities) {
   for (var i = 0, possible; possible = possibilities[i]; ++i) {
@@ -179,13 +191,5 @@ function findModule(possibilities) {
   }
 };
 
-function loadModule(fromFile, fromDir) {
-  var possibilities = util.resolveModulePath(fromFile, fromDir);
-  var moduleDef = findModule(possibilities);
 
-  moduleDef.friendlyPath = fromFile;
-  moduleDef.src = applyPreprocessors(moduleDef.src);
-  return moduleDef;
-};
-
-module.exports = jsio.__init(loadModule);
+module.exports = jsio;
