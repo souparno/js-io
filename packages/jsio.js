@@ -180,9 +180,11 @@ var applyPreprocessors = function(moduleDef, names) {
 };
 
 function getPreprocessor(moduleDef, name) {
-  jsio('import .packages.preprocessors.' + name, {
+  var module = jsio('import .packages.preprocessors.' + name, {
     dontPreprocess: true
-  })(moduleDef);
+  });
+
+  module(moduleDef);
 }
 
 function findModule(possibilities) {

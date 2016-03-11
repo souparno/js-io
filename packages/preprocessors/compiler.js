@@ -1,4 +1,4 @@
- exports.generateSrc = function buildJsio(callback) {
+exports.generateSrc = function buildJsio(callback) {
    function getJsioSrc() {
      var src = jsio.__jsio.__init.toString(-1);
      if (src.substring(0, 8) == 'function') {
