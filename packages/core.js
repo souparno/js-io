@@ -31,7 +31,7 @@ var jsio = (function init(baseLoader) {
 
   function _require(exportInto, fromDir, request, opts) {
     var item = resolveImportRequest(request),
-      moduleDef = loadModule(item.from, fromDir, opts),
+      moduleDef = loadModule(item.from, fromDir, opts || {}),
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef);
 

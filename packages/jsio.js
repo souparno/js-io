@@ -165,8 +165,7 @@ function loadModule(fromFile, fromDir, opts) {
   var moduleDef = findModule(possibilities);
 
   moduleDef.friendlyPath = fromFile;
-  opts = opts || {};
-  if (!opts.hasOwnProperty('dontPreprocess')) {
+  if (!opts.dontPreprocess) {
     applyPreprocessors(moduleDef, ['import']);
   }
   return moduleDef;
