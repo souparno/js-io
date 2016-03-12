@@ -30,8 +30,9 @@ var jsio = (function init(baseLoader) {
     commands = [];
 
   function _require(exportInto, fromDir, request, opts) {
-    var item = resolveImportRequest(request),
-      moduleDef = loadModule(item.from, fromDir, opts || {}),
+    var opts = opts || {},
+      item = resolveImportRequest(request),
+      moduleDef = loadModule(item.from, fromDir, opts),
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef);
 
