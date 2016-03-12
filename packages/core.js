@@ -69,7 +69,7 @@ var jsio = (function init(baseLoader) {
     var code = "(function (_) { with (_) {" + moduleDef.src + "}});",
       fn = eval(code);
 
-    fn = fn(context);
+    fn(context);
     return context.exports;
   };
 
