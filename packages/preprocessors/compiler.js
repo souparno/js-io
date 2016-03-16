@@ -5,13 +5,23 @@ function testComment(match) {
     return !/\/\//.test(match[1]);
 };
 
-function updateOpts(opts){
-  opts = opts || {preprocessors: ['import', 'compiler']};
-  
-  if(!opts.preprocessors.indexOf('compiler')){
-    opts.preprocessors.push('compiler'); 
-  } 
-  return opts;
+function getJsioSrc() {
+    var src = JSIO.__init.toString(-1);
+    if (src.substring(0, 8) == 'function') {
+        src = 'jsio=(' + src + ')();';
+    }
+    return src;
+};
+
+function updateOpts(opts) {
+    opts = opts || {
+        preprocessors: ['import', 'compiler']
+    };
+
+    if (!opts.preprocessors.indexOf('compiler')) {
+        opts.preprocessors.push('compiler');
+    }
+    return opts;
 }
 
 exports = function(moduleDef) {
@@ -42,28 +52,18 @@ exports = function(moduleDef) {
     return '';
 };
 
+
 exports.generateSrc = function(callback) {
-    function getJsioSrc() {
-        var src = JSIO.__init.toString(-1);
-        if (src.substring(0, 8) == 'function') {
-            src = 'jsio=(' + src + ')();';
-        }
-        return src;
-    }
-
-    var src;
-    var jsioSrc = getJsioSrc();
-
-    var table = {};
+    var jsioSrc = getJsioSrc(),
+        table = {};
+    
     for (var entry in gSrcTable) {
         var relPath = entry;
         table[relPath] = gSrcTable[entry];
         table[relPath].path = relPath;
         table[relPath].directory = gSrcTable[entry].directory;
     }
-
-    src = jsioSrc + "jsio.setCache(" + JSON.stringify(table) + ");";
-    callback(src);
+    callback(jsioSrc + "jsio.setCache(" + JSON.stringify(table) + ");");
 };
 
 exports.compile = function(statement) {
