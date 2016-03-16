@@ -171,12 +171,17 @@ function findModule(possibilities, fromFile) {
 };
 
 function loadModule(fromFile, fromDir, opts) {
-  var possibilities = util.resolveModulePath(fromFile, fromDir);
-  var moduleDef = findModule(possibilities, fromFile);
+  var possibilities = util.resolveModulePath(fromFile, fromDir),
+    moduleDef = findModule(possibilities, fromFile),
+    preprocessors = opts.preprocessors,
+    dontPreprocess = opts.dontPreprocess;
 
-  if (!opts.dontPreprocess || opts.preprocessors) {
-    moduleDef.src = applyPreprocessor(moduleDef, opts.preprocessors);
+  for(var index in preprocessors){
+    if (!dontPreprocess || preprocessors[index]) {
+      moduleDef.src = applyPreprocessor(moduleDef, preprocessors[index]);
+    }
   }
+  
   return moduleDef;
 };
 

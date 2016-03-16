@@ -5,7 +5,16 @@ function testComment(match) {
     return !/\/\//.test(match[1]);
 };
 
-exports = function(moduleDef) {
+function updateOpts(opts){
+  opts = opts || {preprocessors: ['import', 'compiler']};
+  
+  if(!opts.preprocessors.indexOf('compiler')){
+    opts.preprocessors.push('compiler'); 
+  } 
+  return opts;
+}
+
+exports = function(moduleDef, opts) {
     var jsioNormal = /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm;
 
     while (true) {
@@ -25,9 +34,7 @@ exports = function(moduleDef) {
         }
 
         try {
-            JSIO(cmd, {
-                preprocessors: 'compiler'
-            });
+            JSIO(cmd, updateOpts(opts));
         } catch (e) {}
     }
 
@@ -61,7 +68,5 @@ exports.generateSrc = function(callback) {
 };
 
 exports.compile = function(statement) {
-    JSIO(statement, {
-        preprocessors: 'compiler'
-    });
+    JSIO(statement, updateOpts());
 };
