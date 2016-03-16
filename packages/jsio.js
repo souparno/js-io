@@ -176,12 +176,12 @@ function loadModule(fromFile, fromDir, opts) {
     preprocessors = opts.preprocessors,
     dontPreprocess = opts.dontPreprocess;
 
-  for(var index in preprocessors){
+  for (var index in preprocessors) {
     if (!dontPreprocess || preprocessors[index]) {
       moduleDef.src = applyPreprocessor(moduleDef, preprocessors[index]);
     }
   }
-  
+
   return moduleDef;
 };
 
