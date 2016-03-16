@@ -14,7 +14,7 @@ function updateOpts(opts){
   return opts;
 }
 
-exports = function(moduleDef, opts) {
+exports = function(moduleDef) {
     var jsioNormal = /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm;
 
     while (true) {
@@ -34,7 +34,7 @@ exports = function(moduleDef, opts) {
         }
 
         try {
-            JSIO(cmd, updateOpts(opts));
+            JSIO.__require({}, moduleDef.directory, cmd, updateOpts());
         } catch (e) {}
     }
 
