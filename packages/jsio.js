@@ -160,40 +160,32 @@ function ENV_node() {
 
 var ENV = new ENV_node();
 
-function loadModule(fromFile, fromDir, opts) {
-  var possibilities = util.resolveModulePath(fromFile, fromDir);
-  var moduleDef = findModule(possibilities);
-
-  moduleDef.friendlyPath = fromFile;
-  if (!opts.dontPreprocess) {
-    applyPreprocessors(moduleDef, ['import']);
-  }
-  return moduleDef;
-};
-
-
-var applyPreprocessors = function(moduleDef, names) {
-  for (var i = 0, len = names.length; i < len; ++i) {
-    getPreprocessor(moduleDef, names[i]);
-  }
-};
-
-function getPreprocessor(moduleDef, name) {
-  var module = jsio('import .packages.preprocessors.' + name, {
-    dontPreprocess: true
-  });
-
-  module(moduleDef);
-}
-
-function findModule(possibilities) {
+function findModule(possibilities, fromFile) {
   for (var i = 0, possible; possible = possibilities[i]; ++i) {
     var path = possible.path;
 
     possible.src = ENV.fetch(path);
+    possible.friendlyPath = fromFile;
     return possible;
   }
 };
 
+function loadModule(fromFile, fromDir, opts) {
+  var possibilities = util.resolveModulePath(fromFile, fromDir);
+  var moduleDef = findModule(possibilities, fromFile);
+
+  if (!opts.dontPreprocess || opts.preprocessors) {
+    moduleDef.src = applyPreprocessor(moduleDef, opts.preprocessors);
+  }
+  return moduleDef;
+};
+
+function applyPreprocessor(moduleDef, name) {
+  var module = jsio('import .packages.preprocessors.' + name, {
+    dontPreprocess: true
+  });
+
+  return module(moduleDef);
+};
 
 module.exports = jsio;
