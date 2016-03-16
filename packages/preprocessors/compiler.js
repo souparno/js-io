@@ -48,7 +48,7 @@ exports = function(moduleDef) {
     } catch (e) {}
   }
 
-  gSrcTable[moduleDef.path] = JSON.parse(JSON.stringify(moduleDef));
+  gSrcTable[moduleDef.friendlyPath] = JSON.parse(JSON.stringify(moduleDef));
   return '';
 };
 
