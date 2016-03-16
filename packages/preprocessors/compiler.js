@@ -52,16 +52,14 @@ exports = function(moduleDef) {
   return '';
 };
 
-
 exports.generateSrc = function(callback) {
   var jsioSrc = getJsioSrc(),
     table = {};
 
   for (var entry in gSrcTable) {
-    var relPath = entry;
-    table[relPath] = gSrcTable[entry];
-    table[relPath].path = relPath;
-    table[relPath].directory = gSrcTable[entry].directory;
+    table[entry] = gSrcTable[entry];
+    table[entry].path = entry;
+    table[entry].directory = gSrcTable[entry].directory;
   }
   callback(jsioSrc + "jsio.setCache(" + JSON.stringify(table) + ");");
 };
