@@ -38,8 +38,7 @@ exports = function(moduleDef, opts) {
         } catch (e) {}
     }
 
-    gSrcTable[moduleDef.path] = moduleDef;
-    
+    gSrcTable[moduleDef.path] = JSON.parse(JSON.stringify(moduleDef));
     return '';
 };
 
