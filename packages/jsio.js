@@ -186,11 +186,11 @@ function loadModule(fromFile, fromDir, opts) {
 };
 
 function applyPreprocessor(moduleDef, name) {
-  var module = jsio('import .packages.preprocessors.' + name, {
+  var p = jsio('import .packages.preprocessors.' + name, {
     dontPreprocess: true
   });
 
-  return module(moduleDef);
+  return p(moduleDef);
 };
 
 module.exports = jsio;
