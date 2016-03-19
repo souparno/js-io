@@ -13,15 +13,10 @@ function getJsioSrc() {
   return src;
 };
 
-function updateOpts(opts) {
-  opts = opts || {
+function updateOpts() {
+  return {
     preprocessors: ['import', 'compiler']
   };
-
-  if (!opts.preprocessors.indexOf('compiler')) {
-    opts.preprocessors.push('compiler');
-  }
-  return opts;
 };
 
 exports = function(moduleDef) {
