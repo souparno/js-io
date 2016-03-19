@@ -22,7 +22,7 @@ function updateOpts(opts) {
     opts.preprocessors.push('compiler');
   }
   return opts;
-}
+};
 
 exports = function(moduleDef) {
   var jsioNormal = /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm;
@@ -53,15 +53,9 @@ exports = function(moduleDef) {
 };
 
 exports.generateSrc = function(callback) {
-  var jsioSrc = getJsioSrc(),
-    table = {};
+  var jsioSrc = getJsioSrc();
 
-  for (var entry in gSrcTable) {
-    table[entry] = gSrcTable[entry];
-    table[entry].path = entry;
-    table[entry].directory = gSrcTable[entry].directory;
-  }
-  callback(jsioSrc + "jsio.setCache(" + JSON.stringify(table) + ");");
+  callback(jsioSrc + "jsio.setCache(" + JSON.stringify(gSrcTable) + ");");
 };
 
 exports.compile = function(statement) {
