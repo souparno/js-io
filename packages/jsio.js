@@ -152,9 +152,7 @@ function ENV_node() {
 
     try {
       return fs.readFileSync(p, 'utf8');
-    } catch (e) {
-      return false;
-    }
+    } catch (e) {}
   };
 };
 
