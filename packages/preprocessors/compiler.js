@@ -1,5 +1,5 @@
-JSIO = jsio.__jsio;
-gSrcTable = {};
+var JSIO = jsio.__jsio;
+  gSrcTable = {};
 
 function testComment(match) {
   return !/\/\//.test(match[1]);

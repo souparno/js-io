@@ -36,9 +36,11 @@ var jsio = (function init(baseLoader) {
       item = resolveImportRequest(request),
       moduleDef = loadModule(item.from, fromDir, opts),
       newContext = makeContext(moduleDef),
-      module = execModuleDef(newContext, moduleDef);
+      module = execModuleDef(newContext, moduleDef),
+      path = moduleDef.path;
 
-    // add the module to the current context
+    jsio.__modules[path] = moduleDef;
+ 
     if (item.as) {
       var as = util.removeDots(item.as),
         segments = as.split('.'),
@@ -63,7 +65,8 @@ var jsio = (function init(baseLoader) {
   jsio.__init = init;
   jsio.__srcCache = {};
   jsio.__require = _require;
-
+  jsio.__modules = {};
+  
   jsio.setCache = function(cache) {
     jsio.__srcCache = cache;
   };

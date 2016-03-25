@@ -9,7 +9,7 @@ jsio = jsio.__init(loadModule);
 
 function getModuleDef(path) {
   path += '.js';
-  return new ModuleDef(path);
+  return jsio.__modules[path] || new ModuleDef(path);
 };
 
 function ModuleDef(path) {
