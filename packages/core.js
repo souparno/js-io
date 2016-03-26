@@ -38,8 +38,6 @@ var jsio = (function init(baseLoader) {
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef),
       path = moduleDef.path;
-
-    jsio.__modules[path] = moduleDef;
  
     if (item.as) {
       var as = util.removeDots(item.as),
@@ -90,7 +88,11 @@ var jsio = (function init(baseLoader) {
 
   function loadModule(fromFile, fromDir, opts) {
     if (util.isFunction(baseLoader)) {
-      jsio.__srcCache[fromFile] = baseLoader(fromFile, fromDir, opts);
+      var moduleDef = baseLoader(fromFile, fromDir, opts),
+        path = moduleDef.path;
+
+      jsio.__srcCache[fromFile] = moduleDef;
+      jsio.__modules[path] = moduleDef;      
     }
     return jsio.__srcCache[fromFile];
   };
