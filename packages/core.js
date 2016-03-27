@@ -61,8 +61,8 @@ var jsio = (function init(baseLoader) {
 
   var jsio = util.bind(_require, {}, './');
   jsio.__init = init;
-  jsio.__srcCache = {};
   jsio.__require = _require;
+  jsio.__srcCache = {};
   jsio.__modules = {};
   
   jsio.setCache = function(cache) {

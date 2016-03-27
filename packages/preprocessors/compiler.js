@@ -1,3 +1,5 @@
+jsio('import packages.util.path as path');
+
 var JSIO = jsio.__jsio;
   gSrcTable = {};
 
@@ -47,10 +49,20 @@ exports = function(moduleDef) {
   return '';
 };
 
+function replaceSlashes(str) {
+	return str.replace(/\\+/g, '/').replace(/\/{2,}/g, '/');
+}
 exports.generateSrc = function(callback) {
   var jsioSrc = getJsioSrc();
-
-  callback(jsioSrc + "jsio.setCache(" + JSON.stringify(gSrcTable) + ");");
+var cwd = JSIO.__env.getCwd();
+var table = {};
+	for (var entry in gSrcTable) {
+		var relPath = replaceSlashes(path.relative(cwd, entry));
+		table[relPath] = gSrcTable[entry];
+		table[relPath].path = relPath;
+		table[relPath].directory = replaceSlashes(path.relative(cwd, gSrcTable[entry].directory));
+	}
+  callback(jsioSrc + "jsio.setCache(" + JSON.stringify(table) + ");");
 };
 
 exports.compile = function(statement) {
