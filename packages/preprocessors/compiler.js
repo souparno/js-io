@@ -1,4 +1,4 @@
-jsio('import packages.util.path as path');
+import packages.util.path as path;
 
 var JSIO = jsio.__jsio;
 gSrcTable = {};

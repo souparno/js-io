@@ -288,16 +288,19 @@ function loadModule(fromFile, fromDir, opts) {
     preprocessors = opts.preprocessors;
 
   for (var index in preprocessors) {
-    moduleDef.src = applyPreprocessor(moduleDef, preprocessors[index]);
+    var name = preprocessors[index],
+      p;
+
+    if (name == 'import') {
+      p = jsio('import packages.preprocessors.' + name, {});
+    } else {
+      p = jsio('import packages.preprocessors.' + name);
+    }
+
+    moduleDef.src = p(moduleDef);
   }
 
   return moduleDef;
-};
-
-function applyPreprocessor(moduleDef, name) {
-  var p = jsio('import packages.preprocessors.' + name, {});
-
-  return p(moduleDef);
 };
 
 module.exports = jsio;
