@@ -284,11 +284,11 @@ function findModule(possibilities, fromFile) {
 
 function loadModule(fromFile, fromDir, preprocessors) {
   var possibilities = util.resolveModulePath(fromFile, fromDir),
-    moduleDef = findModule(possibilities, fromFile);
+    moduleDef = findModule(possibilities, fromFile),
+    name, preprocessor;
 
   for (var index in preprocessors) {
-    var name = preprocessors[index],
-      preprocessor;
+    name = preprocessors[index];
 
     if (name == 'import') {
       preprocessor = jsio('import packages.preprocessors.' + name, []);
