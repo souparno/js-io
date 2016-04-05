@@ -29,12 +29,10 @@ var jsio = (function init(baseLoader) {
     },
     commands = [];
 
-  function _require(exportInto, fromDir, request, opts) {
-    var opts = opts || {
-        preprocessors: ['import']
-      },
+  function _require(exportInto, fromDir, request, preprocessors) {
+    var preprocessors = preprocessors || ['import'],
       item = resolveImportRequest(request),
-      moduleDef = loadModule(item.from, fromDir, opts),
+      moduleDef = loadModule(item.from, fromDir, preprocessors),
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef),
       path = moduleDef.path;
@@ -86,9 +84,9 @@ var jsio = (function init(baseLoader) {
     return ctx;
   };
 
-  function loadModule(fromFile, fromDir, opts) {
+  function loadModule(fromFile, fromDir, preprocessors) {
     if (util.isFunction(baseLoader)) {
-      var moduleDef = baseLoader(fromFile, fromDir, opts),
+      var moduleDef = baseLoader(fromFile, fromDir, preprocessors),
         path = moduleDef.path;
 
       jsio.__srcCache[fromFile] = moduleDef;

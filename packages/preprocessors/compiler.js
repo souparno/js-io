@@ -16,9 +16,7 @@ function getJsioSrc() {
 };
 
 function updateOpts() {
-  return {
-    preprocessors: ['import', 'compiler']
-  };
+  return ['import', 'compiler'];
 };
 
 exports = function(moduleDef) {

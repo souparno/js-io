@@ -282,22 +282,21 @@ function findModule(possibilities, fromFile) {
   }
 };
 
-function loadModule(fromFile, fromDir, opts) {
+function loadModule(fromFile, fromDir, preprocessors) {
   var possibilities = util.resolveModulePath(fromFile, fromDir),
-    moduleDef = findModule(possibilities, fromFile),
-    preprocessors = opts.preprocessors;
+    moduleDef = findModule(possibilities, fromFile);
 
   for (var index in preprocessors) {
     var name = preprocessors[index],
-      p;
+      preprocessor;
 
     if (name == 'import') {
-      p = jsio('import packages.preprocessors.' + name, {});
+      preprocessor = jsio('import packages.preprocessors.' + name, []);
     } else {
-      p = jsio('import packages.preprocessors.' + name);
+      preprocessor = jsio('import packages.preprocessors.' + name);
     }
 
-    moduleDef.src = p(moduleDef);
+    moduleDef.src = preprocessor(moduleDef);
   }
 
   return moduleDef;
