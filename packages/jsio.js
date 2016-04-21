@@ -247,26 +247,23 @@ var util = {
   }
 };
 
-function ENV_node() {
+var ENV = {
+  getCwd: function() {
+    return process.cwd();
+  },
 
-  var _cwd = process.cwd();
-
-  this.getCwd = function() {
-    return _cwd;
-  };
-  this.getPath = function() {
+  getPath: function() {
     return __dirname;
-  };
-  this.fetch = function(p) {
+  },
+
+  fetch: function(p) {
     p = util.resolve(this.getCwd(), p);
 
     try {
       return fs.readFileSync(p, 'utf8');
     } catch (e) {}
-  };
+  }
 };
-
-var ENV = new ENV_node();
 
 jsio.__util = util;
 jsio.__env = ENV;
@@ -283,7 +280,8 @@ function findModule(possibilities, fromFile) {
 };
 
 function loadModule(fromFile, fromDir, preprocessors) {
-  var possibilities = util.resolveModulePath(fromFile, fromDir),
+  var preprocessors = preprocessors || ['import'],
+    possibilities = util.resolveModulePath(fromFile, fromDir),
     moduleDef = findModule(possibilities, fromFile),
     name, preprocessor;
 

@@ -19,24 +19,23 @@ var jsio = (function init(baseLoader) {
 
         return str;
       },
-      bind: function(method) {
-        var args = SLICE.call(arguments, 1);
+      bind: function(context, method) {
+        var args = SLICE.call(arguments, 2);
         return function() {
-          var _args = args.concat(SLICE.call(arguments, 0));
-          return method(_args[0], _args[1], _args[2], _args[3]);
+          method = (typeof method == 'string' ? context[method] : method);
+          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
         };
       }
     },
     commands = [];
 
   function _require(exportInto, fromDir, request, preprocessors) {
-    var preprocessors = preprocessors || ['import'],
-      item = resolveImportRequest(request),
+    var item = resolveImportRequest(request),
       moduleDef = loadModule(item.from, fromDir, preprocessors),
       newContext = makeContext(moduleDef),
       module = execModuleDef(newContext, moduleDef),
       path = moduleDef.path;
- 
+
     if (item.as) {
       var as = util.removeDots(item.as),
         segments = as.split('.'),
@@ -57,12 +56,12 @@ var jsio = (function init(baseLoader) {
     return module;
   };
 
-  var jsio = util.bind(_require, {}, './');
+  var jsio = util.bind(this, _require, {}, './');
   jsio.__init = init;
   jsio.__require = _require;
   jsio.__srcCache = {};
   jsio.__modules = {};
-  
+
   jsio.setCache = function(cache) {
     jsio.__srcCache = cache;
   };
@@ -79,7 +78,7 @@ var jsio = (function init(baseLoader) {
     var ctx = {};
 
     ctx.exports = {};
-    ctx.jsio = util.bind(_require, ctx, moduleDef.directory);
+    ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory);
     ctx.jsio.__jsio = jsio;
     return ctx;
   };
@@ -90,7 +89,7 @@ var jsio = (function init(baseLoader) {
         path = moduleDef.path;
 
       jsio.__srcCache[fromFile] = moduleDef;
-      jsio.__modules[path] = moduleDef;      
+      jsio.__modules[path] = moduleDef;
     }
     return jsio.__srcCache[fromFile];
   };
