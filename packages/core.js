@@ -57,6 +57,7 @@ var jsio = (function init(baseLoader) {
   };
 
   var jsio = util.bind(this, _require, {}, './');
+  jsio.__jsio = jsio;
   jsio.__init = init;
   jsio.__require = _require;
   jsio.__srcCache = {};
@@ -74,11 +75,12 @@ var jsio = (function init(baseLoader) {
     return context.exports;
   };
 
-  function makeContext(moduleDef) {
-    var ctx = {};
+  function makeContext(moduleDef) {    
+    var ctx = {
+      exports : {},
+      jsio : util.bind(jsio, _require, this, moduleDef.directory)
+    };
 
-    ctx.exports = {};
-    ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory);
     ctx.jsio.__jsio = jsio;
     return ctx;
   };
