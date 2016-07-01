@@ -14,49 +14,56 @@ function resolveRequest(request) {
 }
 
 var preprocessors = {
-  'import': "var importExpr =/^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;"+
-	"function replace(raw, p1, p2, p3) {"+
-	  "  return p1 + 'jsio(\"' + p2 + '\")' + p3;"+
-	"};"+
-
-	"exports = function(src) {"+
-	"  return src.replace(importExpr, replace);"+
-	"};"
+  import: "var importExpr =/^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;" +
+    "function replace(raw, p1, p2, p3) {" +
+    "  return p1 + 'jsio(\"' + p2 + '\")' + p3;" +
+    "};" +
+    "exports = function(src) {" +
+    "  return src.replace(importExpr, replace);" +
+    "};",
+  compiler: ""
 };
 
-var context = {
-  jsio: function(request, dontPreprocess) {
-    var request = resolveRequest(request);
-    var src = eval(request.from);
-    if(!dontPreprocess){
-      var preprocessor = context.jsio('import preprocessors.import', true);
-      src = preprocessor(src);
-    }
-    var code = "(function (__) { with (__) {" + src + "}});";
-    var fn = eval(code);
-    context.exports = {};
-    fn(context);
-    context[request.as] = context.exports;
-    return context.exports;
+function _require(previousCtx, request, dontPreprocess) {
+  var request = resolveRequest(request);
+  var src = eval(request.from);
+  if (!dontPreprocess) {
+    var preprocessor = jsio('import preprocessors.import;', true);
+    src = preprocessor(src);
   }
-};
+  var code = "(function (__) { with (__) {" + src + "}});";
+  var fn = eval(code);
+  var context = makeContext();
+  fn(context);
+  previousCtx[request.as] = context.exports;
+  return context.exports;
+}
+
+function makeContext() {
+  return {
+    jsio: function(request, dontPreprocess) {
+      return _require(this, request, dontPreprocess);
+    },
+    exports: {}
+  };
+}
+
+var jsio = makeContext().jsio;
 
 var example = {
-  app: "import example.calculator as calculator;"+
-       "calculator.add(2, 3); console.log(__);",
-  calculator: "import example.print as print;" + 
-	"exports = {"+
-	  "add: function (a, b) {"+
-	    "print(a+b);"+
-	  "}"+
-	"}",
- print: "exports = function(res) {"+
-          "console.log(res);"+
-         "}"
+  app: "import example.calculator as calculator;" +
+    "   calculator.add(2, 3);",
+
+  calculator: "import example.print as print;" +
+    "          exports = {" +
+    "            add: function (a, b) {" +
+    "              print(a+b);" +
+    "            }" +
+    "          }",
+
+  print: "exports = function(res) {" +
+    "       console.log(res);" +
+    "     }"
 };
 
-(function(__) {
-  with(__) {
-    jsio("import example.app");
-  }
-})(context);
+jsio("import example.app;");
