@@ -18,13 +18,6 @@ var jsio = (function init(baseLoader) {
         str = str.match(/^\.*(.*?)\.*$/)[1];
 
         return str;
-      },
-      bind: function(context, method) {
-        var args = SLICE.call(arguments, 2);
-        return function() {
-          method = (typeof method == 'string' ? context[method] : method);
-          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
-        };
       }
     },
     commands = [];
@@ -67,7 +60,9 @@ var jsio = (function init(baseLoader) {
   function makeContext(moduleDef) {    
     var ctx = {
       exports : {},
-      jsio : util.bind(jsio, _require, this, moduleDef.directory)
+      jsio : function(request, preprocessors){
+        return _require(this, moduleDef.directory, request, preprocessors); 
+      }
     };
 
     ctx.jsio.__jsio = jsio;
