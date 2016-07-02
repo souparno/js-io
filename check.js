@@ -21,43 +21,58 @@ var preprocessors = {
     "exports = function(src) {" +
     "  return src.replace(importExpr, replace);" +
     "};",
-  compiler: "var srcTable = [];"+
-    "        exports = function (src) {" +
+  compiler: "var srcTable = [];\n" +
+    "        exports = function (src) {\n" +
     "          var jsioNormal = " + /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm + "\n;" +
     "          var match = jsioNormal.exec(src);\n" +
-    "          if(match) {" +
+    "          if(match) {\n" +
     "            var request = eval(match[2]);\n" +
     "            jsio(request, ['import', 'compiler']);\n" +
     "          } \n" +
-    "          srcTable.push(src);"+
+    "          srcTable.push(src);\n" +
     "          return '';\n" +
-    "        };" +
-    "        exports.compile = function(request) {" +
-    "          jsio(request, ['import', 'compiler']);" +
-    "        };" + 
-    "        exports.generateSrc = function (callback) {"+
-    "          callback(srcTable);"+
-    "        };"
+    "        };\n" +
+    "        exports.compile = function(request) {\n" +
+    "          jsio(request, ['import', 'compiler']);\n" +
+    "        };\n" +
+    "        exports.generateSrc = function (callback) {\n" +
+    "          callback(srcTable);\n" +
+    "        };\n"
 };
+
+var _cache_context = [];
 
 function _require(previousCtx, request, p) {
   var p = p || ['import'];
   var request = resolveRequest(request);
-  var src = eval(request.from);
+  var src = loadModule(request).src;
 
   p.forEach(function(name, index) {
     var args = name == 'import' ? [] : null;
     var preprocessor = jsio('import preprocessors.' + name, args);
-
     src = preprocessor(src);
   });
 
-  var code = "(function (__) { with (__) {" + src + "}});";
-  var fn = eval(code);
-  var context = makeContext();
-  fn(context);
-  previousCtx[request.as] = context.exports;
-  return context.exports;
+  if (src) {
+    if (!_cache_context[request.from]) {
+      var code = "(function (__) { with (__) {\n" + src + "\n}});";
+      var fn = eval(code);
+      var context = makeContext();
+      fn(context);
+      _cache_context[request.from] = context.exports;
+    }
+    previousCtx[request.as] = _cache_context[request.from];
+    return previousCtx[request.as];
+  }
+}
+
+function loadModule(request){
+ var src = eval(request.from);
+
+ return {
+   src: src,
+   path: request.from
+ } 
 }
 
 function makeContext() {
