@@ -14,23 +14,44 @@ function resolveRequest(request) {
 }
 
 var preprocessors = {
-  import: "var importExpr =/^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;" +
+  import: "var importExpr = /^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;" +
     "function replace(raw, p1, p2, p3) {" +
     "  return p1 + 'jsio(\"' + p2 + '\")' + p3;" +
     "};" +
     "exports = function(src) {" +
     "  return src.replace(importExpr, replace);" +
     "};",
-  compiler: ""
+  compiler: "var srcTable = [];"+
+    "        exports = function (src) {" +
+    "          var jsioNormal = " + /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm + "\n;" +
+    "          var match = jsioNormal.exec(src);\n" +
+    "          if(match) {" +
+    "            var request = eval(match[2]);\n" +
+    "            jsio(request, ['import', 'compiler']);\n" +
+    "          } \n" +
+    "          srcTable.push(src);"+
+    "          return '';\n" +
+    "        };" +
+    "        exports.compile = function(request) {" +
+    "          jsio(request, ['import', 'compiler']);" +
+    "        };" + 
+    "        exports.generateSrc = function (callback) {"+
+    "          callback(srcTable);"+
+    "        };"
 };
 
-function _require(previousCtx, request, dontPreprocess) {
+function _require(previousCtx, request, p) {
+  var p = p || ['import'];
   var request = resolveRequest(request);
   var src = eval(request.from);
-  if (!dontPreprocess) {
-    var preprocessor = jsio('import preprocessors.import;', true);
+
+  p.forEach(function(name, index) {
+    var args = name == 'import' ? [] : null;
+    var preprocessor = jsio('import preprocessors.' + name, args);
+
     src = preprocessor(src);
-  }
+  });
+
   var code = "(function (__) { with (__) {" + src + "}});";
   var fn = eval(code);
   var context = makeContext();
@@ -41,8 +62,8 @@ function _require(previousCtx, request, dontPreprocess) {
 
 function makeContext() {
   return {
-    jsio: function(request, dontPreprocess) {
-      return _require(this, request, dontPreprocess);
+    jsio: function(request, p) {
+      return _require(this, request, p);
     },
     exports: {}
   };
@@ -66,4 +87,8 @@ var example = {
     "     }"
 };
 
-jsio("import example.app;");
+var compiler = jsio('import preprocessors.compiler;');
+compiler.compile('import example.app;');
+compiler.generateSrc(function(src) {
+  console.log(src);
+});
