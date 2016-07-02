@@ -18,13 +18,6 @@ var jsio = (function init(baseLoader) {
         str = str.match(/^\.*(.*?)\.*$/)[1];
 
         return str;
-      },
-      bind: function(context, method) {
-        var args = SLICE.call(arguments, 2);
-        return function() {
-          method = (typeof method == 'string' ? context[method] : method);
-          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
-        };
       }
     },
     commands = [];
@@ -56,16 +49,6 @@ var jsio = (function init(baseLoader) {
     return module;
   };
 
-  var jsio = util.bind(this, _require, {}, './');
-  jsio.__init = init;
-  jsio.__require = _require;
-  jsio.__srcCache = {};
-  jsio.__modules = {};
-
-  jsio.setCache = function(cache) {
-    jsio.__srcCache = cache;
-  };
-
   function execModuleDef(context, moduleDef) {
     var code = "(function (_) { with (_) {" + moduleDef.src + "}});",
       fn = eval(code);
@@ -74,12 +57,19 @@ var jsio = (function init(baseLoader) {
     return context.exports;
   };
 
-  function makeContext(moduleDef) {
-    var ctx = {};
+  function makeContext(moduleDef) {    
+    var ctx = {
+      exports : {},
+      jsio : function(request, preprocessors){
+        return _require(this, moduleDef.directory, request, preprocessors); 
+      }
+    };
 
-    ctx.exports = {};
-    ctx.jsio = util.bind(this, _require, ctx, moduleDef.directory);
     ctx.jsio.__jsio = jsio;
+    ctx.jsio.__init = init;
+    ctx.jsio.__require = _require;
+    ctx.jsio.__srcCache = {};
+    ctx.jsio.__modules = {};
     return ctx;
   };
 
@@ -110,9 +100,6 @@ var jsio = (function init(baseLoader) {
     return imports;
   };
 
-  // import myPackage
-  // OR
-  // import myPackage as pack
   addCmd(function(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
       imports = {};
@@ -127,6 +114,12 @@ var jsio = (function init(baseLoader) {
     }
     return imports;
   });
+
+  var jsio = makeContext({directory: './'}).jsio;
+
+  jsio.setCache = function(cache) {
+    jsio.__srcCache = cache;
+  };
 
   return jsio;
 }());
