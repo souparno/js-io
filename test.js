@@ -14,27 +14,35 @@ function resolveRequest(request) {
 }
 
 var preprocessors = {
-  import: "var importExpr = /^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;" +
-    "function replace(raw, p1, p2, p3) {" +
-    "  return p1 + 'jsio(\"' + p2 + '\")' + p3;" +
-    "};" +
-    "exports = function(module) {" +
-    "  return module.src.replace(importExpr, replace);" +
-    "};",
+  import: "var importExpr = /^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;\n" +
+    "      function replace(raw, p1, p2, p3) {\n" +
+    "        if (!/\\/\\//.test(p1)) {\n" +
+    "          return p1 + 'jsio(\"' + p2 + '\")' + p3;\n" +
+    "        }\n" +
+    "        return raw;\n" +
+    "      };\n" +
+
+    "      exports = function(module) {\n" +
+    "        module.src = module.src.replace(importExpr, replace);\n" +
+    "      };\n",
+
   compiler: "var srcTable = [];\n" +
+
     "        exports = function (module) {\n" +
-    "          var jsioNormal = " + /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm + "\n;" +
+    "          var jsioNormal = /^(.*)jsio\\s*\\(\\s*(['\"].+?['\"])\\s*(,\\s*\\{[^}]+\\})?\\)/gm;\n" +
     "          var match = jsioNormal.exec(module.src);\n" +
     "          if(match) {\n" +
     "            var request = eval(match[2]);\n" +
     "            jsio(request, ['import', 'compiler']);\n" +
     "          } \n" +
     "          srcTable[module.path] = module.src;\n" +
-    "          return '';\n" +
+    "          module.src = '';\n" +
     "        };\n" +
+
     "        exports.compile = function(request) {\n" +
     "          jsio(request, ['import', 'compiler']);\n" +
     "        };\n" +
+
     "        exports.generateSrc = function (callback) {\n" +
     "          callback(srcTable);\n" +
     "        };\n"
@@ -50,7 +58,7 @@ function _require(previousCtx, request, p) {
   p.forEach(function(name, index) {
     var args = name == 'import' ? [] : null;
     var preprocessor = jsio('import preprocessors.' + name, args);
-    module.src = preprocessor(module);
+    preprocessor(module);
   });
 
   if (module.src) {
@@ -66,13 +74,11 @@ function _require(previousCtx, request, p) {
   }
 }
 
-function loadModule(request){
- var src = eval(request.from);
-
- return {
-   src: src,
-   path: request.from
- } 
+function loadModule(request) {
+  return {
+    src: eval(request.from),
+    path: request.from
+  }
 }
 
 function makeContext() {
