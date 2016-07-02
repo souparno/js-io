@@ -18,18 +18,18 @@ var preprocessors = {
     "function replace(raw, p1, p2, p3) {" +
     "  return p1 + 'jsio(\"' + p2 + '\")' + p3;" +
     "};" +
-    "exports = function(src) {" +
-    "  return src.replace(importExpr, replace);" +
+    "exports = function(module) {" +
+    "  return module.src.replace(importExpr, replace);" +
     "};",
   compiler: "var srcTable = [];\n" +
-    "        exports = function (src) {\n" +
+    "        exports = function (module) {\n" +
     "          var jsioNormal = " + /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm + "\n;" +
-    "          var match = jsioNormal.exec(src);\n" +
+    "          var match = jsioNormal.exec(module.src);\n" +
     "          if(match) {\n" +
     "            var request = eval(match[2]);\n" +
     "            jsio(request, ['import', 'compiler']);\n" +
     "          } \n" +
-    "          srcTable.push(src);\n" +
+    "          srcTable[module.path] = module.src;\n" +
     "          return '';\n" +
     "        };\n" +
     "        exports.compile = function(request) {\n" +
@@ -45,17 +45,17 @@ var _cache_context = [];
 function _require(previousCtx, request, p) {
   var p = p || ['import'];
   var request = resolveRequest(request);
-  var src = loadModule(request).src;
+  var module = loadModule(request);
 
   p.forEach(function(name, index) {
     var args = name == 'import' ? [] : null;
     var preprocessor = jsio('import preprocessors.' + name, args);
-    src = preprocessor(src);
+    module.src = preprocessor(module);
   });
 
-  if (src) {
+  if (module.src) {
     if (!_cache_context[request.from]) {
-      var code = "(function (__) { with (__) {\n" + src + "\n}});";
+      var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
       var fn = eval(code);
       var context = makeContext();
       fn(context);
@@ -102,6 +102,7 @@ var example = {
     "     }"
 };
 
+//jsio('import example.app;');
 var compiler = jsio('import preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
