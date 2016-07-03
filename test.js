@@ -95,33 +95,37 @@ var packages = {
 
     function loadModule(request) {
       return {
-        src: eval(request.from),
+        src: jsio.__modules[request.from] || eval(request.from),
         path: request.from
       }
     }
 
     function makeContext() {
       var ctx = {
-        jsio: function(request, p) {
-          return _require(this, request, p);
+        jsio: function(request, preprocessors) {
+          return _require(this, request, preprocessors);
         },
         exports: {}
       };
 
       ctx.jsio.__init = init;
-      ctx.jsio.__srcCache = {};
+      ctx.jsio.__modules = {};
       return ctx;
     }
 
     var jsio = makeContext().jsio;
 
-    jsio.setCache = function(cache) {
-      jsio.__srcCache = cache;
+    jsio.setCache = function(modules) {
+      jsio.__modules = modules;
     };
 
     return jsio;
   }())
 }
+
+/*HERE YOU NEED TO PUT A JSIO WRAPPER OF PREPROCESSORS*/
+
+/*=======================================================*/
 
 var example = {
   app: "import example.calculator as calculator;" +
@@ -140,9 +144,8 @@ var example = {
 };
 
 var jsio = packages.jsio;
-//jsio('import example.app;');
 var compiler = jsio('import packages.preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
-  console.log(src);
+  console.log(src + "jsio('import example.app;');");
 });
