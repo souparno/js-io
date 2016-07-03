@@ -1,6 +1,7 @@
 var packages = {
   preprocessors: {
     import: "var importExpr = /^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;\n" +
+
       "      function replace(raw, p1, p2, p3) {\n" +
       "        if (!/\\/\\//.test(p1)) {\n" +
       "          return p1 + 'jsio(\"' + p2 + '\")' + p3;\n" +
@@ -12,13 +13,23 @@ var packages = {
       "        module.src = module.src.replace(importExpr, replace);\n" +
       "      };\n",
 
-    compiler: "var srcTable = [];\n" +
+    compiler: "var srcTable = {};\n" +
+
       "       function updatePreprocessors(preprocessors) {\n" +
       "          if(!preprocessors.indexOf('compiler')){\n" +
       "            preprocessors.push('compiler');\n" +
       "          }\n" +
       "          return preprocessors;\n" +
       "        }\n" +
+
+      "        function getJsioSrc() {\n" +
+      "          var src = jsio.__init.toString();\n" +
+      "          if (src.substring(0, 8) == 'function') {\n" +
+      "            src = 'jsio=(' + src + '());\\n';\n" +
+      "          }\n" +
+      "          return src;\n" +
+      "        }\n" +
+
       "        exports = function (module, preprocessors) {\n" +
       "          var jsioNormal = /^(.*)jsio\\s*\\(\\s*(['\"].+?['\"])\\s*(,\\s*\\{[^}]+\\})?\\)/gm;\n" +
       "          var match = jsioNormal.exec(module.src);\n" +
@@ -35,10 +46,13 @@ var packages = {
       "        };\n" +
 
       "        exports.generateSrc = function (callback) {\n" +
-      "          callback(srcTable);\n" +
+      "          var jsioSrc = getJsioSrc();\n" +
+      "          jsioSrc = jsioSrc + 'jsio.setCache('+ JSON.stringify(srcTable) +');';\n" +
+      '          callback(jsioSrc);\n' +
       "        };\n"
   },
-  jsio: (function() {
+
+  jsio: (function init() {
     var _cache_context = [];
 
     function resolveRequest(request) {
@@ -61,8 +75,8 @@ var packages = {
       var request = resolveRequest(request);
       var module = loadModule(request);
 
-      preprocessors.forEach(function(name, index) {
-        var preprocessor = jsio('import packages.preprocessors.' + name, []);
+      preprocessors.forEach(function(preprocessor, index) {
+        preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
         preprocessor(module, preprocessors);
       });
 
@@ -87,15 +101,25 @@ var packages = {
     }
 
     function makeContext() {
-      return {
+      var ctx = {
         jsio: function(request, p) {
           return _require(this, request, p);
         },
         exports: {}
       };
+
+      ctx.jsio.__init = init;
+      ctx.jsio.__srcCache = {};
+      return ctx;
     }
 
-    return makeContext().jsio;
+    var jsio = makeContext().jsio;
+
+    jsio.setCache = function(cache) {
+      jsio.__srcCache = cache;
+    };
+
+    return jsio;
   }())
 }
 
