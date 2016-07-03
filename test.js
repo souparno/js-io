@@ -13,7 +13,7 @@ var packages = {
       "        module.src = module.src.replace(importExpr, replace);\n" +
       "      };\n",
 
-    compiler: "var srcTable = {};\n" +
+    compiler: "import packages.preprocessors.test as test;var srcTable = {};\n" +
 
       "       function updatePreprocessors(preprocessors) {\n" +
       "          if(!preprocessors.indexOf('compiler')){\n" +
@@ -49,7 +49,8 @@ var packages = {
       "          var jsioSrc = getJsioSrc();\n" +
       "          jsioSrc = jsioSrc + 'jsio.modules('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
-      "        };\n"
+      "        };\n",
+      test: "exports = function() {console.log('hello');}"
   },
 
   base: (function init(opts) {
@@ -124,8 +125,7 @@ var packages = {
       },
 
       preprocess: function(module, preprocessors) {
-        var preprocessors = preprocessors || ['import'];
-
+        preprocessors = preprocessors || ['import'];
         preprocessors.forEach(function(preprocessor, index) {
           preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
           preprocessor(module, preprocessors);
