@@ -47,12 +47,12 @@ var packages = {
 
       "        exports.generateSrc = function (callback) {\n" +
       "          var jsioSrc = getJsioSrc();\n" +
-      "          jsioSrc = jsioSrc + 'jsio.setCache('+ JSON.stringify(srcTable) +');';\n" +
+      "          jsioSrc = jsioSrc + 'jsio.modules('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
       "        };\n"
   },
 
-  jsio: (function init() {
+  base: (function init(opts) {
     var _cache_context = [];
 
     function resolveRequest(request) {
@@ -71,15 +71,9 @@ var packages = {
     }
 
     function _require(previousCtx, request, preprocessors) {
-      var preprocessors = preprocessors || ['import'];
       var request = resolveRequest(request);
       var module = loadModule(request);
-
-      preprocessors.forEach(function(preprocessor, index) {
-        preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
-        preprocessor(module, preprocessors);
-      });
-
+      if (opts) opts.preprocess(module, preprocessors);
       if (module.src) {
         if (!_cache_context[request.from]) {
           var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
@@ -94,8 +88,10 @@ var packages = {
     }
 
     function loadModule(request) {
+      if (opts) opts.loadModule(request);
+
       return {
-        src: jsio.__modules[request.from] || eval(request.from),
+        src: jsio.__modules[request.from],
         path: request.from
       }
     }
@@ -115,17 +111,31 @@ var packages = {
 
     var jsio = makeContext().jsio;
 
-    jsio.setCache = function(modules) {
+    jsio.modules = function(modules) {
       jsio.__modules = modules;
     };
 
     return jsio;
-  }())
+  }()),
+  jsio: function() {
+    var opts = {
+      loadModule: function(request) {
+        jsio.__modules[request.from] = eval(request.from);
+      },
+
+      preprocess: function(module, preprocessors) {
+        var preprocessors = preprocessors || ['import'];
+
+        preprocessors.forEach(function(preprocessor, index) {
+          preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
+          preprocessor(module, preprocessors);
+        });
+      }
+    }
+
+    return packages.base.__init(opts);
+  }
 }
-
-/*HERE YOU NEED TO PUT A JSIO WRAPPER OF PREPROCESSORS*/
-
-/*=======================================================*/
 
 var example = {
   app: "import example.calculator as calculator;" +
@@ -143,7 +153,7 @@ var example = {
     "     }"
 };
 
-var jsio = packages.jsio;
+var jsio = packages.jsio();
 var compiler = jsio('import packages.preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
