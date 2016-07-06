@@ -53,8 +53,7 @@ var packages = {
     test: "exports = function() {console.log('hello');}"
   },
 
-  jsio: (function() {
-    var jsio = (function init(opts) {
+  base: (function init(opts) {
       var _cache_context = [];
 
       function resolveRequest(request) {
@@ -104,23 +103,23 @@ var packages = {
         };
 
         ctx.jsio.__init = init;
+        ctx.jsio.__require = _require;
         ctx.jsio.__modules = {};
         ctx.jsio.__makeContext = makeContext;
-        ctx.jsio.__resolveRequest = resolveRequest;
-        ctx.jsio.__require = _require;
+        ctx.jsio.__resolveRequest = resolveRequest; 
         ctx.jsio.__loadModule = loadModule;
         return ctx;
       }
 
-      jsio = makeContext().jsio;
-      jsio.modules = function(modules) {
-        jsio.__modules = modules;
+      var JSIO = makeContext().jsio;
+      JSIO.modules = function(modules) {
+        JSIO.__modules = modules;
       };
 
-      return jsio;
-    }());
+      return JSIO;
+    }()),
 
-    // == the jsio wrapper that handles the 3rd param == //
+  jsio: function() {
     function loadModule(request) {
       return {
         src: eval(request.from),
@@ -150,16 +149,15 @@ var packages = {
         exports: {}
       };
 
-      ctx.jsio.__require = jsio.__require;
-      ctx.jsio.__makeContext = makeContext;
-      ctx.jsio.__init = jsio.__init;
+      ctx.jsio.__init = JSIO.__init;
+      ctx.jsio.__require = JSIO.__require;
+      ctx.jsio.__makeContext = makeContext; 
       return ctx;
     }
-
-    jsio = makeContext().jsio;
-    return jsio;
-    // ===== END OF THE WRAPPER ==//
-  }())
+    
+    var JSIO = packages.base;
+    return makeContext().jsio;
+  }
 }
 
 var example = {
@@ -178,7 +176,7 @@ var example = {
     "     }"
 };
 
-var jsio = packages.jsio;
+var jsio = packages.jsio();
 var compiler = jsio('import packages.preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
