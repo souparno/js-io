@@ -25,7 +25,7 @@ var packages = {
       "        function getJsioSrc() {\n" +
       "          var src = jsio.__init.toString();\n" +
       "          if (src.substring(0, 8) == 'function') {\n" +
-      "            src = 'jsio=(' + src + '());\\n';\n" +
+      "            src = 'var jsio=(' + src + '());\\n';\n" +
       "          }\n" +
       "          return src;\n" +
       "        }\n" +
@@ -50,91 +50,116 @@ var packages = {
       "          jsioSrc = jsioSrc + 'jsio.modules('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
       "        };\n",
-      test: "exports = function() {console.log('hello');}"
+    test: "exports = function() {console.log('hello');}"
   },
 
-  base: (function init(opts) {
-    var _cache_context = [];
+  jsio: (function() {
+    var jsio = (function init(opts) {
+      var _cache_context = [];
 
-    function resolveRequest(request) {
-      var match = request.match(/^\s*import\s+(.*)$/),
-        imports = {};
+      function resolveRequest(request) {
+        var match = request.match(/^\s*import\s+(.*)$/),
+          imports = {};
 
-      if (match) {
-        match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
-          imports = {
-            from: from,
-            as: as || from
-          };
-        });
-      }
-      return imports;
-    }
-
-    function _require(previousCtx, request, preprocessors) {
-      var request = resolveRequest(request);
-      var module = loadModule(request);
-      if (opts) opts.preprocess(module, preprocessors);
-      if (module.src) {
-        if (!_cache_context[request.from]) {
-          var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
-          var fn = eval(code);
-          var context = makeContext();
-          fn(context);
-          _cache_context[request.from] = context.exports;
+        if (match) {
+          match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
+            imports = {
+              from: from,
+              as: as || from
+            };
+          });
         }
-        previousCtx[request.as] = _cache_context[request.from];
-        return previousCtx[request.as];
+        return imports;
       }
-    }
 
+      function _require(previousCtx, request) {
+        var request = resolveRequest(request);
+        var module = jsio.__loadModule(request);
+        if (module.src) {
+          if (!_cache_context[request.from]) {
+            var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
+            var fn = eval(code);
+            var context = jsio.__makeContext();
+            fn(context);
+            _cache_context[request.from] = context.exports;
+          }
+          previousCtx[request.as] = _cache_context[request.from];
+          return previousCtx[request.as];
+        }
+      }
+
+      function loadModule(request) {
+        return {
+          src: jsio.__modules[request.from],
+          path: request.from
+        }
+      }
+
+      function makeContext() {
+        var ctx = {
+          jsio: function(request) {
+            return _require(this, request);
+          },
+          exports: {}
+        };
+
+        ctx.jsio.__init = init;
+        ctx.jsio.__modules = {};
+        ctx.jsio.__makeContext = makeContext;
+        ctx.jsio.__resolveRequest = resolveRequest;
+        ctx.jsio.__require = _require;
+        ctx.jsio.__loadModule = loadModule;
+        return ctx;
+      }
+
+      jsio = makeContext().jsio;
+      jsio.modules = function(modules) {
+        jsio.__modules = modules;
+      };
+
+      return jsio;
+    }());
+
+    // == the jsio wrapper that handles the 3rd param == //
     function loadModule(request) {
-      if (opts) opts.loadModule(request);
-
       return {
-        src: jsio.__modules[request.from],
+        src: eval(request.from),
         path: request.from
       }
+    }
+
+    function preprocess(module, preprocessors) {
+      preprocessors = preprocessors || ['import'];
+      preprocessors.forEach(function(preprocessor, index) {
+        preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
+        preprocessor(module, preprocessors);
+      });
     }
 
     function makeContext() {
       var ctx = {
         jsio: function(request, preprocessors) {
-          return _require(this, request, preprocessors);
+          jsio.__loadModule = function(request) {
+            var module = loadModule(request);
+            preprocess(module, preprocessors);
+            return module;
+          }
+
+          return jsio.__require(this, request);
         },
         exports: {}
       };
 
-      ctx.jsio.__init = init;
-      ctx.jsio.__modules = {};
+      ctx.jsio.__require = jsio.__require;
+      ctx.jsio.__makeContext = makeContext;
+      ctx.jsio.__init = jsio.__init;
       return ctx;
     }
 
-    var jsio = makeContext().jsio;
-
-    jsio.modules = function(modules) {
-      jsio.__modules = modules;
-    };
-
+    jsio = makeContext().jsio;
     return jsio;
-  }()),
-  jsio: function() {
-    var opts = {
-      loadModule: function(request) {
-        jsio.__modules[request.from] = eval(request.from);
-      },
-
-      preprocess: function(module, preprocessors) {
-        preprocessors = preprocessors || ['import'];
-        preprocessors.forEach(function(preprocessor, index) {
-          preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
-          preprocessor(module, preprocessors);
-        });
-      }
-    }
-
-    return packages.base.__init(opts);
-  }
+    // ===== END OF THE WRAPPER ==//
+  }())
 }
 
 var example = {
@@ -153,7 +178,7 @@ var example = {
     "     }"
 };
 
-var jsio = packages.jsio();
+var jsio = packages.jsio;
 var compiler = jsio('import packages.preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
