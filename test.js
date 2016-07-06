@@ -53,7 +53,7 @@ var packages = {
     test: "exports = function() {console.log('hello');}"
   },
 
-  base: (function init(opts) {
+  base: (function init() {
       var _cache_context = [];
 
       function resolveRequest(request) {
@@ -72,7 +72,7 @@ var packages = {
       }
 
       function _require(previousCtx, request) {
-        var request = resolveRequest(request);
+        var request = jsio.__resolveRequest(request);
         var module = jsio.__loadModule(request);
         if (module.src) {
           if (!_cache_context[request.from]) {
@@ -104,10 +104,10 @@ var packages = {
 
         ctx.jsio.__init = init;
         ctx.jsio.__require = _require;
-        ctx.jsio.__modules = {};
-        ctx.jsio.__makeContext = makeContext;
         ctx.jsio.__resolveRequest = resolveRequest; 
         ctx.jsio.__loadModule = loadModule;
+        ctx.jsio.__makeContext = makeContext;
+        ctx.jsio.__modules = {};
         return ctx;
       }
 
@@ -151,6 +151,7 @@ var packages = {
 
       ctx.jsio.__init = JSIO.__init;
       ctx.jsio.__require = JSIO.__require;
+      ctx.jsio.__resolveRequest = JSIO.__resolveRequest;
       ctx.jsio.__makeContext = makeContext; 
       return ctx;
     }
