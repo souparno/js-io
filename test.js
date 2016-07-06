@@ -54,77 +54,87 @@ var packages = {
   },
 
   base: (function init() {
-      var _cache_context = [];
+    function resolveRequest(request) {
+      var match = request.match(/^\s*import\s+(.*)$/),
+        imports = {};
 
-      function resolveRequest(request) {
-        var match = request.match(/^\s*import\s+(.*)$/),
-          imports = {};
-
-        if (match) {
-          match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
-            imports = {
-              from: from,
-              as: as || from
-            };
-          });
-        }
-        return imports;
+      if (match) {
+        match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
+          imports = {
+            from: from,
+            as: as || from
+          };
+        });
       }
+      return imports;
+    }
 
-      function _require(previousCtx, request) {
-        var request = jsio.__resolveRequest(request);
-        var module = jsio.__loadModule(request);
-        if (module.src) {
-          if (!_cache_context[request.from]) {
-            var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
-            var fn = eval(code);
-            var context = jsio.__makeContext();
-            fn(context);
-            _cache_context[request.from] = context.exports;
-          }
-          previousCtx[request.as] = _cache_context[request.from];
-          return previousCtx[request.as];
+    function _require(previousCtx, request) {
+      var request = jsio.__resolveRequest(request);
+      var module = jsio.__loadModule(request);
+      if (module.src) {
+        if (!module.exports) {
+          jsio.__execModule(jsio.__makeContext(), module);
         }
+        previousCtx[request.as] = module.exports;
+        return previousCtx[request.as];
       }
+    }
 
-      function loadModule(request) {
-        return {
-          src: jsio.__modules[request.from],
+    function execModule(context, module) {
+      var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
+      var fn = eval(code);
+      fn(context);
+      module.exports = context.exports;
+    }
+
+    function loadModule(request) {
+      // YOU NEED TO HAVE SOME TYPE OF CACHE BEFORE SENDING THE MODULE
+      // ELSE THE MODULE WILL BE EXECUTED WIITH A NEW CONTEXT EVERY TIME
+      // THAT WILL MAKE THE LOCAL VARIABLES IN THE MOODULE UN-USABLE
+      // REFER TO THE LOAD MODULE IN THE WRAPPER
+      return {
+        src: jsio.__modules[request.from],
+        path: request.from
+      }
+    }
+
+    function makeContext() {
+      var ctx = {
+        jsio: function(request) {
+          return _require(this, request);
+        },
+        exports: {}
+      };
+
+      ctx.jsio.__init = init;
+      ctx.jsio.__require = _require;
+      ctx.jsio.__resolveRequest = resolveRequest;
+      ctx.jsio.__loadModule = loadModule;
+      ctx.jsio.__execModule = execModule;
+      ctx.jsio.__makeContext = makeContext;
+      ctx.jsio.__modules = {};
+      return ctx;
+    }
+
+    var JSIO = makeContext().jsio;
+    JSIO.modules = function(modules) {
+      JSIO.__modules = modules;
+    };
+
+    return JSIO;
+  }()),
+
+  jsio: function() {
+    function loadModule(request) {
+      if (!jsio.__modules[request.from]) {
+        jsio.__modules[request.from] = {
+          src: eval(request.from),
           path: request.from
         }
       }
 
-      function makeContext() {
-        var ctx = {
-          jsio: function(request) {
-            return _require(this, request);
-          },
-          exports: {}
-        };
-
-        ctx.jsio.__init = init;
-        ctx.jsio.__require = _require;
-        ctx.jsio.__resolveRequest = resolveRequest; 
-        ctx.jsio.__loadModule = loadModule;
-        ctx.jsio.__makeContext = makeContext;
-        ctx.jsio.__modules = {};
-        return ctx;
-      }
-
-      var JSIO = makeContext().jsio;
-      JSIO.modules = function(modules) {
-        JSIO.__modules = modules;
-      };
-
-      return JSIO;
-    }()),
-
-  jsio: function() {
-    function loadModule(request) {
-      return {
-        src: eval(request.from),
-        path: request.from
-      }
+      return jsio.__modules[request.from];
     }
 
     function preprocess(module, preprocessors) {
@@ -152,10 +162,12 @@ var packages = {
       ctx.jsio.__init = JSIO.__init;
       ctx.jsio.__require = JSIO.__require;
       ctx.jsio.__resolveRequest = JSIO.__resolveRequest;
-      ctx.jsio.__makeContext = makeContext; 
+      ctx.jsio.__execModule = JSIO.__execModule;
+      ctx.jsio.__makeContext = makeContext;
+      ctx.jsio.__modules = JSIO.__modules;
       return ctx;
     }
-    
+
     var JSIO = packages.base;
     return makeContext().jsio;
   }
