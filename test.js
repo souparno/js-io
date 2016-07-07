@@ -25,7 +25,7 @@ var packages = {
       "        function getJsioSrc() {\n" +
       "          var src = jsio.__init.toString();\n" +
       "          if (src.substring(0, 8) == 'function') {\n" +
-      "            src = 'jsio=(' + src + '());\\n';\n" +
+      "            src = 'var jsio=(' + src + '());\\n';\n" +
       "          }\n" +
       "          return src;\n" +
       "        }\n" +
@@ -50,12 +50,10 @@ var packages = {
       "          jsioSrc = jsioSrc + 'jsio.modules('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
       "        };\n",
-      test: "exports = function() {console.log('hello');}"
+    test: "exports = function() {console.log('hello');}"
   },
 
-  base: (function init(opts) {
-    var _cache_context = [];
-
+  base: (function init() {
     function resolveRequest(request) {
       var match = request.match(/^\s*import\s+(.*)$/),
         imports = {};
@@ -71,26 +69,30 @@ var packages = {
       return imports;
     }
 
-    function _require(previousCtx, request, preprocessors) {
-      var request = resolveRequest(request);
-      var module = loadModule(request);
-      if (opts) opts.preprocess(module, preprocessors);
+    function _require(previousCtx, request) {
+      var request = jsio.__resolveRequest(request);
+      var module = jsio.__loadModule(request);
       if (module.src) {
-        if (!_cache_context[request.from]) {
-          var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
-          var fn = eval(code);
-          var context = makeContext();
-          fn(context);
-          _cache_context[request.from] = context.exports;
+        if (!module.exports) {
+          jsio.__execModule(jsio.__makeContext(), module);
         }
-        previousCtx[request.as] = _cache_context[request.from];
+        previousCtx[request.as] = module.exports;
         return previousCtx[request.as];
       }
     }
 
-    function loadModule(request) {
-      if (opts) opts.loadModule(request);
+    function execModule(context, module) {
+      var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
+      var fn = eval(code);
+      fn(context);
+      module.exports = context.exports;
+    }
 
+    function loadModule(request) {
+      // YOU NEED TO HAVE SOME TYPE OF CACHE BEFORE SENDING THE MODULE
+      // ELSE THE MODULE WILL BE EXECUTED WIITH A NEW CONTEXT EVERY TIME
+      // THAT WILL MAKE THE LOCAL VARIABLES IN THE MOODULE UN-USABLE
+      // REFER TO THE LOAD MODULE IN THE WRAPPER
       return {
         src: jsio.__modules[request.from],
         path: request.from
@@ -99,41 +101,75 @@ var packages = {
 
     function makeContext() {
       var ctx = {
-        jsio: function(request, preprocessors) {
-          return _require(this, request, preprocessors);
+        jsio: function(request) {
+          return _require(this, request);
         },
         exports: {}
       };
 
       ctx.jsio.__init = init;
+      ctx.jsio.__require = _require;
+      ctx.jsio.__resolveRequest = resolveRequest;
+      ctx.jsio.__loadModule = loadModule;
+      ctx.jsio.__execModule = execModule;
+      ctx.jsio.__makeContext = makeContext;
       ctx.jsio.__modules = {};
       return ctx;
     }
 
-    var jsio = makeContext().jsio;
-
-    jsio.modules = function(modules) {
-      jsio.__modules = modules;
+    var JSIO = makeContext().jsio;
+    JSIO.modules = function(modules) {
+      JSIO.__modules = modules;
     };
 
-    return jsio;
+    return JSIO;
   }()),
-  jsio: function() {
-    var opts = {
-      loadModule: function(request) {
-        jsio.__modules[request.from] = eval(request.from);
-      },
 
-      preprocess: function(module, preprocessors) {
-        preprocessors = preprocessors || ['import'];
-        preprocessors.forEach(function(preprocessor, index) {
-          preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
-          preprocessor(module, preprocessors);
-        });
+  jsio: function() {
+    function loadModule(request) {
+      if (!jsio.__modules[request.from]) {
+        jsio.__modules[request.from] = {
+          src: eval(request.from),
+          path: request.from
+        }
       }
+
+      return jsio.__modules[request.from];
     }
 
-    return packages.base.__init(opts);
+    function preprocess(module, preprocessors) {
+      preprocessors = preprocessors || ['import'];
+      preprocessors.forEach(function(preprocessor, index) {
+        preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
+        preprocessor(module, preprocessors);
+      });
+    }
+
+    function makeContext() {
+      var ctx = {
+        jsio: function(request, preprocessors) {
+          jsio.__loadModule = function(request) {
+            var module = loadModule(request);
+            preprocess(module, preprocessors);
+            return module;
+          }
+
+          return jsio.__require(this, request);
+        },
+        exports: {}
+      };
+
+      ctx.jsio.__init = JSIO.__init;
+      ctx.jsio.__require = JSIO.__require;
+      ctx.jsio.__resolveRequest = JSIO.__resolveRequest;
+      ctx.jsio.__execModule = JSIO.__execModule;
+      ctx.jsio.__makeContext = makeContext;
+      ctx.jsio.__modules = JSIO.__modules;
+      return ctx;
+    }
+
+    var JSIO = packages.base;
+    return makeContext().jsio;
   }
 }
 
