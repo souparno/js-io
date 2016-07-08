@@ -142,18 +142,19 @@ var packages = {
       });
     }
 
+    function _require(request, preprocessors) {
+      jsio.__loadModule = function(request, module) {
+        loadModule(request);
+        module = JSIO.__loadModule(request);
+        preprocess(module, preprocessors);
+        return module;
+      }
+      return jsio.__require(this, request);
+    }
+
     function makeContext() {
       var ctx = {
-        jsio: function(request, preprocessors) {
-          jsio.__loadModule = function(request, module) {
-            loadModule(request);
-            module = JSIO.__loadModule(request);
-            preprocess(module, preprocessors);
-            return module;
-          }
-
-          return jsio.__require(this, request);
-        },
+        jsio: _require,
         exports: {}
       };
 
