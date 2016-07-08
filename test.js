@@ -99,7 +99,7 @@ var packages = {
       function makeContext() {
         var ctx = {
           jsio: function(request) {
-            return require(this, request);
+            return jsio.__require(this, request);
           },
           exports: {}
         };
