@@ -70,7 +70,7 @@ var packages = {
         return imports;
       }
 
-      function _require(previousCtx, request) {
+      function require(previousCtx, request) {
         var request = jsio.__resolveRequest(request);
         var module = jsio.__loadModule(request);
         if (module.src) {
@@ -99,13 +99,13 @@ var packages = {
       function makeContext() {
         var ctx = {
           jsio: function(request) {
-            return _require(this, request);
+            return require(this, request);
           },
           exports: {}
         };
 
         ctx.jsio.__init = init;
-        ctx.jsio.__require = _require;
+        ctx.jsio.__require = require;
         ctx.jsio.__resolveRequest = resolveRequest;
         ctx.jsio.__loadModule = loadModule;
         ctx.jsio.__execModule = execModule;
@@ -142,7 +142,7 @@ var packages = {
       });
     }
 
-    function _require(request, preprocessors) {
+    function require(request, preprocessors) {
       jsio.__loadModule = function(request, module) {
         loadModule(request);
         module = JSIO.__loadModule(request);
@@ -154,7 +154,7 @@ var packages = {
 
     function makeContext() {
       var ctx = {
-        jsio: _require,
+        jsio: require,
         exports: {}
       };
 
