@@ -142,19 +142,21 @@ var packages = {
       });
     }
 
-    function require(request, preprocessors) {
+    function require(previousCtx, request, preprocessors) {
       jsio.__loadModule = function(request, module) {
         loadModule(request);
         module = JSIO.__loadModule(request);
         preprocess(module, preprocessors);
         return module;
       }
-      return jsio.__require(this, request);
+      return jsio.__require(previousCtx, request);
     }
 
     function makeContext() {
       var ctx = {
-        jsio: require,
+        jsio: function(request, preprocessors) {
+          return require(this, request, preprocessors);
+        },
         exports: {}
       };
 
