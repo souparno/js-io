@@ -97,13 +97,10 @@ var packages = {
       }
 
       function makeContext() {
-        var ctx = {
-          jsio: function(request) {
-            return jsio.__require(this, request);
-          },
-          exports: {}
-        };
+        var ctx = {};
 
+        ctx.exports = {};
+        ctx.jsio = require.bind(null, ctx);
         ctx.jsio.__init = init;
         ctx.jsio.__require = require;
         ctx.jsio.__resolveRequest = resolveRequest;
@@ -153,13 +150,10 @@ var packages = {
     }
 
     function makeContext() {
-      var ctx = {
-        jsio: function(request, preprocessors) {
-          return require(this, request, preprocessors);
-        },
-        exports: {}
-      };
+      var ctx = {};
 
+      ctx.exports = {};
+      ctx.jsio = require.bind(null, ctx);
       ctx.jsio.__init = JSIO.__init;
       ctx.jsio.__require = JSIO.__require;
       ctx.jsio.__resolveRequest = JSIO.__resolveRequest;
