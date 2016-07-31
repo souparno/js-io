@@ -51,7 +51,7 @@ var packages = {
       "        };\n"
   },
 
-  base: (function() {
+  jsio: (function() {
     var _jsio = (function init() {
       function resolveRequest(request) {
         var match = request.match(/^\s*import\s+(.*)$/),
@@ -122,12 +122,16 @@ var packages = {
     return _jsio;
   }()),
 
-  jsio: function() {
-    function loadModule(request) {
+  compiler: function() {
+    function loadModule(ctx, preprocessors, request) {
       JSIO.__modules[request.from] = {
         src: eval(request.from),
         path: request.from
       }
+    
+      var module = JSIO.__loadModule(request);
+      preprocess(ctx, module, preprocessors);
+      return module;
     }
 
     function preprocess(ctx, module, preprocessors) {
@@ -139,13 +143,7 @@ var packages = {
     }
 
     function require(ctx, request, preprocessors) {
-      ctx.jsio.__loadModule = function(request, module) {
-        loadModule(request);
-        module = JSIO.__loadModule(request);
-        preprocess(ctx, module, preprocessors);
-        return module;
-      }
-
+      ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
       return JSIO.__require(ctx, request);
     }
 
@@ -160,7 +158,7 @@ var packages = {
       return ctx;
     }
 
-    var JSIO = packages.base;
+    var JSIO = packages.jsio;
     return makeContext().jsio;
   }
 }
@@ -181,7 +179,7 @@ var example = {
     "     }"
 };
 
-var _jsio = packages.jsio();
+var _jsio = packages.compiler();
 var compiler = _jsio('import packages.preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
