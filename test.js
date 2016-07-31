@@ -97,17 +97,14 @@ var packages = {
       }
 
       function makeContext(ctx) {
-        if (!ctx) { ctx = {}; }
-        if (!ctx.exports) { ctx.exports = {}; }
-       
-        if(!ctx.jsio){
-          ctx.jsio = function () {
-            var args = Array.prototype.slice.call(arguments);
+        var ctx = ctx || {}
 
-            args.unshift(ctx);
-            return ctx.jsio.__require.apply(null, args);
-          }
+        ctx.exports = ctx.exports || {}
+        ctx.jsio = ctx.jsio || function() {
+          var args = Array.prototype.slice.call(arguments);
 
+          args.unshift(ctx);
+          return ctx.jsio.__require.apply(null, args);
         }
         return ctx;
       }
@@ -138,7 +135,7 @@ var packages = {
       });
     }
 
-    var loadModule = (function(){
+    var loadModule = (function() {
       var __loadModule = packages.jsio.__loadModule;
 
       return function loadModule(ctx, preprocessors, request) {
@@ -151,9 +148,9 @@ var packages = {
         preprocess(ctx, module, preprocessors);
         return module;
       }
-    }()); 
+    }());
 
-    var require = (function () {
+    var require = (function() {
       var __require = packages.jsio.__require;
 
       return function require(ctx, request, preprocessors) {
