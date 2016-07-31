@@ -73,7 +73,7 @@ var packages = {
       function require(ctx, request) {
         var jsio = ctx.jsio;
         var request = resolveRequest(request);
-        var module = jsio.__loadModule(ctx, request);
+        var module = jsio.__loadModule(request);
 
         if (module.src) {
           if (!module.exports) {
@@ -91,7 +91,7 @@ var packages = {
         module.exports = ctx.exports;
       }
 
-      function loadModule(ctx, request) {
+      function loadModule(request) {
         if (!JSIO.__cache[request.from]) {
           JSIO.__cache[request.from] = JSIO.__modules[request.from];
         }
@@ -125,7 +125,7 @@ var packages = {
   }()),
 
   jsio: function() {
-    function loadModule(ctx, request) {
+    function loadModule(request) {
       JSIO.__modules[request.from] = {
         src: eval(request.from),
         path: request.from
@@ -141,9 +141,9 @@ var packages = {
     }
 
     function require(ctx, request, preprocessors) {
-      ctx.jsio.__loadModule = function(ctx, request, module) {
-        loadModule(ctx, request);
-        module = JSIO.__loadModule(ctx, request);
+      ctx.jsio.__loadModule = function(request, module) {
+        loadModule(request);
+        module = JSIO.__loadModule(request);
         preprocess(ctx, module, preprocessors);
         return module;
       }
