@@ -100,7 +100,9 @@ var packages = {
         var ctx = {};
 
         ctx.exports = {};
-        ctx.jsio = require.bind(null, ctx);
+        ctx.jsio = function (a, b) {
+          return ctx.jsio.__require.call(null, ctx, a, b);
+        }
         ctx.jsio.__init = init;
         ctx.jsio.__require = require;
         ctx.jsio.__loadModule = loadModule;
@@ -149,11 +151,9 @@ var packages = {
     }
 
     function makeContext() {
-      var ctx = {};
+      var ctx = JSIO.__makeContext();
 
-      ctx.exports = {};
-      ctx.jsio = require.bind(null, ctx);
-      ctx.jsio.__init = JSIO.__init;
+      ctx.jsio.__require = require;
       ctx.jsio.__makeContext = makeContext;
       return ctx;
     }
