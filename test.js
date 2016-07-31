@@ -129,6 +129,14 @@ var packages = {
 
   compiler: function() {
 
+    function preprocess(ctx, module, preprocessors) {
+      preprocessors = preprocessors || ['import'];
+      preprocessors.forEach(function(preprocessor, index) {
+        preprocessor = ctx.jsio('import packages.preprocessors.' + preprocessor, []);
+        preprocessor(module, preprocessors);
+      });
+    }
+
     function loadModule(ctx, preprocessors, request) {
       JSIO.__modules[request.from] = {
         src: eval(request.from),
@@ -138,14 +146,6 @@ var packages = {
       var module = JSIO.__loadModule(request);
       preprocess(ctx, module, preprocessors);
       return module;
-    }
-
-    function preprocess(ctx, module, preprocessors) {
-      preprocessors = preprocessors || ['import'];
-      preprocessors.forEach(function(preprocessor, index) {
-        preprocessor = ctx.jsio('import packages.preprocessors.' + preprocessor, []);
-        preprocessor(module, preprocessors);
-      });
     }
 
     function require(ctx, request, preprocessors) {
