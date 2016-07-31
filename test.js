@@ -100,8 +100,11 @@ var packages = {
         var ctx = {};
 
         ctx.exports = {};
-        ctx.jsio = function (a, b) {
-          return ctx.jsio.__require.call(null, ctx, a, b);
+        ctx.jsio = function () {
+          var args = Array.prototype.slice.call(arguments);
+
+          args.unshift(ctx);
+          return ctx.jsio.__require.apply(null, args);
         }
         ctx.jsio.__init = init;
         ctx.jsio.__require = require;
