@@ -123,12 +123,13 @@ var packages = {
   }()),
 
   compiler: function() {
+
     function loadModule(ctx, preprocessors, request) {
       JSIO.__modules[request.from] = {
         src: eval(request.from),
         path: request.from
       }
-    
+
       var module = JSIO.__loadModule(request);
       preprocess(ctx, module, preprocessors);
       return module;
@@ -153,7 +154,6 @@ var packages = {
       ctx.exports = {};
       ctx.jsio = require.bind(null, ctx);
       ctx.jsio.__init = JSIO.__init;
-      ctx.jsio.__require = JSIO.__require;
       ctx.jsio.__makeContext = makeContext;
       return ctx;
     }
