@@ -75,7 +75,7 @@ var packages = {
 
         if (module.src) {
           if (!module.exports) {
-            execModule(jsio.__makeContext(), module);
+            execModule(makeContext(ctx), module);
           }
           ctx[request.as] = module.exports;
           return ctx[request.as];
@@ -96,31 +96,32 @@ var packages = {
         return JSIO.__cache[request.from];
       }
 
-      function makeContext() {
-        var ctx = {};
+      function makeContext(ctx) {
+        if (!ctx) { ctx = {}; }
+        if (!ctx.exports) { ctx.exports = {}; }
+       
+        if(!ctx.jsio){
+          ctx.jsio = function () {
+            var args = Array.prototype.slice.call(arguments);
 
-        ctx.exports = {};
-        ctx.jsio = function () {
-          var args = Array.prototype.slice.call(arguments);
+            args.unshift(ctx);
+            return ctx.jsio.__require.apply(null, args);
+          }
 
-          args.unshift(ctx);
-          return ctx.jsio.__require.apply(null, args);
         }
-        ctx.jsio.__init = init;
-        ctx.jsio.__require = require;
-        ctx.jsio.__loadModule = loadModule;
-        ctx.jsio.__makeContext = makeContext;
         return ctx;
       }
 
       var JSIO = makeContext().jsio;
 
+      JSIO.__require = require;
+      JSIO.__loadModule = loadModule;
+      JSIO.__init = init;
       JSIO.__modules = {};
       JSIO.__cache = {};
       JSIO.modules = function(modules) {
         JSIO.__modules = modules;
       };
-
       return JSIO;
     }());
 
@@ -137,32 +138,33 @@ var packages = {
       });
     }
 
-    function loadModule(ctx, preprocessors, request) {
-      JSIO.__modules[request.from] = {
-        src: eval(request.from),
-        path: request.from
+    var loadModule = (function(){
+      var __loadModule = packages.jsio.__loadModule;
+
+      return function loadModule(ctx, preprocessors, request) {
+        JSIO.__modules[request.from] = {
+          src: eval(request.from),
+          path: request.from
+        }
+
+        var module = __loadModule(request);
+        preprocess(ctx, module, preprocessors);
+        return module;
       }
+    }()); 
 
-      var module = JSIO.__loadModule(request);
-      preprocess(ctx, module, preprocessors);
-      return module;
-    }
+    var require = (function () {
+      var __require = packages.jsio.__require;
 
-    function require(ctx, request, preprocessors) {
-      ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
-      return JSIO.__require(ctx, request);
-    }
-
-    function makeContext() {
-      var ctx = JSIO.__makeContext();
-
-      ctx.jsio.__require = require;
-      ctx.jsio.__makeContext = makeContext;
-      return ctx;
-    }
+      return function require(ctx, request, preprocessors) {
+        ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
+        return __require(ctx, request);
+      }
+    }());
 
     var JSIO = packages.jsio;
-    return makeContext().jsio;
+    JSIO.__require = require;
+    return JSIO;
   }
 }
 
