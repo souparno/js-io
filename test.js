@@ -13,21 +13,13 @@ var packages = {
       "        module.src = module.src.replace(importExpr, replace);\n" +
       "      };\n",
 
-    compiler: "import packages.preprocessors.test as test;var srcTable = {};\n" +
+    compiler: "var srcTable = {};\n" +
 
       "       function updatePreprocessors(preprocessors) {\n" +
       "          if(!preprocessors.indexOf('compiler')){\n" +
       "            preprocessors.push('compiler');\n" +
       "          }\n" +
       "          return preprocessors;\n" +
-      "        }\n" +
-
-      "        function getJsioSrc() {\n" +
-      "          var src = jsio.__init.toString();\n" +
-      "          if (src.substring(0, 8) == 'function') {\n" +
-      "            src = 'var jsio=(' + src + '());\\n';\n" +
-      "          }\n" +
-      "          return src;\n" +
       "        }\n" +
 
       "        exports = function (module, preprocessors) {\n" +
@@ -46,11 +38,17 @@ var packages = {
       "        };\n" +
 
       "        exports.generateSrc = function (callback) {\n" +
+      "          function getJsioSrc() {\n" +
+      "            var src = jsio.__init.toString();\n" +
+      "            if (src.substring(0, 8) == 'function') {\n" +
+      "              src = 'var jsio=(' + src + '());\\n';\n" +
+      "            }\n" +
+      "            return src;\n" +
+      "          }\n" +
       "          var jsioSrc = getJsioSrc();\n" +
       "          jsioSrc = jsioSrc + 'jsio.modules('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
-      "        };\n",
-    test: "exports = function() {console.log('hello');}"
+      "        };\n"
   },
 
   base: (function() {
@@ -183,8 +181,8 @@ var example = {
     "     }"
 };
 
-var jsio = packages.jsio();
-var compiler = jsio('import packages.preprocessors.compiler;');
+var _jsio = packages.jsio();
+var compiler = _jsio('import packages.preprocessors.compiler;');
 compiler.compile('import example.app;');
 compiler.generateSrc(function(src) {
   console.log(src + "jsio('import example.app;');");
