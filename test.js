@@ -139,7 +139,7 @@ var packages = {
       return fn.bind(context);
     }
 
-    function preprocess(jsio, module, preprocessors) {
+    var preprocess = function(jsio, module, preprocessors) {
       preprocessors = preprocessors || ['import'];
       preprocessors.forEach(function(preprocessor, index) {
         preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
