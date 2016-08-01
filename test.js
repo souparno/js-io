@@ -132,7 +132,7 @@ var packages = {
       var context = {
         __require: JSIO.__require,
         __loadModule: JSIO.__loadModule,
-        __modules : JSIO.__modules 
+        __modules: JSIO.__modules
       }
 
       return fn.bind(context);
