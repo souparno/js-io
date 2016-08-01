@@ -97,14 +97,15 @@ var packages = {
       }
 
       function makeContext(ctx) {
-        var ctx = ctx || {}
+        if (!ctx) {
+          ctx = {};
+          ctx.exports = {}
+          ctx.jsio = function() {
+            var args = Array.prototype.slice.call(arguments);
 
-        ctx.exports = ctx.exports || {}
-        ctx.jsio = ctx.jsio || function() {
-          var args = Array.prototype.slice.call(arguments);
-
-          args.unshift(ctx);
-          return ctx.jsio.__require.apply(null, args);
+            args.unshift(ctx);
+            return ctx.jsio.__require.apply(null, args);
+          }
         }
         return ctx;
       }
