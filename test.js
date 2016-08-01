@@ -126,40 +126,42 @@ var packages = {
   }()),
 
   compiler: function() {
+    var JSIO = packages.jsio;
 
-    function preprocess(ctx, module, preprocessors) {
+    var Extends = function(fn) {
+      var context = {
+        __require: JSIO.__require,
+        __loadModule: JSIO.__loadModule,
+        __modules : JSIO.__modules 
+      }
+
+      return fn.bind(context);
+    }
+
+    function preprocess(jsio, module, preprocessors) {
       preprocessors = preprocessors || ['import'];
       preprocessors.forEach(function(preprocessor, index) {
-        preprocessor = ctx.jsio('import packages.preprocessors.' + preprocessor, []);
+        preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
         preprocessor(module, preprocessors);
       });
     }
 
-    var loadModule = (function() {
-      var __loadModule = packages.jsio.__loadModule;
-
-      return function loadModule(ctx, preprocessors, request) {
-        JSIO.__modules[request.from] = {
-          src: eval(request.from),
-          path: request.from
-        }
-
-        var module = __loadModule(request);
-        preprocess(ctx, module, preprocessors);
-        return module;
+    var loadModule = Extends(function(ctx, preprocessors, request) {
+      this.__modules[request.from] = {
+        src: eval(request.from),
+        path: request.from
       }
-    }());
 
-    var require = (function() {
-      var __require = packages.jsio.__require;
+      var module = this.__loadModule(request);
+      preprocess(ctx.jsio, module, preprocessors);
+      return module;
+    });
 
-      return function require(ctx, request, preprocessors) {
-        ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
-        return __require(ctx, request);
-      }
-    }());
+    var require = Extends(function(ctx, request, preprocessors) {
+      ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
+      return this.__require(ctx, request);
+    });
 
-    var JSIO = packages.jsio;
     JSIO.__require = require;
     return JSIO;
   }
