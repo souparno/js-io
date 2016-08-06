@@ -70,9 +70,8 @@ var packages = {
       }
 
       function require(ctx, request) {
-        var jsio = ctx.jsio;
         var request = resolveRequest(request);
-        var module = jsio.__loadModule(request);
+        var module = ctx.jsio.__loadModule(request);
 
         if (module.src) {
           if (!module.exports) {
@@ -99,13 +98,12 @@ var packages = {
         return JSIO.__cache[request.from];
       }
 
-      function makeContext() {
-        var ctx = {};
+      function makeContext(ctx) {
+        ctx = ctx || {};
         for (var p in context) {
           ctx[p] = context[p];
         }
         context = ctx;
-
         return context;
       }
 
@@ -141,9 +139,11 @@ var packages = {
 
     var Extends = function(fn) {
       var context = {
-        __require: JSIO.__require,
-        __loadModule: JSIO.__loadModule,
-        __modules: JSIO.__modules
+        jsio: {
+          __require: JSIO.__require,
+          __loadModule: JSIO.__loadModule,
+          __modules: JSIO.__modules
+        }
       }
 
       return fn.bind(context);
@@ -158,19 +158,19 @@ var packages = {
     }
 
     var loadModule = Extends(function(ctx, preprocessors, request) {
-      this.__modules[request.from] = {
+      this.jsio.__modules[request.from] = {
         src: eval(request.from),
         path: request.from
       }
 
-      var module = this.__loadModule(request);
+      var module = this.jsio.__loadModule(request);
       preprocess(ctx.jsio, module, preprocessors);
       return module;
     });
 
     var require = Extends(function(ctx, request, preprocessors) {
       ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
-      return this.__require(ctx, request);
+      return this.jsio.__require(ctx, request);
     });
 
     JSIO.__require = require;
