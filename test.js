@@ -138,38 +138,40 @@ var packages = {
     var JSIO = packages.jsio;
 
     var Extends = function(fn) {
-      var context = {
-        jsio: {
+      var context = { 
+        jsio: { 
           __require: JSIO.__require,
           __loadModule: JSIO.__loadModule,
           __modules: JSIO.__modules
-        }
+        },
+        __jsio : JSIO
       }
 
       return fn.bind(context);
     }
 
-    var preprocess = function(jsio, module, preprocessors) {
+    var preprocess = Extends(function(module, preprocessors) {
       preprocessors = preprocessors || ['import'];
       preprocessors.forEach(function(preprocessor, index) {
-        preprocessor = jsio('import packages.preprocessors.' + preprocessor, []);
+        var request = 'import packages.preprocessors.' + preprocessor;
+        preprocessor = this.__jsio(request, []);
         preprocessor(module, preprocessors);
-      });
-    }
+      }.bind(this));
+    });
 
-    var loadModule = Extends(function(ctx, preprocessors, request) {
+    var loadModule = Extends(function(preprocessors, request) {
       this.jsio.__modules[request.from] = {
         src: eval(request.from),
         path: request.from
       }
 
       var module = this.jsio.__loadModule(request);
-      preprocess(ctx.jsio, module, preprocessors);
+      preprocess(module, preprocessors);
       return module;
     });
 
     var require = Extends(function(ctx, request, preprocessors) {
-      ctx.jsio.__loadModule = loadModule.bind(null, ctx, preprocessors);
+      ctx.jsio.__loadModule = loadModule.bind(null, preprocessors);
       return this.jsio.__require(ctx, request);
     });
 
