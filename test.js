@@ -76,7 +76,7 @@ var packages = {
 
         if (module.src) {
           if (!module.exports) {
-            module.exports = execModule(makeContext(jsio), module);
+            module.exports = execModule(makeContext(), module);
           }
           ctx[request.as] = module.exports;
 
@@ -85,7 +85,7 @@ var packages = {
       }
 
       function execModule(ctx, module) {
-        var code = "(function (__) { with (__) {\n" + module.src + "\n}; return __.exports;});";
+        var code = "(function (__) {\n with (__) {\n" + module.src + "\n};\n return __.exports;\n});";
         var fn = eval(code);
 
         return fn(ctx);
@@ -99,27 +99,33 @@ var packages = {
         return JSIO.__cache[request.from];
       }
 
-      function makeContext(jsio) {
-        ctx = {};
-
-        ctx.exports = {};
-        ctx.jsio = jsio || function() {
-          var args = Array.prototype.slice.call(arguments);
-
-          args.unshift(ctx);
-          return ctx.jsio.__require.apply(null, args);
+      function makeContext() {
+        var ctx = {};
+        for (var p in context) {
+          ctx[p] = context[p];
         }
+        context = ctx;
 
-        return ctx;
+        return context;
       }
 
-      var JSIO = makeContext().jsio;
+      var context = {
+        exports: {},
+        jsio: function() {
+          var args = Array.prototype.slice.call(arguments);
 
-      JSIO.__require = require;
-      JSIO.__loadModule = loadModule;
-      JSIO.__init = init;
-      JSIO.__modules = {};
-      JSIO.__cache = {};
+          args.unshift(context);
+          return context.jsio.__require.apply(null, args);
+        }
+      };
+
+      context.jsio.__require = require;
+      context.jsio.__loadModule = loadModule;
+      context.jsio.__init = init;
+      context.jsio.__modules = {};
+      context.jsio.__cache = {};
+
+      var JSIO = makeContext().jsio;
       JSIO.modules = function(modules) {
         JSIO.__modules = modules;
       };
@@ -173,19 +179,19 @@ var packages = {
 }
 
 var example = {
-  app: "import example.calculator as calculator;" +
-    "   calculator.add(2, 3);",
+  app: "import example.calculator as calculator;\n" +
+    "   calculator.add(2, 3);\n",
 
-  calculator: "import example.print as print;" +
-    "          exports = {" +
-    "            add: function (a, b) {" +
-    "              print(a+b);" +
-    "            }" +
-    "          }",
+  calculator: "import example.print as print;\n" +
+    "          exports = {\n" +
+    "            add: function (a, b) {\n" +
+    "              print(a+b);\n" +
+    "            }\n" +
+    "          }\n",
 
-  print: "exports = function(res) {" +
-    "       console.log(res);" +
-    "     }"
+  print: "exports = function(res) {\n" +
+    "       console.log(res);\n" +
+    "     }\n"
 };
 
 var Jsio = packages.compiler();
