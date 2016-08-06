@@ -65,6 +65,7 @@ var packages = {
             };
           });
         }
+
         return imports;
       }
 
@@ -75,17 +76,18 @@ var packages = {
 
         if (module.src) {
           if (!module.exports) {
-            var newCtx = execModule(makeContext(jsio), module);
-            module.exports = newCtx.exports;
+            module.exports = execModule(makeContext(jsio), module);
           }
           ctx[request.as] = module.exports;
+
           return ctx[request.as];
         }
       }
 
       function execModule(ctx, module) {
-        var code = "(function (__) { with (__) {\n" + module.src + "\n}; return __;});";
+        var code = "(function (__) { with (__) {\n" + module.src + "\n}; return __.exports;});";
         var fn = eval(code);
+
         return fn(ctx);
       }
 
@@ -93,6 +95,7 @@ var packages = {
         if (!JSIO.__cache[request.from]) {
           JSIO.__cache[request.from] = JSIO.__modules[request.from];
         }
+
         return JSIO.__cache[request.from];
       }
 
@@ -120,6 +123,7 @@ var packages = {
       JSIO.modules = function(modules) {
         JSIO.__modules = modules;
       };
+
       return JSIO;
     }());
 
