@@ -75,7 +75,8 @@ var packages = {
 
         if (module.src) {
           if (!module.exports) {
-            execModule(makeContext(ctx), module);
+            var newCtx = execModule(makeContext(ctx), module);
+            module.exports = newCtx.exports;
           }
           ctx[request.as] = module.exports;
           return ctx[request.as];
@@ -83,10 +84,9 @@ var packages = {
       }
 
       function execModule(ctx, module) {
-        var code = "(function (__) { with (__) {\n" + module.src + "\n}});";
+        var code = "(function (__) { with (__) {\n" + module.src + "\n}; return __;});";
         var fn = eval(code);
-        fn(ctx);
-        module.exports = ctx.exports;
+        return fn(ctx);
       }
 
       function loadModule(request) {
@@ -96,17 +96,21 @@ var packages = {
         return JSIO.__cache[request.from];
       }
 
-      function makeContext(ctx) {
-        if (!ctx) {
-          ctx = {};
-          ctx.exports = {}
-          ctx.jsio = function() {
-            var args = Array.prototype.slice.call(arguments);
+      function makeContext(_ctx) {
+        ctx = {};
 
-            args.unshift(ctx);
-            return ctx.jsio.__require.apply(null, args);
-          }
+        ctx.exports = {};
+        ctx.jsio = function() {
+          var args = Array.prototype.slice.call(arguments);
+
+          args.unshift(ctx);
+          return ctx.jsio.__require.apply(null, args);
         }
+
+        if (_ctx) {
+          ctx.jsio = _ctx.jsio;
+        }
+
         return ctx;
       }
 
