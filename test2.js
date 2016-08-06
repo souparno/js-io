@@ -1,19 +1,28 @@
+//var ctx = {};
 
-function require(ctx, req) {
-  var fn = eval(req);
-  ctx[req] = fn(makeContext(ctx.jsio));
-}
-
-function makeContext(jsio) {
-  ctx = {};
-  ctx.exports = {};
-  ctx.jsio = jsio || function(req) {
+var context = {
+  exports: {},
+  jsio: function() {
     var args = Array.prototype.slice.call(arguments);
 
-    args.unshift(ctx);
-    return ctx.jsio.__require.apply(null, args);
+    args.unshift(context);
+    return context.jsio.__require.apply(null, args);
   }
-  return ctx;
+};
+
+function makeContext() {
+  var _ctx = {};
+  for (var p in context) {
+    _ctx[p] = context[p];
+  }
+  context = _ctx;
+  return context;
+}
+
+function require(ctx, req) {
+  var jsio = ctx.jsio;
+  var fn = eval(req);
+  ctx[req] = fn(makeContext());
 }
 
 var jsio = makeContext().jsio;
