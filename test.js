@@ -71,7 +71,7 @@ var packages = {
 
       function require(ctx, request) {
         var request = resolveRequest(request);
-        var module = ctx.jsio.__loadModule(request);
+        var module = JSIO.__loadModule(request);
 
         if (module.src) {
           if (!module.exports) {
@@ -98,12 +98,12 @@ var packages = {
         return JSIO.__cache[request.from];
       }
 
-      function makeContext(ctx) {
-        ctx = ctx || {
+      function makeContext() {
+        context = {
           exports: context.exports,
           jsio: context.jsio
         };
-        context = ctx;
+
         return context;
       }
 
@@ -138,13 +138,13 @@ var packages = {
     var JSIO = packages.jsio;
 
     var Extends = function(fn) {
-      var context = { 
-        jsio: { 
+      var context = {
+        jsio: {
           __require: JSIO.__require,
           __loadModule: JSIO.__loadModule,
           __modules: JSIO.__modules
         },
-        __jsio : JSIO
+        __jsio: JSIO
       }
 
       return fn.bind(context);
