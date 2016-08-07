@@ -70,8 +70,9 @@ var packages = {
       }
 
       function require(ctx, request) {
+        var jsio = makeContext().jsio;
         var request = resolveRequest(request);
-        var module = JSIO.__loadModule(request);
+        var module = jsio.__loadModule(request);
 
         if (module.src) {
           if (!module.exports) {
@@ -91,18 +92,21 @@ var packages = {
       }
 
       function loadModule(request) {
-        if (!JSIO.__cache[request.from]) {
-          JSIO.__cache[request.from] = JSIO.__modules[request.from];
-        }
+        var jsio = makeContext().jsio;
 
-        return JSIO.__cache[request.from];
+        if (!jsio.__cache[request.from]) {
+          jsio.__cache[request.from] = jsio.__modules[request.from];
+        }
+        return jsio.__cache[request.from];
       }
 
       function setModule(modules, key) {
+        var jsio = makeContext().jsio;
+
         if (key) {
-          JSIO.__modules[key] = modules
+          jsio.__modules[key] = modules
         } else {
-          JSIO.__modules = modules;
+          jsio.__modules = modules;
         }
       }
 
@@ -132,8 +136,7 @@ var packages = {
       context.jsio.__cache = {};
       context.jsio.__setModule = setModule;
 
-      var JSIO = makeContext().jsio;
-      return JSIO;
+      return makeContext().jsio;
     }());
 
     return _jsio;
