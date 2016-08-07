@@ -1,55 +1,11 @@
+var fs = require('fs');
+var __import = fs.readFileSync('packages/preprocessors/import.js', 'utf8');
+var __compiler = fs.readFileSync('packages/preprocessors/compiler.js', 'utf8');
+
 var packages = {
   preprocessors: {
-    import: "var importExpr = /^(\\s*)(import\\s+[^=+*\"'\\r\\n;\\/]+|from\\s+[^=+\"'\\r\\n;\\/ ]+\\s+import\\s+[^=+\"'\\r\\n;\\/]+)(;|\\/|$)/gm;\n" +
-
-      "      function replace(raw, p1, p2, p3) {\n" +
-      "        if (!/\\/\\//.test(p1)) {\n" +
-      "          return p1 + 'jsio(\"' + p2 + '\")' + p3;\n" +
-      "        }\n" +
-      "        return raw;\n" +
-      "      };\n" +
-
-      "      exports = function(module, preprocessors) {\n" +
-      "        module.src = module.src.replace(importExpr, replace);\n" +
-      "      };\n",
-
-    compiler: "var srcTable = {};\n" +
-
-      "       function updatePreprocessors(preprocessors) {\n" +
-      "          if(!preprocessors.indexOf('compiler')){\n" +
-      "            preprocessors.push('compiler');\n" +
-      "          }\n" +
-      "          return preprocessors;\n" +
-      "        }\n" +
-
-      "        exports = function (module, preprocessors) {\n" +
-      "          var jsioNormal = /^(.*)jsio\\s*\\(\\s*(['\"].+?['\"])\\s*(,\\s*\\{[^}]+\\})?\\)/gm;\n" +
-      "          var match = jsioNormal.exec(module.src);\n" +
-      "          if(match) {\n" +
-      "            var request = eval(match[2]);\n" +
-      "            jsio(request, updatePreprocessors(preprocessors));\n" +
-      "          } \n" +
-      "          srcTable[module.path] = JSON.parse(JSON.stringify(module));\n" +
-      "          module.src = '';\n" +
-      "        };\n" +
-
-      "        exports.compile = function(request) {\n" +
-      "          jsio(request, ['import', 'compiler']);\n" +
-      "        };\n" +
-
-      "        function getJsioSrc() {\n" +
-      "          var src = jsio.__init.toString();\n" +
-      "          if (src.substring(0, 8) == 'function') {\n" +
-      "            src = 'var jsio=(' + src + '());\\n';\n" +
-      "          }\n" +
-      "          return src;\n" +
-      "        }\n" +
-
-      "        exports.generateSrc = function (callback) {\n" +
-      "          var jsioSrc = getJsioSrc();\n" +
-      "          jsioSrc = jsioSrc + 'jsio.__setModule('+ JSON.stringify(srcTable) +');';\n" +
-      '          callback(jsioSrc);\n' +
-      "        };\n"
+    import: __import.toString(),
+    compiler: __compiler.toString()
   },
 
   jsio: (function() {

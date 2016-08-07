@@ -1,69 +1,39 @@
-import packages.util.path as path;
-
-var JSIO = jsio.__jsio;
-gSrcTable = {};
-
-function testComment(match) {
-  return !/\/\//.test(match[1]);
-};
+var srcTable = {};
 
 function getJsioSrc() {
-  var src = JSIO.__init.toString(-1);
+  var src = jsio.__init.toString(-1);
   if (src.substring(0, 8) == 'function') {
-    src = 'jsio=(' + src + ')();';
+    src = 'var jsio=(' + src + '());';
   }
   return src;
 };
 
-function updateOpts() {
-  return ['import', 'compiler'];
+function updatePreprocessors(preprocessors) {
+  if (!preprocessors.indexOf('compiler')) {
+    preprocessors.push('compiler');
+  }
+  return preprocessors;
 };
 
-exports = function(moduleDef) {
+exports = function(moduleDef, preprocessors) {
   var jsioNormal = /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm;
+  var match = jsioNormal.exec(moduleDef.src);
 
-  while (true) {
-    var match = jsioNormal.exec(moduleDef.src);
-    if (!match) {
-      break;
-    }
-    if (!testComment(match)) {
-      continue;
-    }
-    var cmd = match[2];
-
-    try {
-      cmd = eval(cmd);
-    } catch (e) {
-      continue;
-    }
-
-    try {
-      JSIO.__require({}, moduleDef.directory, cmd, updateOpts());
-    } catch (e) {}
+  if (match) {
+    var request = eval(match[2]);
+    jsio(request, updatePreprocessors(preprocessors));
   }
-
-  gSrcTable[moduleDef.friendlyPath] = JSON.parse(JSON.stringify(moduleDef));
-  return '';
+  srcTable[moduleDef.path] = JSON.parse(JSON.stringify(moduleDef));
+  moduleDef.src = '';
 };
 
-function replaceSlashes(str) {
-  return str.replace(/\\+/g, '/').replace(/\/{2,}/g, '/');
-}
+exports.compile = function(request) {
+  jsio(request, ['import', 'compiler']);
+};
+
 exports.generateSrc = function(callback) {
-  var jsioSrc = getJsioSrc(),
-    cwd = JSIO.__env.getCwd(),
-    table = {};
+  var jsioSrc = getJsioSrc();
 
-  for (var entry in gSrcTable) {
-    var relPath = replaceSlashes(path.relative(cwd, entry));
-    table[relPath] = gSrcTable[entry];
-    table[relPath].path = relPath;
-    table[relPath].directory = replaceSlashes(path.relative(cwd, gSrcTable[entry].directory));
-  }
-  callback(jsioSrc + "jsio.setCache(" + JSON.stringify(table) + ");");
-};
-
-exports.compile = function(statement) {
-  JSIO(statement, updateOpts());
+  jsioSrc = jsioSrc + "jsio.__setModule(" + JSON.stringify(srcTable) + ");";
+  callback(jsioSrc);
 };
