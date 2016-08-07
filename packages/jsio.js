@@ -45,10 +45,11 @@ var jsio = (function init() {
 
   function setModule(modules, key) {
     if (key) {
-      jsio.__modules[key] = modules
-    } else {
-      jsio.__modules = modules;
+      jsio.__modules[key] = modules;
+      return;
     }
+
+    jsio.__modules = modules;
   }
 
   function makeContext() {
