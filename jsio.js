@@ -19,16 +19,24 @@ var packages = {
         __jsio: JSIO
       }
 
-      return fn.bind(context);
+      return bind(fn, context);
+    }
+
+    function bind(method, context) {
+      var SLICE = Array.prototype.slice;
+      var args = SLICE.call(arguments, 2);
+      return function() {
+        return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+      };
     }
 
     var preprocess = Extends(function(module, preprocessors) {
       preprocessors = preprocessors || ['import'];
-      preprocessors.forEach(function(preprocessor, index) {
+      preprocessors.forEach(bind(function(preprocessor, index) {
         var request = 'import packages.preprocessors.' + preprocessor;
         preprocessor = this.__jsio(request, []);
         preprocessor(module, preprocessors);
-      }.bind(this));
+      }, this));
     });
 
     var loadModule = Extends(function(preprocessors, request) {
