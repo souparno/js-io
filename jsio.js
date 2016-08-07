@@ -51,7 +51,7 @@ var packages = {
     });
 
     var require = Extends(function(ctx, request, preprocessors) {
-      ctx.jsio.__loadModule = loadModule.bind(null, preprocessors);
+      ctx.jsio.__loadModule = bind(loadModule, null, preprocessors);
       return this.jsio.__require(ctx, request);
     });
 
