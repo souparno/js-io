@@ -53,19 +53,9 @@ var packages = {
 }
 
 var example = {
-  app: "import example.calculator as calculator;\n" +
-    "   calculator.add(2, 3);\n",
-
-  calculator: "import example.print as print;\n" +
-    "          exports = {\n" +
-    "            add: function (a, b) {\n" +
-    "              print(a+b);\n" +
-    "            }\n" +
-    "          }\n",
-
-  print: "exports = function(res) {\n" +
-    "       console.log(res);\n" +
-    "     }\n"
+  app: fs.readFileSync('example/app.js', 'utf8').toString(),
+  calculator: fs.readFileSync('example/calculator.js', 'utf8').toString(),
+  print: fs.readFileSync('example/print.js', 'utf8').toString()
 };
 
 var Jsio = packages.compiler();
