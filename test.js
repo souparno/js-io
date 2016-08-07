@@ -46,7 +46,7 @@ var packages = {
       "            return src;\n" +
       "          }\n" +
       "          var jsioSrc = getJsioSrc();\n" +
-      "          jsioSrc = jsioSrc + 'jsio.modules('+ JSON.stringify(srcTable) +');';\n" +
+      "          jsioSrc = jsioSrc + 'jsio.__setModule('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
       "        };\n"
   },
@@ -98,6 +98,14 @@ var packages = {
         return JSIO.__cache[request.from];
       }
 
+      function setModule(modules, key) {
+        if (key) {
+          JSIO.__modules[key] = modules
+        } else {
+          JSIO.__modules = modules;
+        }
+      }
+
       function makeContext() {
         context = {
           exports: context.exports,
@@ -122,12 +130,9 @@ var packages = {
       context.jsio.__init = init;
       context.jsio.__modules = {};
       context.jsio.__cache = {};
+      context.jsio.__setModule = setModule;
 
       var JSIO = makeContext().jsio;
-      JSIO.modules = function(modules) {
-        JSIO.__modules = modules;
-      };
-
       return JSIO;
     }());
 
@@ -159,10 +164,10 @@ var packages = {
     });
 
     var loadModule = Extends(function(preprocessors, request) {
-      this.__jsio.__modules[request.from] = {
+      this.__jsio.__setModule({
         src: eval(request.from),
         path: request.from
-      }
+      }, request.from);
 
       var module = this.jsio.__loadModule(request);
       preprocess(module, preprocessors);
