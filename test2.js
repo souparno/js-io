@@ -11,11 +11,11 @@ var context = {
 };
 
 function makeContext() {
-  var _ctx = {};
-  for (var p in context) {
-    _ctx[p] = context[p];
+  context = {
+    exports: context.exports,
+    jsio: context.jsio
   }
-  context = _ctx;
+
   return context;
 }
 
@@ -27,6 +27,9 @@ function require(ctx, req) {
 
 var jsio = makeContext().jsio;
 jsio.__require = require;
+jsio.__init = function () {
+  console.log("Hello world");
+}
 
 var print = function(__) {
   with(__) {
@@ -41,8 +44,13 @@ var print = function(__) {
 var bar = function(__) {
   with(__) {
     jsio('print');
+  
+   function check() {
+     jsio.__init();
+   }
+
     exports = function() {
-      print("hello World");
+      check();
     }
   }
   return __.exports;
@@ -57,5 +65,4 @@ var foo = function(__) {
   return __.exports;
 }
 
-//var jsio = makeContext().jsio;
 jsio('foo');
