@@ -141,8 +141,7 @@ var packages = {
       var context = {
         jsio: {
           __require: JSIO.__require,
-          __loadModule: JSIO.__loadModule,
-          __modules: JSIO.__modules
+          __loadModule: JSIO.__loadModule
         },
         __jsio: JSIO
       }
@@ -160,7 +159,7 @@ var packages = {
     });
 
     var loadModule = Extends(function(preprocessors, request) {
-      this.jsio.__modules[request.from] = {
+      this.__jsio.__modules[request.from] = {
         src: eval(request.from),
         path: request.from
       }
