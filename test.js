@@ -37,14 +37,15 @@ var packages = {
       "          jsio(request, ['import', 'compiler']);\n" +
       "        };\n" +
 
-      "        exports.generateSrc = function (callback) {\n" +
-      "          function getJsioSrc() {\n" +
-      "            var src = jsio.__init.toString();\n" +
-      "            if (src.substring(0, 8) == 'function') {\n" +
-      "              src = 'var jsio=(' + src + '());\\n';\n" +
-      "            }\n" +
-      "            return src;\n" +
+      "        function getJsioSrc() {\n" +
+      "          var src = jsio.__init.toString();\n" +
+      "          if (src.substring(0, 8) == 'function') {\n" +
+      "            src = 'var jsio=(' + src + '());\\n';\n" +
       "          }\n" +
+      "          return src;\n" +
+      "        }\n" +
+
+      "        exports.generateSrc = function (callback) {\n" +
       "          var jsioSrc = getJsioSrc();\n" +
       "          jsioSrc = jsioSrc + 'jsio.__setModule('+ JSON.stringify(srcTable) +');';\n" +
       '          callback(jsioSrc);\n' +
@@ -52,7 +53,7 @@ var packages = {
   },
 
   jsio: (function() {
-    var _jsio = (function init() {
+    var jsio = (function init() {
       function resolveRequest(request) {
         var match = request.match(/^\s*import\s+(.*)$/),
           imports = {};
@@ -70,7 +71,6 @@ var packages = {
       }
 
       function require(ctx, request) {
-        var jsio = makeContext().jsio;
         var request = resolveRequest(request);
         var module = jsio.__loadModule(request);
 
@@ -92,8 +92,6 @@ var packages = {
       }
 
       function loadModule(request) {
-        var jsio = makeContext().jsio;
-
         if (!jsio.__cache[request.from]) {
           jsio.__cache[request.from] = jsio.__modules[request.from];
         }
@@ -101,8 +99,6 @@ var packages = {
       }
 
       function setModule(modules, key) {
-        var jsio = makeContext().jsio;
-
         if (key) {
           jsio.__modules[key] = modules
         } else {
@@ -139,7 +135,7 @@ var packages = {
       return makeContext().jsio;
     }());
 
-    return _jsio;
+    return jsio;
   }()),
 
   compiler: function() {
