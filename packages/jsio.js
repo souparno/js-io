@@ -66,7 +66,7 @@ var jsio = (function init() {
       var args = Array.prototype.slice.call(arguments);
 
       args.unshift(context);
-      return context.jsio.__require.apply(null, args);
+      return jsio.__require.apply(null, args);
     }
   };
 
