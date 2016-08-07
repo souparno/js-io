@@ -99,10 +99,10 @@ var packages = {
       }
 
       function makeContext(ctx) {
-        ctx = ctx || {};
-        for (var p in context) {
-          ctx[p] = context[p];
-        }
+        ctx = ctx || {
+          exports: context.exports,
+          jsio: context.jsio
+        };
         context = ctx;
         return context;
       }
