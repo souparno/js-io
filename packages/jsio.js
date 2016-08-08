@@ -74,11 +74,11 @@ var jsio = (function init() {
 
   context.jsio.__require = require;
   context.jsio.__loadModule = loadModule;
+  context.jsio.__setModule = setModule;
   context.jsio.__init = init;
   context.jsio.__modules = {};
   context.jsio.__cache = {};
-  context.jsio.__setModule = setModule;
-
+ 
   return makeContext().jsio;
 }());
 
