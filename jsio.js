@@ -31,7 +31,7 @@ var packages = {
     }
 
     var preprocess = Extends(function(module, preprocessors) {
-      preprocessors = preprocessors || ['import'];
+      var preprocessors = preprocessors || this.__jsio.__preprocessors;
       preprocessors.forEach(bind(function(preprocessor, index) {
         var request = 'import packages.preprocessors.' + preprocessor;
         preprocessor = this.__jsio(request, []);
@@ -56,6 +56,7 @@ var packages = {
     });
 
     JSIO.__require = require;
+    JSIO.__preprocessors = ['import'];
     return JSIO;
   }
 }

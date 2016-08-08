@@ -40,6 +40,7 @@ var jsio = (function init() {
     if (!jsio.__cache[request.from]) {
       jsio.__cache[request.from] = jsio.__modules[request.from];
     }
+
     return jsio.__cache[request.from];
   }
 

@@ -5,13 +5,15 @@ function getJsioSrc() {
   if (src.substring(0, 8) == 'function') {
     src = 'var jsio=(' + src + '());';
   }
+
   return src;
 };
 
 function updatePreprocessors(preprocessors) {
-  if (!preprocessors.indexOf('compiler')) {
+  if (preprocessors.length == 1) {
     preprocessors.push('compiler');
   }
+
   return preprocessors;
 };
 
@@ -28,7 +30,7 @@ exports = function(moduleDef, preprocessors) {
 };
 
 exports.compile = function(request) {
-  jsio(request, ['import', 'compiler']);
+  jsio(request, updatePreprocessors(jsio.__preprocessors));
 };
 
 exports.generateSrc = function(callback) {
