@@ -1,4 +1,4 @@
-var jsio = (function init() {
+var jsio = (function quine() {
   function resolveRequest(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
       imports = {};
@@ -75,7 +75,7 @@ var jsio = (function init() {
   context.jsio.__require = require;
   context.jsio.__loadModule = loadModule;
   context.jsio.__setModule = setModule;
-  context.jsio.__init = init;
+  context.jsio.__quine = quine;
   context.jsio.__modules = {};
   context.jsio.__cache = {};
  

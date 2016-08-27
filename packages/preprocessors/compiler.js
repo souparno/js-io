@@ -1,7 +1,7 @@
 var srcTable = {};
 
 function getJsioSrc() {
-  var src = jsio.__init.toString(-1);
+  var src = jsio.__quine.toString(-1);
   if (src.substring(0, 8) == 'function') {
     src = 'var jsio=(' + src + '());';
   }
