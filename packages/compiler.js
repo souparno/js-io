@@ -1,19 +1,6 @@
 var fs = require('fs');
 var JSIO = require('./jsio');
 
-var packages = {
-  preprocessors: {
-    import: fs.readFileSync('packages/preprocessors/import.js', 'utf8').toString(),
-    compiler: fs.readFileSync('packages/preprocessors/compiler.js', 'utf8').toString()
-  }
-}
-
-var example = {
-  app: fs.readFileSync('example/app.js', 'utf8').toString(),
-  calculator: fs.readFileSync('example/calculator.js', 'utf8').toString(),
-  print: fs.readFileSync('example/print.js', 'utf8').toString()
-};
-
 var Extends = function(fn) {
   var context = {
     jsio: {
@@ -45,7 +32,7 @@ var preprocess = Extends(function(module, preprocessors) {
 
 var loadModule = Extends(function(preprocessors, request) {
   this.__jsio.__setModule({
-    src: eval(request.from),
+    src:  fs.readFileSync(request.from.split(".").join("/") + '.js', 'utf8').toString(),
     path: request.from
   }, request.from);
 
