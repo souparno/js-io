@@ -1,13 +1,13 @@
 var fs = require('fs');
-var JSIO = require('./jsio');
+var jsio = require('./jsio');
 
 var Extends = function(fn) {
   var context = {
     jsio: {
-      __require: JSIO.__require,
-      __loadModule: JSIO.__loadModule
+      __require: jsio.__require,
+      __loadModule: jsio.__loadModule
     },
-    __jsio: JSIO
+    __jsio: jsio
   }
 
   return bind(fn, context);
@@ -46,7 +46,7 @@ var require = Extends(function(ctx, request, preprocessors) {
   return this.jsio.__require(ctx, request);
 });
 
-JSIO.__require = require;
-JSIO.__preprocessors = ['import'];
+jsio.__require = require;
+jsio.__preprocessors = ['import'];
 
-module.exports = JSIO;
+module.exports = jsio;
