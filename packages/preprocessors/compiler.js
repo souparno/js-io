@@ -1,5 +1,9 @@
 var srcTable = {};
 
+function testComment(match) {
+  return /\/\//.test(match[1]);
+}
+
 function getJsioSrc() {
   var src = jsio.__quine.toString(-1);
   if (src.substring(0, 8) == 'function') {
@@ -21,7 +25,7 @@ exports = function(moduleDef, preprocessors) {
   var jsioNormal = /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm;
   var match = jsioNormal.exec(moduleDef.src);
 
-  if (match) {
+  if (match && !testComment(match)) {
     jsio(eval(match[2]), updatePreprocessors(preprocessors));
   }
 
