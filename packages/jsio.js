@@ -44,10 +44,8 @@ var jsio = (function quine() {
     return jsio.__cache[request.from];
   }
 
-  function setModule(module, key) {
-    if (key) {
-      jsio.__modules[key] = module;
-    }
+  function setModule(key, module) {
+    jsio.__modules[key] = module;
   }
 
   function setModules(modules) {

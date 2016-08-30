@@ -31,10 +31,10 @@ var preprocess = Extends(function(module, preprocessors) {
 });
 
 var loadModule = Extends(function(preprocessors, request) {
-  this.__jsio.__setModule({
-    src:  fs.readFileSync(request.from.split(".").join("/") + '.js', 'utf8').toString(),
+  this.__jsio.__setModule(request.from, {
+    src: fs.readFileSync(request.from.split(".").join("/") + '.js', 'utf8').toString(),
     path: request.from
-  }, request.from);
+  });
 
   var module = this.jsio.__loadModule(request);
   preprocess(module, preprocessors);
