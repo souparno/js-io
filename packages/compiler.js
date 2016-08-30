@@ -1,7 +1,15 @@
 var fs = require('fs');
 var jsio = require('./jsio');
 
-var Extends = function(fn) {
+function bind(method, context) {
+  var SLICE = Array.prototype.slice;
+  var args = SLICE.call(arguments, 2);
+  return function() {
+    return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+  };
+}
+
+function Extends(fn) {
   var context = {
     jsio: {
       __require: jsio.__require,
@@ -11,14 +19,6 @@ var Extends = function(fn) {
   }
 
   return bind(fn, context);
-}
-
-function bind(method, context) {
-  var SLICE = Array.prototype.slice;
-  var args = SLICE.call(arguments, 2);
-  return function() {
-    return method.apply(context, args.concat(SLICE.call(arguments, 0)));
-  };
 }
 
 var preprocess = Extends(function(module, preprocessors) {
