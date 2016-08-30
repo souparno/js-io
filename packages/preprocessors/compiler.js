@@ -22,9 +22,9 @@ exports = function(moduleDef, preprocessors) {
   var match = jsioNormal.exec(moduleDef.src);
 
   if (match) {
-    var request = eval(match[2]);
-    jsio(request, updatePreprocessors(preprocessors));
+    jsio(eval(match[2]), updatePreprocessors(preprocessors));
   }
+
   srcTable[moduleDef.path] = JSON.parse(JSON.stringify(moduleDef));
   moduleDef.src = '';
 };
