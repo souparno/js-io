@@ -44,12 +44,13 @@ var jsio = (function quine() {
     return jsio.__cache[request.from];
   }
 
-  function setModule(modules, key) {
+  function setModule(module, key) {
     if (key) {
-      jsio.__modules[key] = modules;
-      return;
+      jsio.__modules[key] = module;
     }
+  }
 
+  function setModules(modules) {
     jsio.__modules = modules;
   }
 
@@ -75,6 +76,7 @@ var jsio = (function quine() {
   context.jsio.__require = require;
   context.jsio.__loadModule = loadModule;
   context.jsio.__setModule = setModule;
+  context.jsio.__setModules = setModules;
   context.jsio.__quine = quine;
   context.jsio.__modules = {};
   context.jsio.__cache = {};
