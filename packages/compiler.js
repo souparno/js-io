@@ -4,6 +4,7 @@ var jsio = require('./jsio');
 function bind(method, context) {
   var SLICE = Array.prototype.slice;
   var args = SLICE.call(arguments, 2);
+
   return function() {
     return method.apply(context, args.concat(SLICE.call(arguments, 0)));
   };
