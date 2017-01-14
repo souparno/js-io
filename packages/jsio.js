@@ -53,10 +53,8 @@ var jsio = (function quine() {
   }
 
   function makeContext() {
-    context = {
-      exports: context.exports,
-      jsio: context.jsio
-    };
+    context.exports = context.exports;
+    context.jsio = context.jsio;
 
     return context;
   }
