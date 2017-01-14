@@ -415,17 +415,18 @@ function setEnv(envCtor) {
 };
 
 describe('resolveModulePath()', function() {
-  it('should get the possibilities when the import from preceeds with <dot>', function() {
-    var modulePath = '.hello';
-    var fromDir = 'foo/bar';
+  it('should get the possibilities when modulepath preceeds with <dot>', function() {
+    var modulePath = '.bar';
+    var fromDir = 'foo';
     var possibilities = util.resolveModulePath(modulePath, fromDir);
     console.log(possibilities);
   })
 
-  it('should get the possibilities when the function doesnot preceed with <dot>', function() {
-    var modulePath = 'hello';
-    var fromDir = 'foo/bar';
-    var possibilities = util.resolveModulePath(modulePath, fromDir);
+  it('should get the possibilities when the modulepath preceed without <dot>', function() {
+    jsioPath.add('foo', 'bar');
+    var modulePath = 'bar';
+    var fromDir = 'foo';
+    var possibilities = util.resolveModulePath(util.resolve(ENV.getCwd(), modulePath), fromDir);
     console.log(possibilities);
   })
 });
