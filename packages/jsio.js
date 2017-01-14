@@ -53,17 +53,12 @@ var jsio = (function quine() {
   }
 
   function makeContext() {
-    // this is an equivalent to 
-    // creating a new variable and only keeping the jsio
-    // and exports property of the context and ommiting
-    // out any other property associated with the context variable
-    // keeping only the last attached variable
-    // how many browsers supports this !!!! 
-    context = {
+    var ctx = {
       jsio: context.jsio,
       exports: context.exports
     };
- 
+
+    context = ctx;
     return context;
   }
 
@@ -84,7 +79,7 @@ var jsio = (function quine() {
   context.jsio.__quine = quine;
   context.jsio.__modules = {};
   context.jsio.__cache = {};
- 
+
   return makeContext().jsio;
 }());
 
