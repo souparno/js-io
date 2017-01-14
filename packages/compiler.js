@@ -15,8 +15,7 @@ function Extends(fn) {
     jsio: {
       __require: jsio.__require,
       __loadModule: jsio.__loadModule
-    },
-    __jsio: jsio
+    }
   }
 
   return bind(fn, context);
@@ -33,7 +32,7 @@ var preprocess = function(module, preprocessors) {
 };
 
 var loadModule = Extends(function(preprocessors, request) {
-  this.__jsio.__setModule(request.from, {
+  jsio.__setModule(request.from, {
     src: fs.readFileSync(request.from.split(".").join("/") + '.js', 'utf8').toString(),
     path: request.from
   });
