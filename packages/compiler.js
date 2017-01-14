@@ -22,14 +22,15 @@ function Extends(fn) {
   return bind(fn, context);
 }
 
-var preprocess = Extends(function(module, preprocessors) {
-  preprocessors = preprocessors || this.__jsio.__preprocessors;
-  preprocessors.forEach(bind(function(preprocessor, index) {
+var preprocess = function(module, preprocessors) {
+  preprocessors = preprocessors || jsio.__preprocessors;
+  preprocessors.forEach(function(preprocessor, index) {
     var request = 'import packages.preprocessors.' + preprocessor;
-    preprocessor = this.__jsio(request, []);
+
+    preprocessor = jsio(request, []);
     preprocessor(module, preprocessors);
-  }, this));
-});
+  });
+};
 
 var loadModule = Extends(function(preprocessors, request) {
   this.__jsio.__setModule(request.from, {
@@ -42,12 +43,11 @@ var loadModule = Extends(function(preprocessors, request) {
   return module;
 });
 
-var require = Extends(function(ctx, request, preprocessors) {
+jsio.__require = Extends(function(ctx, request, preprocessors) {
   ctx.jsio.__loadModule = bind(loadModule, null, preprocessors);
   return this.jsio.__require(ctx, request);
 });
 
-jsio.__require = require;
 jsio.__preprocessors = ['import'];
 
 module.exports = jsio;
