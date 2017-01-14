@@ -32,8 +32,11 @@ var preprocess = function(module, preprocessors) {
 };
 
 var loadModule = Extends(function(preprocessors, request) {
+  var path = request.from.split(".").join("/") + '.js';
+  var src = fs.readFileSync(path, 'utf8').toString();
+
   jsio.__setModule(request.from, {
-    src: fs.readFileSync(request.from.split(".").join("/") + '.js', 'utf8').toString(),
+    src: src,
     path: request.from
   });
 
