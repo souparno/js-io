@@ -5,7 +5,7 @@ function testComment(match) {
 }
 
 function getJsioSrc() {
-  var src = jsio.__quine.toString(-1);
+  var src = jsio.__init.toString(-1);
   if (src.substring(0, 8) == 'function') {
     src = 'var jsio=(' + src + '());';
   }
@@ -40,6 +40,6 @@ exports.compile = function(request) {
 exports.generateSrc = function(callback) {
   var jsioSrc = getJsioSrc();
 
-  jsioSrc = jsioSrc + "jsio.__setModules(" + JSON.stringify(srcTable) + ");";
+  jsioSrc = jsioSrc + "jsio.__setModule(" + JSON.stringify(srcTable) + ");";
   callback(jsioSrc);
 };

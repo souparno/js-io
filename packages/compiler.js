@@ -35,10 +35,10 @@ var loadModule = Extends(function(preprocessors, request) {
   var path = request.from.split(".").join("/") + '.js';
   var src = fs.readFileSync(path, 'utf8').toString();
 
-  jsio.__setModule(request.from, {
+  jsio.__setModule({
     src: src,
     path: request.from
-  });
+  }, request.from);
 
   var module = this.jsio.__loadModule(request);
   preprocess(module, preprocessors);

@@ -1,4 +1,4 @@
-var jsio = (function quine() {
+var jsio = (function init() {
   function resolveRequest(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
       imports = {};
@@ -44,12 +44,14 @@ var jsio = (function quine() {
     return jsio.__cache[request.from];
   }
 
-  function setModule(key, module) {
-    jsio.__modules[key] = module;
-  }
+  function setModule(module, key) {
+    if (key) {
+      jsio.__modules[key] = module;
 
-  function setModules(modules) {
-    jsio.__modules = modules;
+      return;
+    }
+
+    jsio.__modules = module;
   }
 
   function makeContext() {
@@ -72,8 +74,7 @@ var jsio = (function quine() {
   context.jsio.__require = require;
   context.jsio.__loadModule = loadModule;
   context.jsio.__setModule = setModule;
-  context.jsio.__setModules = setModules;
-  context.jsio.__quine = quine;
+  context.jsio.__init = init;
   context.jsio.__modules = {};
   context.jsio.__cache = {};
 
