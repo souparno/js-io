@@ -22,11 +22,11 @@ function updatePreprocessors(preprocessors) {
 };
 
 exports = function(moduleDef, preprocessors) {
-  var jsioNormal = /^(.*)jsio\s*\(\s*(['"].+?['"])\s*(,\s*\{[^}]+\})?\)/gm;
-  var match = jsioNormal.exec(moduleDef.src);
+  var regex = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
+  var match = regex.exec(moduleDef.src);
 
   if (match && !testComment(match)) {
-    jsio(eval(match[2]), updatePreprocessors(preprocessors));
+    jsio(match[2], updatePreprocessors(preprocessors));
   }
 
   srcTable[moduleDef.path] = JSON.parse(JSON.stringify(moduleDef));
