@@ -53,13 +53,10 @@ var jsio = (function quine() {
   }
 
   function makeContext() {
-    var ctx = {
+    return {
       jsio: context.jsio,
       exports: context.exports
     };
-
-    context = ctx;
-    return context;
   }
 
   var context = {
@@ -67,7 +64,7 @@ var jsio = (function quine() {
     jsio: function() {
       var args = Array.prototype.slice.call(arguments);
 
-      args.unshift(context);
+      args.unshift(this);
       return jsio.__require.apply(null, args);
     }
   };
