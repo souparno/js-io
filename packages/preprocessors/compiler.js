@@ -33,8 +33,8 @@ exports = function(moduleDef, preprocessors) {
   moduleDef.src = '';
 };
 
-exports.compile = function(request) {
-  jsio(request, updatePreprocessors(jsio.__preprocessors));
+exports.compile = function(request, preprocessors) {
+  jsio(request, updatePreprocessors(preprocessors));
 };
 
 exports.generateSrc = function(callback) {

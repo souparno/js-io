@@ -55,28 +55,24 @@ var jsio = (function init() {
   }
 
   function makeContext() {
-    return {
-      jsio: context.jsio,
-      exports: context.exports
+    var context = {
+      exports: {},
+      jsio: function() {
+        var args = Array.prototype.slice.call(arguments);
+
+        args.unshift(context);
+        return jsio.__require.apply(null, args);
+      }
     };
+
+    context.jsio.__require = require;
+    context.jsio.__loadModule = loadModule;
+    context.jsio.__setModule = setModule;
+    context.jsio.__init = init;
+    context.jsio.__modules = {};
+    context.jsio.__cache = {};
+    return context;
   }
-
-  var context = {
-    exports: {},
-    jsio: function() {
-      var args = Array.prototype.slice.call(arguments);
-
-      args.unshift(this);
-      return jsio.__require.apply(null, args);
-    }
-  };
-
-  context.jsio.__require = require;
-  context.jsio.__loadModule = loadModule;
-  context.jsio.__setModule = setModule;
-  context.jsio.__init = init;
-  context.jsio.__modules = {};
-  context.jsio.__cache = {};
 
   return makeContext().jsio;
 }());

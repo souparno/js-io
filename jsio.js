@@ -1,5 +1,5 @@
-var Jsio = require('./packages/compiler');
-var compiler = Jsio('import packages.preprocessors.compiler');
+var jsio = require('./packages/compiler');
+var compiler = jsio('import packages.preprocessors.compiler');
 
 function help() {
   console.log("Usage:node jsio <path>.<to>.<file>");
@@ -12,7 +12,7 @@ function run(imports) {
   }
 
   imports = 'import ' + imports + ';';
-  compiler.compile(imports);
+  compiler.compile(imports, ['import']);
   compiler.generateSrc(function(src) {
     console.log(src + "jsio('" + imports + "');");
   });

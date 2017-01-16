@@ -22,7 +22,7 @@ function Extends(fn) {
 }
 
 var preprocess = function(module, preprocessors) {
-  preprocessors = preprocessors || jsio.__preprocessors;
+  preprocessors = preprocessors || ['import'];
   preprocessors.forEach(function(preprocessor, index) {
     var request = 'import packages.preprocessors.' + preprocessor;
 
@@ -49,7 +49,5 @@ jsio.__require = Extends(function(ctx, request, preprocessors) {
   jsio.__loadModule = bind(loadModule, null, preprocessors);
   return this.jsio.__require(ctx, request);
 });
-
-jsio.__preprocessors = ['import'];
 
 module.exports = jsio;
