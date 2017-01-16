@@ -60,7 +60,7 @@ var jsio = (function init() {
       jsio: function() {
         var args = Array.prototype.slice.call(arguments);
 
-        args.unshift(context);
+        args.unshift(this);
         return jsio.__require.apply(null, args);
       }
     };
