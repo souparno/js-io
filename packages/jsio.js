@@ -48,10 +48,12 @@ var jsio = (function init() {
     return jsio.__cache[request.from];
   }
 
+  
   function setModule(module, key) {
     if (key) {
-      jsio.__modules[key] = module;
-
+      if (!jsio.__modules[key]) {
+        jsio.__modules[key] = module;
+      }
       return;
     }
 
@@ -61,7 +63,7 @@ var jsio = (function init() {
   function makeContext() {
     var context = {};
 
-    context.exports = {};
+    context.exports = null;
     context.module = {
       exports: null
     };
