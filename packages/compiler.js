@@ -41,7 +41,9 @@ var loadModule = Extends(function(preprocessors, request) {
   }, request.from);
 
   var module = this.jsio.__loadModule(request);
-  preprocess(module, preprocessors);
+  if(!module.exports){
+    preprocess(module, preprocessors);
+  }
   return module;
 });
 
