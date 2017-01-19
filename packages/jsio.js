@@ -30,10 +30,14 @@ var jsio = (function init() {
   }
 
   function execModule(ctx, module) {
-    var code = "(function (__) {\n with (__) {\n" + module.src + "\n};\n return __.exports;\n});";
+    var code = "(function (__) {\n with (__) {\n" + module.src + "\n};\n return __;});";
     var fn = eval(code);
 
-    return fn(ctx);
+    ctx = fn(ctx);
+    if(ctx.module.exports){
+      return ctx.module.exports;
+    }
+    return ctx.exports;
   }
 
   function loadModule(request) {
@@ -55,15 +59,18 @@ var jsio = (function init() {
   }
 
   function makeContext() {
-    var context = {
-      exports: {},
-      jsio: function() {
-        var args = Array.prototype.slice.call(arguments);
+    var context = {};
 
-        args.unshift(this);
-        return jsio.__require.apply(null, args);
-      }
+    context.exports = {};
+    context.module = {
+      exports: null
     };
+    context.jsio = function() {
+      var args = Array.prototype.slice.call(arguments);
+
+      args.unshift(this);
+      return jsio.__require.apply(null, args);
+    }
 
     context.jsio.__require = require;
     context.jsio.__loadModule = loadModule;
