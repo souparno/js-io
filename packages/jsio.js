@@ -21,8 +21,10 @@ var jsio = (function init() {
 
     if (module.src) {
       if (!module.exports) {
-        module.exports = ctx.exports;
-        module.exports = execModule(makeContext(), module);
+        var newContext = makeContext();
+
+        module.exports = newContext.exports;
+        module.exports = execModule(newContext, module);
       }
       ctx[request.as] = module.exports;
 
@@ -43,7 +45,7 @@ var jsio = (function init() {
     var fn = eval(code);
 
     fn(ctx);
-    if(ctx.module.exports){
+    if(module.exports != ctx.module.exports){
       return ctx.module.exports;
     }
     return ctx.exports;
@@ -65,12 +67,13 @@ var jsio = (function init() {
 
     context.exports = {};
     context.module = {
-      exports: null
+      exports: context.exports
     };
+
     context.jsio = function() {
       var args = Array.prototype.slice.call(arguments);
 
-      args.unshift(this);
+      args.unshift(context);
       return jsio.__require.apply(null, args);
     }
 
