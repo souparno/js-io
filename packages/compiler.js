@@ -21,7 +21,7 @@ function Extends(fn) {
   return bind(fn, context);
 }
 
-var preprocess = function(module, preprocessors) {
+var preprocess = function(preprocessors, module) {
   preprocessors = preprocessors || ['import'];
   preprocessors.forEach(function(preprocessor, index) {
     var request = 'import packages.preprocessors.' + preprocessor;
@@ -31,7 +31,7 @@ var preprocess = function(module, preprocessors) {
   });
 };
 
-var loadModule = Extends(function(preprocessors, request) {
+jsio.__loadModule = Extends(function(request) {
   var path = request.from.split(".").join("/") + '.js';
   var src = fs.readFileSync(path, 'utf8').toString();
 
@@ -41,14 +41,12 @@ var loadModule = Extends(function(preprocessors, request) {
   }, request.from);
 
   var module = this.jsio.__loadModule(request);
-  if(!module.exports){
-    preprocess(module, preprocessors);
-  }
   return module;
 });
 
 jsio.__require = Extends(function(ctx, request, preprocessors) {
-  jsio.__loadModule = bind(loadModule, null, preprocessors);
+  jsio.__preprocess = bind(preprocess, null, preprocessors);
+
   return this.jsio.__require(ctx, request);
 });
 

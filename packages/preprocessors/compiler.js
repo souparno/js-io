@@ -26,7 +26,6 @@ exports = function(moduleDef, preprocessors) {
   var match = regex.exec(moduleDef.src);
 
   if (match && !testComment(match)) {
-    moduleDef.exports = {};
     jsio(match[2], updatePreprocessors(preprocessors));
   }
 

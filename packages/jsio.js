@@ -24,6 +24,9 @@ var jsio = (function init() {
         var newContext = makeContext();
 
         module.exports = newContext.exports;
+        if (jsio.__preprocess) {
+          jsio.__preprocess(module);
+        }
         module.exports = execModule(newContext, module);
       }
       ctx[request.as] = module.exports;
@@ -45,7 +48,7 @@ var jsio = (function init() {
     var fn = eval(code);
 
     fn(ctx);
-    if(module.exports != ctx.module.exports){
+    if (module.exports != ctx.module.exports) {
       return ctx.module.exports;
     }
     return ctx.exports;
@@ -80,6 +83,7 @@ var jsio = (function init() {
     context.jsio.__require = require;
     context.jsio.__loadModule = loadModule;
     context.jsio.__setModule = setModule;
+    context.jsio.__preprocess = null;
     context.jsio.__init = init;
     context.jsio.__modules = {};
     context.jsio.__cache = {};
