@@ -1,7 +1,7 @@
 import example2.cross as cross;
 
-cross();
 
 exports = function () {
+  cross();
   console.log("hello from bar");
 }
