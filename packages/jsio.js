@@ -66,20 +66,18 @@ var jsio = (function init() {
   }
 
   function makeContext() {
-    var context = {};
+    var context = {
+      jsio: function() {
+        var args = Array.prototype.slice.call(arguments);
 
-    context.exports = {};
-    context.module = {
-      exports: context.exports
+        args.unshift(context);
+        return jsio.__require.apply(null, args);
+      },
+      exports: {},
+      module: {}
     };
 
-    context.jsio = function() {
-      var args = Array.prototype.slice.call(arguments);
-
-      args.unshift(context);
-      return jsio.__require.apply(null, args);
-    }
-
+    context.module.exports = context.exports;
     context.jsio.__require = require;
     context.jsio.__loadModule = loadModule;
     context.jsio.__setModule = setModule;
