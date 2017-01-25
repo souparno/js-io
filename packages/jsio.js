@@ -1,4 +1,16 @@
 var jsio = (function init() {
+
+  var util = {
+    bind: function bind(method, context) {
+      var SLICE = Array.prototype.slice;
+      var args = SLICE.call(arguments, 2);
+
+      return function() {
+        return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+      };
+    }
+  }
+
   function resolveRequest(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
       imports = {};
@@ -78,6 +90,7 @@ var jsio = (function init() {
     };
 
     context.module.exports = context.exports;
+    context.jsio.__util = util;
     context.jsio.__require = require;
     context.jsio.__loadModule = loadModule;
     context.jsio.__setModule = setModule;
@@ -90,5 +103,15 @@ var jsio = (function init() {
 
   return makeContext().jsio;
 }());
+
+[jsio.__require, jsio.__loadModule].forEach(function(supr) {
+  supr.Extends = function(fn) {
+    var context = {
+      supr: this
+    }
+
+    return jsio.__util.bind(fn, context);
+  }
+});
 
 module.exports = jsio;
