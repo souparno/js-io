@@ -21,8 +21,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function(request) {
     path: request.from
   }, request.from);
 
-  var module = this.supr(request);
-  return module;
+  return this.supr(request);
 });
 
 jsio.__require = jsio.__require.Extends(function(ctx, request, preprocessors) {
