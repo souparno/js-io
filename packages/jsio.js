@@ -1,15 +1,14 @@
 var jsio = (function init() {
+  var SLICE = Array.prototype.slice,
+    util = {
+      bind: function bind(method, context) {
+        var args = SLICE.call(arguments, 2);
 
-  var util = {
-    bind: function bind(method, context) {
-      var SLICE = Array.prototype.slice;
-      var args = SLICE.call(arguments, 2);
-
-      return function() {
-        return method.apply(context, args.concat(SLICE.call(arguments, 0)));
-      };
+        return function() {
+          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+        };
+      }
     }
-  }
 
   function resolveRequest(request) {
     var match = request.match(/^\s*import\s+(.*)$/),
@@ -80,7 +79,7 @@ var jsio = (function init() {
   function makeContext() {
     var context = {
       jsio: function() {
-        var args = Array.prototype.slice.call(arguments);
+        var args = SLICE.call(arguments);
 
         args.unshift(context);
         return jsio.__require.apply(null, args);
