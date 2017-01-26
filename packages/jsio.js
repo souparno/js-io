@@ -30,20 +30,18 @@ var jsio = (function init() {
     var request = resolveRequest(request);
     var module = jsio.__loadModule(request);
 
-    if (module.src) {
-      if (!module.exports) {
-        var newContext = makeContext();
+    if (!module.exports) {
+      var newContext = makeContext();
 
-        module.exports = newContext.exports;
-        if (jsio.__preprocess) {
-          jsio.__preprocess(module);
-        }
-        module.exports = execModule(newContext, module);
+      module.exports = newContext.exports;
+      if (jsio.__preprocess) {
+        jsio.__preprocess(module);
       }
-      ctx[request.as] = module.exports;
-
-      return ctx[request.as];
+      module.exports = execModule(newContext, module);
     }
+    ctx[request.as] = module.exports;
+
+    return ctx[request.as];
   }
 
   function loadModule(request) {
@@ -69,8 +67,8 @@ var jsio = (function init() {
     if (key) {
       if (!jsio.__modules[key]) {
         jsio.__modules[key] = module;
+        return;
       }
-      return;
     }
 
     jsio.__modules = module;
