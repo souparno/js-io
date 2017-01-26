@@ -76,14 +76,13 @@ var jsio = (function init() {
     jsio.__modules = module;
   }
 
+  function __jsio() {
+    return jsio.__require.apply(null, arguments);
+  }
+
   function makeContext() {
     var context = {
-      jsio: function() {
-        var args = SLICE.call(arguments);
-
-        args.unshift(context);
-        return jsio.__require.apply(null, args);
-      },
+      jsio: util.bind(__jsio, null, this),
       exports: {},
       module: {}
     };
