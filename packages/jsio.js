@@ -63,7 +63,7 @@ var jsio = (function init() {
     return ctx.exports;
   }
 
-  function setModule(module, key) {
+  function setModule(module) {
     jsio.__modules = module;
   }
 
