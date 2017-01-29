@@ -21,12 +21,12 @@ function updatePreprocessors(preprocessors) {
   return preprocessors;
 };
 
-exports = function(moduleDef, preprocessors) {
+exports = function(moduleDef, preprocessors, ctx) {
   var regex = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
   var match = regex.exec(moduleDef.src);
 
   if (match && !testComment(match)) {
-    jsio(match[2], updatePreprocessors(preprocessors));
+    ctx.jsio(match[2], updatePreprocessors(preprocessors));
   }
 
   srcTable[moduleDef.path] = JSON.parse(JSON.stringify({
@@ -37,7 +37,7 @@ exports = function(moduleDef, preprocessors) {
   moduleDef.src = '';
 };
 
-exports.compile = function(request, preprocessors) {
+exports.compile = function(request, preprocessors, ctx) {
   jsio(request, updatePreprocessors(preprocessors));
 };
 

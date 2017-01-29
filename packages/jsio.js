@@ -31,11 +31,11 @@ var jsio = (function init() {
     var module = jsio.__loadModule(request);
 
     if (!module.exports) {
-      var newContext = makeContext();
+      var newContext = jsio.__makeContext();
 
       module.exports = newContext.exports;
       if (jsio.__preprocess) {
-        jsio.__preprocess(module);
+        jsio.__preprocess(module, newContext);
       }
       module.exports = execModule(newContext, module);
     }
@@ -64,32 +64,21 @@ var jsio = (function init() {
   }
 
   function setModule(module, key) {
-    if (key) {
-      if (!jsio.__modules[key]) {
-        jsio.__modules[key] = module;
-        return;
-      }
-    }
-
     jsio.__modules = module;
   }
 
-  function __jsio() {
-    return jsio.__require.apply(null, arguments);
-  }
-
   function makeContext() {
-    var context = {
-      jsio: util.bind(__jsio, null, this),
-      exports: {},
-      module: {}
-    };
+    var context = {};
 
+    context.exports = {};
+    context.module = {};
     context.module.exports = context.exports;
+    context.jsio = util.bind(require, null, context);
     context.jsio.__util = util;
     context.jsio.__require = require;
     context.jsio.__loadModule = loadModule;
     context.jsio.__setModule = setModule;
+    context.jsio.__makeContext = makeContext;
     context.jsio.__preprocess = null;
     context.jsio.__init = init;
     context.jsio.__modules = {};
@@ -100,14 +89,21 @@ var jsio = (function init() {
   return makeContext().jsio;
 }());
 
-[jsio.__require, jsio.__loadModule].forEach(function(supr) {
-  supr.Extends = function(fn) {
-    var context = {
-      supr: this
-    }
 
-    return jsio.__util.bind(fn, context);
+for (var key in jsio) {
+  var prop = jsio[key];
+
+  if (typeof prop === "function") {
+    prop.Extends = (function() {
+      return function(fn) {
+        var context = {
+          supr: this
+        }
+
+        return jsio.__util.bind(fn, context);
+      }
+    }())
   }
-});
+}
 
 module.exports = jsio;
