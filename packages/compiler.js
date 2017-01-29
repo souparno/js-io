@@ -1,5 +1,5 @@
 var fs = require('fs');
-var JSIO = require('./jsio');
+var jsio = require('./jsio');
 
 var preprocess = function(preprocessors, module, ctx) {
   preprocessors = preprocessors || ['import'];
@@ -11,17 +11,17 @@ var preprocess = function(preprocessors, module, ctx) {
   });
 };
 
-JSIO.__setModule = JSIO.__setModule.Extends(function(module, key) {
-  if (!JSIO.__modules[key]) {
-    JSIO.__modules[key] = module;
+jsio.__setModule = jsio.__setModule.Extends(function(module, key) {
+  if (!jsio.__modules[key]) {
+    jsio.__modules[key] = module;
   }
 });
 
-JSIO.__loadModule = JSIO.__loadModule.Extends(function(request) {
+jsio.__loadModule = jsio.__loadModule.Extends(function(request) {
   var path = request.from.split(".").join("/") + '.js';
   var src = fs.readFileSync(path, 'utf8').toString();
 
-  JSIO.__setModule({
+  jsio.__setModule({
     src: src,
     path: request.from
   }, request.from);
@@ -29,17 +29,17 @@ JSIO.__loadModule = JSIO.__loadModule.Extends(function(request) {
   return this.supr(request);
 });
 
-JSIO.__require = JSIO.__require.Extends(function(ctx, request, preprocessors) {
-  JSIO.__preprocess = JSIO.__util.bind(preprocess, null, preprocessors);
+jsio.__require = jsio.__require.Extends(function(ctx, request, preprocessors) {
+  jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
   return this.supr(ctx, request);
 });
 
-JSIO.__makeContext = JSIO.__makeContext.Extends(function() {
+jsio.__makeContext = jsio.__makeContext.Extends(function() {
   var context = this.supr();
 
-  context.jsio = JSIO.__util.bind(JSIO.__require, null, this);
+  context.jsio = jsio.__util.bind(jsio.__require, null, this);
   return context;
 });
 
-module.exports = jsio = JSIO.__makeContext().jsio;
+module.exports = jsio.__makeContext().jsio;
