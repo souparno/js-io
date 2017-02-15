@@ -35,7 +35,7 @@ var jsio = (function init() {
 
       module.exports = newContext.exports;
       if (jsio.__preprocess) {
-        jsio.__preprocess(module, newContext);
+        jsio.__preprocess(module);
       }
       module.exports = execModule(newContext, module);
     }

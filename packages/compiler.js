@@ -1,7 +1,7 @@
 var fs = require('fs');
 var jsio = require('./jsio');
 
-var preprocess = function(preprocessors, module, ctx) {
+var preprocess = function(ctx, preprocessors, module) {
   preprocessors = preprocessors || ['import'];
   preprocessors.forEach(function(preprocessor, index) {
     var request = 'import packages.preprocessors.' + preprocessor;
@@ -30,7 +30,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function(request) {
 });
 
 jsio.__require = jsio.__require.Extends(function(ctx, request, preprocessors) {
-  jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
+  jsio.__preprocess = jsio.__util.bind(preprocess, null, ctx, preprocessors);
 
   return this.supr(ctx, request);
 });
@@ -38,7 +38,7 @@ jsio.__require = jsio.__require.Extends(function(ctx, request, preprocessors) {
 jsio.__makeContext = jsio.__makeContext.Extends(function() {
   var context = this.supr();
 
-  context.jsio = jsio.__util.bind(jsio.__require, null, this);
+  context.jsio = jsio.__util.bind(jsio.__require, null, context);
   return context;
 });
 
