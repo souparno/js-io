@@ -1,19 +1,19 @@
 var fs = require('fs');
 var jsio = require('./jsio');
 
-var preprocess = function(ctx, preprocessors, module) {
-  for(var key in preprocessors) {
+var preprocess = function(ctx, preprocessors, moduleDef) {
+  for (var key in preprocessors) {
     var preprocessor = preprocessors[key];
     var request = 'import packages.preprocessors.' + preprocessor;
 
     preprocessor = ctx.jsio(request);
-    preprocessor(module, preprocessors, ctx);
+    preprocessor(moduleDef, preprocessors, ctx);
   }
 };
 
-jsio.__setModule = jsio.__setModule.Extends(function(module, key) {
+jsio.__setModule = jsio.__setModule.Extends(function(key, moduleDef) {
   if (!jsio.__modules[key]) {
-    jsio.__modules[key] = module;
+    jsio.__modules[key] = moduleDef;
   }
 });
 
@@ -21,10 +21,10 @@ jsio.__loadModule = jsio.__loadModule.Extends(function(request) {
   var path = request.from.split(".").join("/") + '.js';
   var src = fs.readFileSync(path, 'utf8').toString();
 
-  jsio.__setModule({
+  jsio.__setModule(request.from, {
     src: src,
     path: request.from
-  }, request.from);
+  });
 
   return this.supr(request);
 });
