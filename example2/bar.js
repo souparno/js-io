@@ -1,7 +1,7 @@
-import example2.cross as cross;
+import example2.foo as foo;
 
 
 exports = function () {
-  cross();
+  foo.hello();
   console.log("hello from bar");
 }
