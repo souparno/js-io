@@ -2,13 +2,13 @@ var fs = require('fs');
 var jsio = require('./jsio');
 
 var preprocess = function(ctx, preprocessors, module) {
-  preprocessors = preprocessors || ['import'];
-  preprocessors.forEach(function(preprocessor, index) {
+  for(var key in preprocessors) {
+    var preprocessor = preprocessors[key];
     var request = 'import packages.preprocessors.' + preprocessor;
 
-    preprocessor = ctx.jsio(request, []);
+    preprocessor = ctx.jsio(request);
     preprocessor(module, preprocessors, ctx);
-  });
+  }
 };
 
 jsio.__setModule = jsio.__setModule.Extends(function(module, key) {
