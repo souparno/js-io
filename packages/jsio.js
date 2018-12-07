@@ -21,114 +21,177 @@
 
 ;
 var jsio = (function init() {
-  var SLICE = Array.prototype.slice,
-    util = {
-      bind: function bind(method, context) {
-        var args = SLICE.call(arguments, 2);
+    var SLICE = Array.prototype.slice,
+        util = {
+            bind: function bind(method, context) {
+                var args = SLICE.call(arguments, 2);
 
-        return function() {
-          return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+                return function() {
+                    return method.apply(context, args.concat(SLICE.call(arguments, 0)));
+                };
+            },
+            resolveRequest: function(request) {
+                var match = request.match(/^\s*import\s+(.*)$/),
+                    imports = {};
+
+                if (match) {
+                    match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
+                        imports = {
+                            from: from,
+                            as: as || from
+                        };
+                    });
+                }
+                return imports;
+            },
+            // `buildPath` accepts an arbitrary number of string arguments to concatenate into a path.
+            //     util.buildPath('a', 'b', 'c/', 'd/') -> 'a/b/c/d/'
+            buildPath: function() {
+                var pieces = [],
+                    piece, i;
+
+                for (i = 0; i < arguments.length; i++) {
+                    piece = arguments[i];
+                    if (piece != '.' && piece != './' && piece) {
+                        pieces.push(piece);
+                    }
+                }
+                return pieces.join('/');
+            },
+            resolveRelativeRequest: function(request) {
+                var result = [],
+                    parts = request.split('.'),
+                    len = parts.length,
+                    relative = (len > 1 && !parts[0]),
+                    i = relative ? 0 : -1;
+
+                while (++i < len) {
+                    result.push(parts[i] ? parts[i] : '..');
+                }
+                return result.join('/');
+            },
+            // `resolveRelativePath` removes relative path indicators.  For example:
+            //     util.resolveRelativePath('a/../b') -> b
+            resolveRelativePath: function(path) {
+                /* Remove multiple slashes and trivial dots (`/./ -> /`). */
+                var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
+
+                /* Loop to collapse instances of `../` in the path by matching a previous
+                   path segment.  Essentially, we find substrings of the form `/abc/../`
+                   where abc is not `.` or `..` and replace the substrings with `/`.
+                   We loop until the string no longer changes since after collapsing
+                   possible instances once, we may have created more instances that can
+                   be collapsed.
+                */
+                while ((path = tempPath) != (tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1'))) {}
+                return path;
+            },
+            resolveModulePath: function(fromDir, request) {
+                if (request.charAt(0) == '.') {
+                    return [
+                        resolveRelativePath(buildPath(fromDir, resolveRelativeRequest(request))) + '.js',
+                        resolveRelativePath(buildPath(fromDir, resolveRelativeRequest(request))) + '/index.js',
+                    ];
+                }
+                //else consider the request on the absolute path
+            }
         };
-      }
+
+    function _require(ctx, fromDir, fromFile, item) {
+        var request = util.resolveRequest(item);
+        var possibilities = util.resolveModulePath(fromDir, request);
+        var modulePath = jsio.__findModule(possibilities);
+        var moduleDef = loadModule(modulePath);
+
+        if (!moduleDef.exports) {
+            var newContext = jsio.__makeContext(moduleDef);
+
+            moduleDef.exports = newContext.exports;
+            if (jsio.__preprocess) {
+                jsio.__preprocess(moduleDef);
+            }
+            moduleDef.exports = execModule(newContext, moduleDef);
+        }
+        ctx[request.as] = moduleDef.exports;
+        return ctx[request.as];
     }
 
-  function resolveRequest(request) {
-    var match = request.match(/^\s*import\s+(.*)$/),
-      imports = {};
-
-    if (match) {
-      match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, from, as) {
-        imports = {
-          from: from,
-          as: as || from
-        };
-      });
+    function setModule(module) {
+        jsio.__modules = module;
     }
 
-    return imports;
-  }
+    function findModule(possibilities) {
+        var i = 0,
+            modulePath;
 
-  function _require(ctx, fromDir, fromFile, request) {
-    var request = resolveRequest(request);
-    var moduleDef = jsio.__loadModule(fromDir, fromFile, request);
-
-    if (!moduleDef.exports) {
-      var newContext = jsio.__makeContext(moduleDef);
-
-      moduleDef.exports = newContext.exports;
-      if (jsio.__preprocess) {
-        jsio.__preprocess(moduleDef);
-      }
-      moduleDef.exports = execModule(newContext, moduleDef);
-    }
-    ctx[request.as] = moduleDef.exports;
-
-    return ctx[request.as];
-  }
-
-  function setModule(module) {
-    jsio.__modules = module;
-  }
-
-  function loadModule(fromDir, fromFile, request) {
-    if (!jsio.__cache[request.from]) {
-      jsio.__cache[request.from] = jsio.__modules[request.from];
+        for (i = 0; i < possibilities.length; i++) {
+            modulePath = possibilities[i];
+            if (jsio.__modules[modulePath]) {
+                return modulePath;
+            }
+        }
     }
 
-    return jsio.__cache[request.from];
-  }
+    function loadModule(modulePath) {
+        if (!jsio.__cache[modulePath]) {
+            jsio.__cache[modulePath] = jsio.__modules[modulePath];
+        }
 
-  function execModule(ctx, moduleDef) {
-    var code = "(function (__) { with (__) {" + moduleDef.src + "};});";
-    var fn = eval(code);
-
-    fn(ctx);
-    if (moduleDef.exports != ctx.module.exports) {
-      return ctx.moduleDef.exports;
+        return jsio.__cache[modulePath];
     }
-    return ctx.exports;
-  }
 
-  function makeContext(moduleDef) {
-    var context = {};
-    var directory = moduleDef.directory;
-    var filename = moduleDef.filename;
+    function execModule(ctx, moduleDef) {
+        var code = "(function (__) { with (__) {" + moduleDef.src + "};});";
+        var fn = eval(code);
 
-    context.exports = {};
-    context.module = {};
-    context.module.exports = context.exports;
-    context.jsio = util.bind(_require, null, context, directory, filename);
-    context.jsio.__util = util;
-    context.jsio.__require = _require;
-    context.jsio.__loadModule = loadModule;
-    context.jsio.__setModule = setModule;
-    context.jsio.__makeContext = makeContext;
-    context.jsio.__preprocess = null;
-    context.jsio.__init = init;
-    context.jsio.__modules = {};
-    context.jsio.__cache = {};
-    return context;
-  }
+        fn(ctx);
+        if (moduleDef.exports != ctx.module.exports) {
+            return ctx.moduleDef.exports;
+        }
+        return ctx.exports;
+    }
 
-  return makeContext({
-    directory: null,
-    filename: null
-  }).jsio;
+    function makeContext(moduleDef) {
+        var context = {};
+        var fromDir = moduleDef.fromDir;
+        var fromFile = moduleDef.fromFile;
+
+        context.exports = {};
+        context.module = {};
+        context.module.exports = context.exports;
+        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
+        context.jsio.__util = util;
+        context.jsio.__require = _require;
+        context.jsio.__findModule = findModule;
+        context.jsio.__setModule = setModule;
+        context.jsio.__makeContext = makeContext;
+        context.jsio.__preprocess = null;
+        context.jsio.__init = init;
+        context.jsio.__modules = {};
+        context.jsio.__cache = {};
+        return context;
+    }
+
+    return makeContext({
+        fromDir: null,
+        fromFile: null
+    }).jsio;
+
 }());
 
 for (var key in jsio) {
-  var prop = jsio[key];
+    var prop = jsio[key];
 
-  if (typeof prop === "function") {
-    prop.Extends = (function() {
-      return function(fn) {
-        var context = {
-          supr: this
-        }
-        return jsio.__util.bind(fn, context);
-      }
-    }())
-  }
+    if (typeof prop === "function") {
+        prop.Extends = (function() {
+            return function(fn) {
+                var context = {
+                    supr: this
+                };
+                return jsio.__util.bind(fn, context);
+            };
+        }());
+    }
 }
 
 module.exports = jsio;
