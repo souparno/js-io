@@ -6,11 +6,11 @@ var jsio = require('./jsio');
 function ENV_node() {
     var _cwd = process.cwd();
 
-    this.getPwd = function() {
+    this.getPwd = function () {
         return _cwd;
     };
 
-    this.fetch = function(p) {
+    this.fetch = function (p) {
         try {
             return fs.readFileSync(p, 'utf8');
         } catch (e) {
@@ -21,7 +21,7 @@ function ENV_node() {
 
 var ENV = new ENV_node();
 
-var findModule = function(possibilities) {
+var findModule = function (possibilities) {
     // loop through the possibilities
     return {
         directory: path.dirname(modulePath),
@@ -31,7 +31,7 @@ var findModule = function(possibilities) {
     };
 };
 
-var preprocess = function(ctx, preprocessors, moduleDef) {
+var preprocess = function (ctx, preprocessors, moduleDef) {
     for (var key in preprocessors) {
         var preprocessor = preprocessors[key];
         var request = 'import packages.preprocessors.' + preprocessor;
@@ -41,20 +41,20 @@ var preprocess = function(ctx, preprocessors, moduleDef) {
     }
 };
 
-jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
+jsio.__findModule = jsio.__findModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
 
     jsio.__setModule(moduleDef.pathname, moduleDef);
     return this.supr(moduleDef.pathname);
 });
 
-jsio.__require = jsio.__require.Extends(function(ctx, fromDir, fromFile, item, preprocessors) {
+jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
     jsio.__preprocess = jsio.__util.bind(preprocess, null, ctx, preprocessors);
 
     return this.supr(ctx, fromDir, fromFile, item);
 });
 
-jsio.__makeContext = jsio.__makeContext.Extends(function(moduleDef) {
+jsio.__makeContext = jsio.__makeContext.Extends(function (moduleDef) {
     var context = this.supr(moduleDef);
     var fromDir = moduleDef.fromDir;
     var fromFile = moduleDef.fromFile;
