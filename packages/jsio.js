@@ -88,9 +88,10 @@ var jsio = (function init() {
             },
             resolveModulePath: function(fromDir, request) {
                 if (request.charAt(0) == '.') {
+                    request = util.resolveRelativePath(util.buildPath(fromDir, util.resolveRelativeRequest(request)));
                     return [
-                        resolveRelativePath(buildPath(fromDir, resolveRelativeRequest(request))) + '.js',
-                        resolveRelativePath(buildPath(fromDir, resolveRelativeRequest(request))) + '/index.js',
+                        request + '.js',
+                        request + '/index.js'
                     ];
                 }
                 //else consider the request on the absolute path
