@@ -116,8 +116,14 @@ var jsio = (function init() {
         return ctx[request.as];
     }
 
-    function setModule(module) {
-        jsio.__modules = module;
+    function setModule(modulePath, moduleDef) {
+        if (!jsio.__modules[modulePath]) {
+            jsio.__modules[modulePath] = moduleDef;
+        }
+    }
+
+    function setCache(modules) {
+        jsio.__modules = modules;
     }
 
     function findModule(possibilities) {
@@ -164,6 +170,7 @@ var jsio = (function init() {
         context.jsio.__require = _require;
         context.jsio.__findModule = findModule;
         context.jsio.__setModule = setModule;
+        context.jsio.__setCache = setCache;
         context.jsio.__makeContext = makeContext;
         context.jsio.__preprocess = null;
         context.jsio.__init = init;

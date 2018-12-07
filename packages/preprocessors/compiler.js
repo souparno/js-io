@@ -44,6 +44,6 @@ exports.compile = function(request, preprocessors) {
 exports.generateSrc = function(callback) {
   var jsioSrc = getJsioSrc();
 
-  jsioSrc = jsioSrc + "jsio.__setModule(" + JSON.stringify(srcTable) + ");";
+  jsioSrc = jsioSrc + "jsio.__setCache(" + JSON.stringify(srcTable) + ");";
   callback(jsioSrc);
 };

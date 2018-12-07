@@ -41,12 +41,6 @@ var preprocess = function(ctx, preprocessors, moduleDef) {
     }
 };
 
-jsio.__setModule = jsio.__setModule.Extends(function(modulePath, moduleDef) {
-    if (!jsio.__modules[modulePath]) {
-        jsio.__modules[modulePath] = moduleDef;
-    }
-});
-
 jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
     var moduleDef = findModule(possibilities);
 
