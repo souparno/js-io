@@ -107,14 +107,22 @@ var jsio = (function init() {
         return ctx[request.as];
     }
 
+    function resolveImportRequest(request) {
+        var cmds = jsio.__cmds, imports = {};
+
+        for (var i = 0; i < cmds.length; i++) {
+            if (cmds[i](request, imports)) {
+                break;
+            }
+        }
+
+        return imports;
+    }
+
     function setModule(modulePath, moduleDef) {
         if (!jsio.__modules[modulePath]) {
             jsio.__modules[modulePath] = moduleDef;
         }
-    }
-
-    function setCache(modules) {
-        jsio.__modules = modules;
     }
 
     function findModule(possibilities) {
@@ -144,19 +152,8 @@ var jsio = (function init() {
         if (moduleDef.exports != ctx.module.exports) {
             return ctx.moduleDef.exports;
         }
+
         return ctx.exports;
-    }
-
-    function resolveImportRequest(request) {
-        var cmds = jsio.__cmds, imports = {};
-
-        for (var i = 0; i < cmds.length; i++) {
-            if (cmds[i](request, imports)) {
-                break;
-            }
-        }
-
-        return imports;
     }
 
     // import myPackage;
@@ -169,14 +166,19 @@ var jsio = (function init() {
                 imports.as = as ? as : fullPath;
             });
         }
+
         return match;
     });
 
+    function setCache(modules) {
+        jsio.__modules = modules;
+    }
+
     function makeContext(moduleDef) {
-        var context = {};
-        var fromDir = moduleDef.fromDir;
-        var fromFile = moduleDef.fromFile;
-        var commands = [];
+        var context = {},
+                fromDir = moduleDef.fromDir,
+                fromFile = moduleDef.fromFile,
+                commands = [];
 
         context.exports = {};
         context.module = {};
