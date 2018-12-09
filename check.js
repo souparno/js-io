@@ -40,9 +40,10 @@
                   parts = request.split('.'),
                   len = parts.length,
                   relative = (len > 1 && !parts[0]),
-                  i = relative ? 0 : -1;
-
-              while (++i < len) {
+              i = relative ? 0 : -1;
+            console.log(parts);
+            while (++i < len) {
+                  console.log(i, parts[i]);
                   result.push(parts[i] ? parts[i] : '..');
               }
               return result.join('/');
@@ -75,6 +76,6 @@
           }
       };
   var fromDir = '/abc/def/ghi/';
-  var request = "..foo.bar";
+  var request = "foo..bar";
 
-  console.log(util.resolveModulePath(fromDir, request));
+  console.log(util.resolveRelativeRequest(request));

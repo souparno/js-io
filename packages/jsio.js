@@ -30,25 +30,10 @@ var jsio = (function init() {
                         return method.apply(context, args.concat(SLICE.call(arguments, 0)));
                     };
                 },
-                resolveRequest: function (request) {
-                    var match = request.match(/^\s*import\s+(.*)$/),
-                            imports = {};
-
-                    if (match) {
-                        match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, from, as) {
-                            imports = {
-                                from: from,
-                                as: as || from
-                            };
-                        });
-                    }
-                    return imports;
-                },
                 // `buildPath` accepts an arbitrary number of string arguments to concatenate into a path.
                 //     util.buildPath('a', 'b', 'c/', 'd/') -> 'a/b/c/d/'
                 buildPath: function () {
-                    var pieces = [],
-                            piece, i;
+                    var pieces = [], piece, i;
 
                     for (i = 0; i < arguments.length; i++) {
                         piece = arguments[i];
@@ -58,6 +43,8 @@ var jsio = (function init() {
                     }
                     return pieces.join('/');
                 },
+                // `resolveRelativeRequest` changes the request format into file path format.  For example:
+                //     util.resolveRelativeRequest('..foo.bar') -> ../foo/bar
                 resolveRelativeRequest: function (request) {
                     var result = [],
                             parts = request.split('.'),
@@ -100,14 +87,16 @@ var jsio = (function init() {
             };
 
     function _require(ctx, fromDir, fromFile, item) {
-        var request = util.resolveRequest(item);
+        var request = resolveImportRequest(item);
         var possibilities = util.resolveModulePath(fromDir, request);
         var modulePath = jsio.__findModule(possibilities);
         var moduleDef = loadModule(modulePath);
 
+        // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
             var newContext = jsio.__makeContext(moduleDef);
 
+            //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
             if (jsio.__preprocess) {
                 jsio.__preprocess(moduleDef);
@@ -129,8 +118,7 @@ var jsio = (function init() {
     }
 
     function findModule(possibilities) {
-        var i = 0,
-                modulePath;
+        var i = 0, modulePath;
 
         for (i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
@@ -159,15 +147,42 @@ var jsio = (function init() {
         return ctx.exports;
     }
 
+    function resolveImportRequest(request) {
+        var cmds = jsio.__cmds, imports = {};
+
+        for (var i = 0; i < cmds.length; i++) {
+            if (cmds[i](request, imports)) {
+                break;
+            }
+        }
+
+        return imports;
+    }
+
+    // import myPackage;
+    // import myPackage as myPack;
+    jsio.addCmd(function (request, imports) {
+        var match = request.match(/^\s*import\s+(.*)$/);
+        if (match) {
+            match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
+                imports.from = fullPath;
+                imports.as = as ? as : fullPath;
+            });
+        }
+        return match;
+    });
+
     function makeContext(moduleDef) {
         var context = {};
         var fromDir = moduleDef.fromDir;
         var fromFile = moduleDef.fromFile;
+        var commands = [];
 
         context.exports = {};
         context.module = {};
         context.module.exports = context.exports;
         context.jsio = util.bind(_require, null, context, fromDir, fromFile);
+        context.jsio.addCmd = util.bind(commands, 'push');
         context.jsio.__util = util;
         context.jsio.__require = _require;
         context.jsio.__findModule = findModule;
