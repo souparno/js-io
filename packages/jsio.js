@@ -22,12 +22,12 @@
 ;
 var jsio = (function init() {
     util = {
-        SLICE: Array.prototype.slice,
+        slice: Array.prototype.slice,
         bind: function bind(method, context) {
-            var args = util.SLICE.call(arguments, 2);
+            var args = util.slice.call(arguments, 2);
 
             return function () {
-                return method.apply(context, args.concat(util.SLICE.call(arguments, 0)));
+                return method.apply(context, args.concat(util.slice.call(arguments, 0)));
             };
         },
         // `buildPath` accepts an arbitrary number of string arguments to concatenate into a path.
@@ -160,6 +160,7 @@ var jsio = (function init() {
     // import myPackage as myPack;
     jsio.addCmd(function (request, imports) {
         var match = request.match(/^\s*import\s+(.*)$/);
+
         if (match) {
             match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
                 imports.from = fullPath;
