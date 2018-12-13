@@ -62,15 +62,4 @@ jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, 
     return this.supr(ctx, fromDir, fromFile, item);
 });
 
-jsio.__makeContext = jsio.__makeContext.Extends(function (moduleDef) {
-    var context = this.supr(moduleDef);
-    var fromDir = moduleDef.dirname;
-    var fromFile = moduleDef.filename;
-
-    context.jsio = jsio.__util.bind(jsio.__require, null, context, fromDir, fromFile);
-    context.jsio.__init = jsio.__init;
-
-    return context;
-});
-
-module.exports = jsio.__makeContext({dirname: null, filename: null}).jsio;
+module.exports = jsio;

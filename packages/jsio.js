@@ -81,13 +81,17 @@ var jsio = (function init() {
                 request = util.resolveRelativePath(request);
 
             } else {
-              request = request.split('.').join('/');
+                request = request.split('.').join('/');
             }
 
             return [request + '.js', request + '/index.js'];
 
         }, cmds: []
     };
+
+    function _jsio() {
+        return jsio.__require.apply(this, arguments);
+    }
 
     function _require(ctx, fromDir, fromFile, item) {
         var request = resolveImportRequest(item);
@@ -182,7 +186,7 @@ var jsio = (function init() {
         context.exports = {};
         context.module = {};
         context.module.exports = context.exports;
-        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
+        context.jsio = util.bind(_jsio, null, context, fromDir, fromFile);
         context.jsio.__util = util;
         context.jsio.__require = _require;
         context.jsio.__setCache = setCache;
