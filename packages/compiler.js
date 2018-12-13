@@ -39,6 +39,8 @@ jsio.__makeContext = jsio.__makeContext.Extends(function() {
   var context = this.supr();
 
   context.jsio = jsio.__util.bind(jsio.__require, null, context);
+  context.jsio.__init = jsio.__init;
+
   return context;
 });
 
