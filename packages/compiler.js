@@ -22,13 +22,21 @@ function ENV_node() {
 var ENV = new ENV_node();
 
 var findModule = function (possibilities) {
-    // loop through the possibilities
-    return {
-        directory: path.dirname(modulePath),
-        filename: path.basename(modulePath),
-        pathname: this.directory + this.filename,
-        src: ENV.fetch(modulePath)
-    };
+    var src, modulePath;
+
+    for (var i = 0; i < possibilities.length; i++) {
+        modulePath = possibilities[i];
+        src = ENV.fetch(modulePath);
+
+        if (src) {
+            return {
+                directory: path.dirname(modulePath),
+                filename: path.basename(modulePath),
+                pathname: this.directory + this.filename,
+                src: src
+            };
+        }
+    }
 };
 
 var preprocess = function (ctx, preprocessors, moduleDef) {
@@ -41,11 +49,11 @@ var preprocess = function (ctx, preprocessors, moduleDef) {
     }
 };
 
-jsio.__findModule = jsio.__findModule.Extends(function (possibilities) {
+jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
 
     jsio.__setModule(moduleDef.pathname, moduleDef);
-    return this.supr(moduleDef.pathname);
+    return this.supr(possibilities);
 });
 
 jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
@@ -55,6 +63,7 @@ jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, 
 });
 
 jsio.__makeContext = jsio.__makeContext.Extends(function (moduleDef) {
+   
     var context = this.supr(moduleDef);
     var fromDir = moduleDef.fromDir;
     var fromFile = moduleDef.fromFile;

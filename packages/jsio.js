@@ -86,11 +86,41 @@ var jsio = (function init() {
         }
     };
 
+    return makeContext({
+        fromDir: null,
+        fromFile: null
+    }).jsio;
+
+    function makeContext(moduleDef) {
+        var context = {},
+                fromDir = moduleDef.fromDir,
+                fromFile = moduleDef.fromFile, 
+                cmds = [];
+
+        context.exports = {};
+        context.module = {};
+        context.module.exports = context.exports;
+        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
+        context.jsio.__cmds = cmds;
+        context.jsio.__util = util;
+        context.jsio.addCommand = util.bind(cmds, 'push');
+        context.jsio.__require = _require;
+        context.jsio.__setCache = setCache;
+        context.jsio.__setModule = setModule;
+        context.jsio.__loadModule = loadModule;
+        context.jsio.__makeContext = makeContext;
+        context.jsio.__preprocess = null;
+        context.jsio.__init = init;
+        context.jsio.__modules = {};
+        context.jsio.__cache = {};
+
+        return context;
+    }
+
     function _require(ctx, fromDir, fromFile, item) {
         var request = resolveImportRequest(item);
         var possibilities = util.resolveModulePath(fromDir, request);
-        var modulePath = jsio.__findModule(possibilities);
-        var moduleDef = loadModule(modulePath);
+        var moduleDef = jsio.__loadModule(possibilities);
 
         // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
@@ -119,29 +149,30 @@ var jsio = (function init() {
         return imports;
     }
 
+    function setCache(modules) {
+        jsio.__modules = modules;
+    }
+
     function setModule(modulePath, moduleDef) {
         if (!jsio.__modules[modulePath]) {
             jsio.__modules[modulePath] = moduleDef;
         }
     }
 
-    function findModule(possibilities) {
-        var i = 0, modulePath;
+    function loadModule(possibilities) {
+        var modulePath;
 
-        for (i = 0; i < possibilities.length; i++) {
+        for (var i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
+
             if (jsio.__modules[modulePath]) {
-                return modulePath;
+                if (!jsio.__cache[modulePath]) {
+                    jsio.__cache[modulePath] = jsio.__modules[modulePath];
+                }
+
+                return jsio.__cache[modulePath];
             }
         }
-    }
-
-    function loadModule(modulePath) {
-        if (!jsio.__cache[modulePath]) {
-            jsio.__cache[modulePath] = jsio.__modules[modulePath];
-        }
-
-        return jsio.__cache[modulePath];
     }
 
     function execModule(ctx, moduleDef) {
@@ -158,7 +189,7 @@ var jsio = (function init() {
 
     // import myPackage;
     // import myPackage as myPack;
-    jsio.addCmd(function (request, imports) {
+    jsio.addCommand(function (request, imports) {
         var match = request.match(/^\s*import\s+(.*)$/);
 
         if (match) {
@@ -170,41 +201,6 @@ var jsio = (function init() {
 
         return match;
     });
-
-    function setCache(modules) {
-        jsio.__modules = modules;
-    }
-
-    function makeContext(moduleDef) {
-        var context = {},
-                fromDir = moduleDef.fromDir,
-                fromFile = moduleDef.fromFile,
-                commands = [];
-
-        context.exports = {};
-        context.module = {};
-        context.module.exports = context.exports;
-        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
-        context.jsio.addCmd = util.bind(commands, 'push');
-        context.jsio.__util = util;
-        context.jsio.__require = _require;
-        context.jsio.__findModule = findModule;
-        context.jsio.__setModule = setModule;
-        context.jsio.__setCache = setCache;
-        context.jsio.__makeContext = makeContext;
-        context.jsio.__preprocess = null;
-        context.jsio.__init = init;
-        context.jsio.__modules = {};
-        context.jsio.__cache = {};
-
-        return context;
-    }
-
-    return makeContext({
-        fromDir: null,
-        fromFile: null
-    }).jsio;
-
 }());
 
 for (var key in jsio) {
