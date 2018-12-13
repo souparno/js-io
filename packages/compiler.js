@@ -22,16 +22,21 @@ function ENV_node() {
 var ENV = new ENV_node();
 
 var findModule = function (possibilities) {
-    var src, modulePath;
+    var src, modulePath, dirname, filename;
 
     for (var i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
         src = ENV.fetch(modulePath);
 
         if (src) {
+            dirname = path.dirname(modulePath);
+            filename = path.basename(modulePath);
+            modulePath = dirname + "/" + filename;
+
             return {
-                dirname: path.dirname(modulePath),
-                filename: path.basename(modulePath),
+                dirname: dirname,
+                filename: filename,
+                modulePath: modulePath,
                 src: src
             };
         }
@@ -50,7 +55,7 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
 
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
-    var modulePath = moduleDef.dirname + "/" + moduleDef.filename;
+    var modulePath = moduleDef.modulePath;
 
     jsio.__setModule(modulePath, moduleDef);
     return this.supr(possibilities);

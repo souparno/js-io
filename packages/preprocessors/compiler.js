@@ -29,9 +29,10 @@ exports = function (moduleDef, preprocessors, ctx) {
         ctx.jsio(match[2], updatePreprocessors(preprocessors));
     }
 
-    srcTable[moduleDef.path] = JSON.parse(JSON.stringify({
-        src: moduleDef.src,
-        path: moduleDef.path
+    srcTable[moduleDef.modulePath] = JSON.parse(JSON.stringify({
+        dirname: moduleDef.dirname,
+        filename: moduleDef.filename,
+        src: moduleDef.src
     }));
 
     moduleDef.src = '';
