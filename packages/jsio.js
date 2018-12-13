@@ -100,7 +100,7 @@ var jsio = (function init() {
 
         // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
-            var newContext = jsio.__makeContext(moduleDef);
+            var newContext = makeContext(moduleDef);
 
             //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
@@ -192,7 +192,6 @@ var jsio = (function init() {
         context.jsio.__setCache = setCache;
         context.jsio.__setModule = setModule;
         context.jsio.__loadModule = loadModule;
-        context.jsio.__makeContext = makeContext;
         context.jsio.__preprocess = null;
         context.jsio.__init = init;
         context.jsio.__modules = {};
