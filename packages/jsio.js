@@ -83,43 +83,12 @@ var jsio = (function init() {
                 ];
             }
             //else consider the request on the absolute path
-        }
+        }, cmds: []
     };
-
-    return makeContext({
-        fromDir: null,
-        fromFile: null
-    }).jsio;
-
-    function makeContext(moduleDef) {
-        var context = {},
-                fromDir = moduleDef.fromDir,
-                fromFile = moduleDef.fromFile, 
-                cmds = [];
-
-        context.exports = {};
-        context.module = {};
-        context.module.exports = context.exports;
-        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
-        context.jsio.__cmds = cmds;
-        context.jsio.__util = util;
-        context.jsio.addCommand = util.bind(cmds, 'push');
-        context.jsio.__require = _require;
-        context.jsio.__setCache = setCache;
-        context.jsio.__setModule = setModule;
-        context.jsio.__loadModule = loadModule;
-        context.jsio.__makeContext = makeContext;
-        context.jsio.__preprocess = null;
-        context.jsio.__init = init;
-        context.jsio.__modules = {};
-        context.jsio.__cache = {};
-
-        return context;
-    }
 
     function _require(ctx, fromDir, fromFile, item) {
         var request = resolveImportRequest(item);
-        var possibilities = util.resolveModulePath(fromDir, request);
+        var possibilities = util.resolveModulePath(fromDir, request.from);
         var moduleDef = jsio.__loadModule(possibilities);
 
         // stops re-execution, if module allready executed
@@ -137,8 +106,23 @@ var jsio = (function init() {
         return ctx[request.as];
     }
 
+    // import myPackage;
+    // import myPackage as myPack;
+    util.cmds.push(function (request, imports) {
+        var match = request.match(/^\s*import\s+(.*)$/);
+
+        if (match) {
+            match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
+                imports.from = fullPath;
+                imports.as = as ? as : fullPath;
+            });
+        }
+
+        return match;
+    });
+
     function resolveImportRequest(request) {
-        var cmds = jsio.__cmds, imports = {};
+        var cmds = util.cmds, imports = {};
 
         for (var i = 0; i < cmds.length; i++) {
             if (cmds[i](request, imports)) {
@@ -187,20 +171,30 @@ var jsio = (function init() {
         return ctx.exports;
     }
 
-    // import myPackage;
-    // import myPackage as myPack;
-    jsio.addCommand(function (request, imports) {
-        var match = request.match(/^\s*import\s+(.*)$/);
+    function makeContext(moduleDef) {
+        var context = {},
+                fromDir = moduleDef.fromDir,
+                fromFile = moduleDef.fromFile;
 
-        if (match) {
-            match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
-                imports.from = fullPath;
-                imports.as = as ? as : fullPath;
-            });
-        }
+        context.exports = {};
+        context.module = {};
+        context.module.exports = context.exports;
+        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
+        context.jsio.__util = util;
+        context.jsio.__require = _require;
+        context.jsio.__setCache = setCache;
+        context.jsio.__setModule = setModule;
+        context.jsio.__loadModule = loadModule;
+        context.jsio.__makeContext = makeContext;
+        context.jsio.__preprocess = null;
+        context.jsio.__init = init;
+        context.jsio.__modules = {};
+        context.jsio.__cache = {};
 
-        return match;
-    });
+        return context;
+    }
+
+    return makeContext({fromDir: null, fromFile: null}).jsio;
 }());
 
 for (var key in jsio) {
