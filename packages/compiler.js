@@ -34,7 +34,7 @@ var findModule = function (possibilities) {
 var preprocess = function (ctx, preprocessors, moduleDef) {
     for (var key in preprocessors) {
         var preprocessor = preprocessors[key];
-        var request = 'import packages.preprocessors.' + preprocessor;
+        var request = 'import .packages.preprocessors.' + preprocessor;
 
         preprocessor = ctx.jsio(request);
         preprocessor(moduleDef, preprocessors, ctx);
