@@ -66,10 +66,9 @@ jsio.__makeContext = jsio.__makeContext.Extends(function (moduleDef) {
     var context = this.supr(moduleDef);
     var fromDir = moduleDef.dirname;
     var fromFile = moduleDef.filename;
-    var init = context.jsio.__init;
 
     context.jsio = jsio.__util.bind(jsio.__require, null, context, fromDir, fromFile);
-    context.jsio.__init = init;
+    context.jsio.__init = jsio.__init;
 
     return context;
 });
