@@ -89,7 +89,7 @@ var jsio = (function init() {
         }, cmds: []
     };
 
-    function _jsio() {
+    function ___() {
         return jsio.__require.apply(this, arguments);
     }
 
@@ -186,7 +186,7 @@ var jsio = (function init() {
         context.exports = {};
         context.module = {};
         context.module.exports = context.exports;
-        context.jsio = util.bind(_jsio, null, context, fromDir, fromFile);
+        context.jsio = util.bind(___, null, context, fromDir, fromFile);
         context.jsio.__util = util;
         context.jsio.__require = _require;
         context.jsio.__setCache = setCache;
