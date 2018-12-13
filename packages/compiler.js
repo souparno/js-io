@@ -30,7 +30,7 @@ var findModule = function (possibilities) {
 
         if (src) {
             return {
-                directory: path.dirname(modulePath),
+                dirname: path.dirname(modulePath),
                 filename: path.basename(modulePath),
                 src: src
             };
@@ -38,10 +38,10 @@ var findModule = function (possibilities) {
     }
 };
 
-var preprocess = function (ctx, preprocessors, moduleDef) {
+var preprocess = function (preprocessors, ctx, moduleDef) {
     for (var key in preprocessors) {
         var preprocessor = preprocessors[key];
-        var request = 'import .packages.preprocessors.' + preprocessor;
+        var request = 'import packages.preprocessors.' + preprocessor;
 
         preprocessor = ctx.jsio(request);
         preprocessor(moduleDef, preprocessors, ctx);
@@ -50,28 +50,25 @@ var preprocess = function (ctx, preprocessors, moduleDef) {
 
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
-    var modulePath = moduleDef.directory + "/" + moduleDef.filename;
-    
-    jsio.__setModule(modulePath);
+    var modulePath = moduleDef.dirname + "/" + moduleDef.filename;
+
+    jsio.__setModule(modulePath, moduleDef);
     return this.supr(possibilities);
 });
 
 jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
-    jsio.__preprocess = jsio.__util.bind(preprocess, null, ctx, preprocessors);
+    jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
     return this.supr(ctx, fromDir, fromFile, item);
 });
 
 jsio.__makeContext = jsio.__makeContext.Extends(function (moduleDef) {
     var context = this.supr(moduleDef);
-    var fromDir = moduleDef.fromDir;
-    var fromFile = moduleDef.fromFile;
+    var fromDir = moduleDef.dirname;
+    var fromFile = moduleDef.filename;
 
     context.jsio = jsio.__util.bind(jsio.__require, null, context, fromDir, fromFile);
     return context;
 });
 
-module.exports = jsio.__makeContext({
-    fromDir: ENV.getPwd(),
-    fromFile: 'jsio'
-}).jsio;
+module.exports = jsio.__makeContext({dirname: null, filename: null}).jsio;

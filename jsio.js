@@ -1,5 +1,5 @@
 var jsio = require('./packages/compiler');
-var compiler = jsio('import .packages.preprocessors.compiler');
+var compiler = jsio('import packages.preprocessors.compiler');
 
 function help() {
     console.log("Usage:node jsio <path>/<to>/<file>");

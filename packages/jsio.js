@@ -76,13 +76,16 @@ var jsio = (function init() {
         },
         resolveModulePath: function (fromDir, request) {
             if (request.charAt(0) == '.') {
-                request = util.resolveRelativePath(util.buildPath(fromDir, util.resolveRelativeRequest(request)));
-                return [
-                    request + '.js',
-                    request + '/index.js'
-                ];
+                request = util.resolveRelativeRequest(request);
+                request = util.buildPath(fromDir, request);
+                request = util.resolveRelativePath(request);
+
+            } else {
+              request = request.split('.').join('/');
             }
-            //else consider the request on the absolute path
+
+            return [request + '.js', request + '/index.js'];
+
         }, cmds: []
     };
 
@@ -98,7 +101,7 @@ var jsio = (function init() {
             //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
             if (jsio.__preprocess) {
-                jsio.__preprocess(moduleDef);
+                jsio.__preprocess(newContext, moduleDef);
             }
             moduleDef.exports = execModule(newContext, moduleDef);
         }
@@ -173,8 +176,8 @@ var jsio = (function init() {
 
     function makeContext(moduleDef) {
         var context = {},
-                fromDir = moduleDef.fromDir,
-                fromFile = moduleDef.fromFile;
+                fromDir = moduleDef.dirname,
+                fromFile = moduleDef.filename;
 
         context.exports = {};
         context.module = {};
@@ -194,7 +197,7 @@ var jsio = (function init() {
         return context;
     }
 
-    return makeContext({fromDir: null, fromFile: null}).jsio;
+    return makeContext({dirname: null, filename: null}).jsio;
 }());
 
 for (var key in jsio) {
