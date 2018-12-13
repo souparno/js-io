@@ -86,8 +86,8 @@ var jsio = (function init() {
 
             return [request + '.js', request + '/index.js'];
 
-        }, cmds: []
-    };
+        }
+    }, __commands = [], __modules = {}, __cache = {};
 
     function ___() {
         return jsio.__require.apply(this, arguments);
@@ -115,7 +115,7 @@ var jsio = (function init() {
 
     // import myPackage;
     // import myPackage as myPack;
-    util.cmds.push(function (request, imports) {
+    __commands.push(function (request, imports) {
         var match = request.match(/^\s*import\s+(.*)$/);
 
         if (match) {
@@ -129,10 +129,10 @@ var jsio = (function init() {
     });
 
     function resolveImportRequest(request) {
-        var cmds = util.cmds, imports = {};
+        var imports = {};
 
-        for (var i = 0; i < cmds.length; i++) {
-            if (cmds[i](request, imports)) {
+        for (var i = 0; i < __commands.length; i++) {
+            if (__commands[i](request, imports)) {
                 break;
             }
         }
@@ -141,12 +141,12 @@ var jsio = (function init() {
     }
 
     function setCache(modules) {
-        jsio.__modules = modules;
+        __modules = modules;
     }
 
     function setModule(modulePath, moduleDef) {
-        if (!jsio.__modules[modulePath]) {
-            jsio.__modules[modulePath] = moduleDef;
+        if (!__modules[modulePath]) {
+            __modules[modulePath] = moduleDef;
         }
     }
 
@@ -156,12 +156,12 @@ var jsio = (function init() {
         for (var i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
 
-            if (jsio.__modules[modulePath]) {
-                if (!jsio.__cache[modulePath]) {
-                    jsio.__cache[modulePath] = jsio.__modules[modulePath];
+            if (__modules[modulePath]) {
+                if (!__cache[modulePath]) {
+                    __cache[modulePath] = __modules[modulePath];
                 }
 
-                return jsio.__cache[modulePath];
+                return __cache[modulePath];
             }
         }
     }
@@ -194,8 +194,6 @@ var jsio = (function init() {
         context.jsio.__loadModule = loadModule;
         context.jsio.__preprocess = null;
         context.jsio.__init = init;
-        context.jsio.__modules = {};
-        context.jsio.__cache = {};
 
         return context;
     }
