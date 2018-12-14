@@ -38,7 +38,7 @@ exports = function (moduleDef, preprocessors, ctx) {
     moduleDef.src = '';
 };
 
-exports.compile = function (request, preprocessors) {
+exports.run = function (request, preprocessors) {
     jsio(request, updatePreprocessors(preprocessors));
 };
 
