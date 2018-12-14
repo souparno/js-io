@@ -201,9 +201,7 @@ jsio.__util.overrides = function (method, props) {
         method[props[i]].Extends = (function () {
 
             return function (fn) {
-                var context = {
-                    supr: this
-                };
+                var context = {supr: this};
 
                 return jsio.__util.bind(fn, context);
             };
