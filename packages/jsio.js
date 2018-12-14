@@ -165,7 +165,7 @@ var jsio = (function init() {
     }
 
     function execModule(ctx, moduleDef) {
-        var code = "(function (__) { with (__) {" + moduleDef.src + "};});";
+        var code = "(function (__) { with (__) {" + moduleDef.src + "}});";
         var fn = eval(code);
 
         fn(ctx);
