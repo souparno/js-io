@@ -42,17 +42,17 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
     }
 };
 
-jsio.__setModule = jsio.__setModule.Extends(function (modulePath, moduleDef) {
+var setModule = function (modulePath, moduleDef) {
     if (!jsio.__modules[modulePath]) {
         jsio.__modules[modulePath] = moduleDef;
     }
-});
+};
 
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
     var modulePath = moduleDef.modulePath;
 
-    jsio.__setModule(modulePath, moduleDef);
+    setModule(modulePath, moduleDef);
     return this.supr(possibilities);
 });
 

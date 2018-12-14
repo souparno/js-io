@@ -208,4 +208,4 @@ jsio.__util.overrides = function (method, props) {
     return method;
 };
 
-module.exports = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__setModule', '__execModule']);
+module.exports = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__execModule']);
