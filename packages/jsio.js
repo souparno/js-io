@@ -119,10 +119,7 @@ var jsio = (function init() {
 
             //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
-            if (jsio.__preprocess) {
-                jsio.__preprocess(newContext, moduleDef);
-            }
-            moduleDef.exports = execModule(newContext, moduleDef);
+            moduleDef.exports = jsio.__execModule(newContext, moduleDef);
         }
         ctx[request.as] = moduleDef.exports;
         return ctx[request.as];
@@ -185,8 +182,8 @@ var jsio = (function init() {
         context.jsio.__require = require;
         context.jsio.__setModule = setModule;
         context.jsio.__loadModule = loadModule;
+        context.jsio.__execModule = execModule;
         context.jsio.__init = init;
-        context.jsio.__preprocess = null;
         context.jsio.__modules = {};
         context.jsio.__cache = {};
 
@@ -211,4 +208,4 @@ jsio.__util.overrides = function (method, props) {
     return method;
 };
 
-module.exports = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__setModule']);
+module.exports = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__setModule', '__execModule']);

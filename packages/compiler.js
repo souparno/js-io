@@ -56,6 +56,12 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     return this.supr(possibilities);
 });
 
+jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
+    jsio.__preprocess(ctx, moduleDef);
+
+    return this.supr(ctx, moduleDef);
+});
+
 jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
     jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
