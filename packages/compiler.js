@@ -2,14 +2,13 @@ var fs = require('fs');
 var path = require('path');
 var jsio = require('./jsio');
 
-
-function getModule(p) {
+var getModule = function (p) {
     try {
         return fs.readFileSync(p, 'utf8');
     } catch (e) {
         return false;
     }
-}
+};
 
 var findModule = function (possibilities) {
     var src, modulePath, dirname, filename;
