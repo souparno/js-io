@@ -172,7 +172,7 @@ var jsio = (function init() {
 
         fn(ctx);
         if (moduleDef.exports != ctx.module.exports) {
-            return ctx.moduleDef.exports;
+            return ctx.module.exports;
         }
 
         return ctx.exports;
@@ -192,8 +192,8 @@ var jsio = (function init() {
         context.jsio.__setCache = setCache;
         context.jsio.__setModule = setModule;
         context.jsio.__loadModule = loadModule;
-        context.jsio.__preprocess = null;
         context.jsio.__init = init;
+        context.jsio.__preprocess = null;
 
         return context;
     }
