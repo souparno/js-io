@@ -87,11 +87,11 @@ var jsio = (function init() {
             return [request + '.js', request + '/index.js'];
 
         }
-    }, __commands = [];
+    }, commands = [];
 
     // import myPackage;
     // import myPackage as myPack;
-    __commands.push(function (request, imports) {
+    commands.push(function (request, imports) {
         var match = request.match(/^\s*import\s+(.*)$/);
 
         if (match) {
@@ -128,8 +128,8 @@ var jsio = (function init() {
     function resolveImportRequest(request) {
         var imports = {};
 
-        for (var i = 0; i < __commands.length; i++) {
-            if (__commands[i](request, imports)) {
+        for (var i = 0; i < commands.length; i++) {
+            if (commands[i](request, imports)) {
                 break;
             }
         }
