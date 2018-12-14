@@ -1,5 +1,4 @@
 var fs = require('fs');
-var path = require('path');
 var jsio = require('./jsio');
 
 var getModule = function (p) {
@@ -11,23 +10,18 @@ var getModule = function (p) {
 };
 
 var findModule = function (possibilities) {
-    var src, modulePath, dirname, filename;
+    var src, modulePath, moduleDef;
 
     for (var i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
         src = getModule(modulePath);
 
         if (src) {
-            dirname = path.dirname(modulePath);
-            filename = path.basename(modulePath);
-            modulePath = dirname + "/" + filename;
+            moduleDef = jsio.__util.splitPath(modulePath);
+            moduleDef.src = src;
+            moduleDef.modulePath = modulePath;
 
-            return {
-                dirname: dirname,
-                filename: filename,
-                modulePath: modulePath,
-                src: src
-            };
+            return moduleDef;
         }
     }
 };

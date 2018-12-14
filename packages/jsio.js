@@ -86,6 +86,13 @@ var jsio = (function init() {
 
             return [request + '.js', request + '/index.js'];
 
+        }, splitPath: function (path) {
+            var i = path.lastIndexOf('/') + 1;
+
+            return {
+                dirname: path.substring(0, i),
+                filename: path.substring(i)
+            };
         }
     }, commands = [];
 
