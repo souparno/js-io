@@ -15,7 +15,7 @@ function getJsioSrc() {
 
 function updatePreprocessors(preprocessors) {
     if (preprocessors.length == 1) {
-        preprocessors.push('compiler');
+        preprocessors.push('browserify');
     }
 
     return preprocessors;
@@ -45,6 +45,6 @@ exports.compile = function (request, preprocessors) {
 exports.generateSrc = function (callback) {
     var jsioSrc = getJsioSrc();
 
-    jsioSrc = jsioSrc + "jsio.__setCache(" + JSON.stringify(srcTable) + ");";
+    jsioSrc = jsioSrc + "jsio.__setModule(" + JSON.stringify(srcTable) + ");";
     callback(jsioSrc);
 };

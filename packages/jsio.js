@@ -87,13 +87,13 @@ var jsio = (function init() {
             return [request + '.js', request + '/index.js'];
 
         }
-    }, __commands = [], __modules = {}, __cache = {};
+    }, __commands = [];
 
-    function ___() {
+    function _require() {
         return jsio.__require.apply(this, arguments);
     }
 
-    function _require(ctx, fromDir, fromFile, item) {
+    function require(ctx, fromDir, fromFile, item) {
         var request = resolveImportRequest(item);
         var possibilities = util.resolveModulePath(fromDir, request.from);
         var moduleDef = jsio.__loadModule(possibilities);
@@ -140,28 +140,22 @@ var jsio = (function init() {
         return imports;
     }
 
-    function setCache(modules) {
-        __modules = modules;
-    }
-
-    function setModule(modulePath, moduleDef) {
-        if (!__modules[modulePath]) {
-            __modules[modulePath] = moduleDef;
-        }
+    function setModule(modules) {
+        jsio.__modules = modules;
     }
 
     function loadModule(possibilities) {
-        var modulePath;
+        var modules = jsio.__modules, cache = jsio.__cache, modulePath;
 
         for (var i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
 
-            if (__modules[modulePath]) {
-                if (!__cache[modulePath]) {
-                    __cache[modulePath] = __modules[modulePath];
+            if (modules[modulePath]) {
+                if (!cache[modulePath]) {
+                    cache[modulePath] = modules[modulePath];
                 }
 
-                return __cache[modulePath];
+                return cache[modulePath];
             }
         }
     }
@@ -186,14 +180,15 @@ var jsio = (function init() {
         context.exports = {};
         context.module = {};
         context.module.exports = context.exports;
-        context.jsio = util.bind(___, null, context, fromDir, fromFile);
+        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
         context.jsio.__util = util;
-        context.jsio.__require = _require;
-        context.jsio.__setCache = setCache;
+        context.jsio.__require = require;
         context.jsio.__setModule = setModule;
         context.jsio.__loadModule = loadModule;
         context.jsio.__init = init;
         context.jsio.__preprocess = null;
+        context.jsio.__modules = {};
+        context.jsio.__cache = {};
 
         return context;
     }
@@ -201,19 +196,21 @@ var jsio = (function init() {
     return makeContext({dirname: null, filename: null}).jsio;
 }());
 
-for (var key in jsio) {
-    var prop = jsio[key];
-
-    if (typeof prop === "function") {
-        prop.Extends = (function () {
-            return function (fn) {
-                var context = {
-                    supr: this
-                };
-                return jsio.__util.bind(fn, context);
+function overrides(prop) {
+    prop.Extends = (function () {
+        return function (fn) {
+            var context = {
+                supr: this
             };
-        }());
-    }
+            return jsio.__util.bind(fn, context);
+        };
+    }());
+
+    return prop;
 }
+
+jsio.__require = overrides(jsio.__require);
+jsio.__loadModule = overrides(jsio.__loadModule);
+jsio.__setModule = overrides(jsio.__setModule);
 
 module.exports = jsio;
