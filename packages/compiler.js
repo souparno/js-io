@@ -3,30 +3,20 @@ var path = require('path');
 var jsio = require('./jsio');
 
 
-function ENV_node() {
-    var _cwd = process.cwd();
-
-    this.getPwd = function () {
-        return _cwd;
-    };
-
-    this.fetch = function (p) {
-        try {
-            return fs.readFileSync(p, 'utf8');
-        } catch (e) {
-            return false;
-        }
-    };
+function getModule(p) {
+    try {
+        return fs.readFileSync(p, 'utf8');
+    } catch (e) {
+        return false;
+    }
 }
-
-var ENV = new ENV_node();
 
 var findModule = function (possibilities) {
     var src, modulePath, dirname, filename;
 
     for (var i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
-        src = ENV.fetch(modulePath);
+        src = getModule(modulePath);
 
         if (src) {
             dirname = path.dirname(modulePath);

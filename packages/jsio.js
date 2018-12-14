@@ -89,6 +89,21 @@ var jsio = (function init() {
         }
     }, __commands = [];
 
+    // import myPackage;
+    // import myPackage as myPack;
+    __commands.push(function (request, imports) {
+        var match = request.match(/^\s*import\s+(.*)$/);
+
+        if (match) {
+            match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
+                imports.from = fullPath;
+                imports.as = as ? as : fullPath;
+            });
+        }
+
+        return match;
+    });
+
     function _require() {
         return jsio.__require.apply(this, arguments);
     }
@@ -112,21 +127,6 @@ var jsio = (function init() {
         ctx[request.as] = moduleDef.exports;
         return ctx[request.as];
     }
-
-    // import myPackage;
-    // import myPackage as myPack;
-    __commands.push(function (request, imports) {
-        var match = request.match(/^\s*import\s+(.*)$/);
-
-        if (match) {
-            match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
-                imports.from = fullPath;
-                imports.as = as ? as : fullPath;
-            });
-        }
-
-        return match;
-    });
 
     function resolveImportRequest(request) {
         var imports = {};
