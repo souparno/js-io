@@ -29,11 +29,11 @@ exports = function (moduleDef, preprocessors, ctx) {
         ctx.jsio(match[2], updatePreprocessors(preprocessors));
     }
 
-    srcTable[moduleDef.modulePath] = JSON.parse(JSON.stringify({
+    srcTable[moduleDef.modulePath] = {
         dirname: moduleDef.dirname,
         filename: moduleDef.filename,
         src: moduleDef.src
-    }));
+    };
 
     moduleDef.src = '';
 };
