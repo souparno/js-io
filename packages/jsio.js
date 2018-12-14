@@ -199,10 +199,12 @@ var jsio = (function init() {
 jsio.__util.overrides = function (method, props) {
     for (var i = 0; i < props.length; i++) {
         method[props[i]].Extends = (function () {
+
             return function (fn) {
                 var context = {
                     supr: this
                 };
+
                 return jsio.__util.bind(fn, context);
             };
         }());
