@@ -21,12 +21,16 @@ function updatePreprocessors(preprocessors) {
     return preprocessors;
 }
 
+function run(jsio, request, preprocessors) {
+    jsio(request, updatePreprocessors(preprocessors));
+}
+
 exports = function (moduleDef, preprocessors, ctx) {
     var regex = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match = regex.exec(moduleDef.src);
 
     if (match && !testComment(match)) {
-        exports.run(match[2], preprocessors, ctx);
+        run(ctx.jsio, match[2], preprocessors);
     }
 
     srcTable[moduleDef.modulePath] = {
@@ -38,10 +42,8 @@ exports = function (moduleDef, preprocessors, ctx) {
     moduleDef.src = '';
 };
 
-exports.run = function (request, preprocessors, ctx) {
-    var _jsio = ctx ? ctx.jsio : jsio;
-
-    _jsio(request, updatePreprocessors(preprocessors));
+exports.run = function (request, preprocessors) {
+    run(jsio, request, preprocessors);
 };
 
 exports.generateSrc = function (callback) {
