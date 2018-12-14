@@ -196,7 +196,7 @@ var jsio = (function init() {
     return makeContext({dirname: null, filename: null}).jsio;
 }());
 
-jsio.__util.overrides = function(prop) {
+jsio.__util.override = function(prop) {
     prop.Extends = (function () {
         return function (fn) {
             var context = {
@@ -209,8 +209,8 @@ jsio.__util.overrides = function(prop) {
     return prop;
 };
 
-jsio.__require = jsio.__util.overrides(jsio.__require);
-jsio.__loadModule = jsio.__util.overrides(jsio.__loadModule);
-jsio.__setModule = jsio.__util.overrides(jsio.__setModule);
+jsio.__require = jsio.__util.override(jsio.__require);
+jsio.__loadModule = jsio.__util.override(jsio.__loadModule);
+jsio.__setModule = jsio.__util.override(jsio.__setModule);
 
 module.exports = jsio;
