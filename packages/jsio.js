@@ -21,7 +21,7 @@
 
 ;
 var jsio = (function init() {
-    util = {
+    var util = {
         slice: Array.prototype.slice,
         bind: function bind(method, context) {
             var args = util.slice.call(arguments, 2);
