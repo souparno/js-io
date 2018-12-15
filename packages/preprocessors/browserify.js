@@ -39,7 +39,7 @@ exports = function (moduleDef, preprocessors, ctx) {
         src: moduleDef.src
     };
 
-    moduleDef.src = '';
+    moduleDef.src = '(function (){})';
 };
 
 exports.run = function (request, preprocessors) {
