@@ -18,7 +18,7 @@ var findModule = function (possibilities) {
 
         if (src) {
             moduleDef = jsio.__util.splitPath(modulePath);
-            moduleDef.src = src;
+            moduleDef.src = "(function (__) { with (__) {" + src + "}});";
             moduleDef.modulePath = modulePath;
 
             return moduleDef;

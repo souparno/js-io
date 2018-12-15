@@ -21,11 +21,16 @@ function updatePreprocessors(preprocessors) {
     return preprocessors;
 }
 
+function replace(raw, p1, p2, p3, p4) {
+        return p1 + '' + p4;
+}
+
 function run(jsio, request, preprocessors) {
     jsio(request, updatePreprocessors(preprocessors));
 }
 
 exports = function (moduleDef, preprocessors, ctx) {
+    var regexFuncBody = /^(\(\s*function\s*\([_]+\)\s*\{\s*with\s*\([_]+\)\s*\{)((\n*.*)*)(\n*\s*\}\n*\s*\}\n*\s*\)\n*\s*;*)/gm;
     var regex = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match = regex.exec(moduleDef.src);
 
@@ -39,7 +44,8 @@ exports = function (moduleDef, preprocessors, ctx) {
         src: moduleDef.src
     };
 
-    moduleDef.src = '';
+    // replaces the function body with ''
+    moduleDef.src = moduleDef.src.replace(regexFuncBody, replace);
 };
 
 exports.run = function (request, preprocessors) {
