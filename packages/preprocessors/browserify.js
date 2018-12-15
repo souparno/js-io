@@ -38,8 +38,8 @@ exports = function (moduleDef, preprocessors, ctx) {
         filename: moduleDef.filename,
         src: moduleDef.src
     };
-
-    moduleDef.src = '(function (){})';
+    //TODO: put some regex to get the body of the function and replace it with ''
+    moduleDef.src = "(function (__) { with (__) {}});";
 };
 
 exports.run = function (request, preprocessors) {
