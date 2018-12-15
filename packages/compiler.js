@@ -52,7 +52,6 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
 
 jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
     jsio.__preprocess(ctx, moduleDef);
-    moduleDef.src = eval(moduleDef.src);
 
     return this.supr(ctx, moduleDef);
 });

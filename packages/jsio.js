@@ -165,8 +165,9 @@ var jsio = (function init() {
     }
 
     function execModule(ctx, moduleDef) {
-        moduleDef.src(ctx);
+        var fn  = eval(moduleDef.src);
 
+        fn(ctx);
         if (moduleDef.exports != ctx.module.exports) {
             return ctx.module.exports;
         }
