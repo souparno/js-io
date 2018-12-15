@@ -7,6 +7,6 @@ function replace(raw, p1, p2, p3) {
     return raw;
 }
 
-exports = function (moduleDef, preprocessors) {
+exports = function (moduleDef) {
     moduleDef.src = moduleDef.src.replace(importExpr, replace);
 };
