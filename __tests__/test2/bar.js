@@ -1,4 +1,4 @@
-import example2.foo as foo;
+import .foo as foo;
 
 exports = function () {
   foo.hello();
