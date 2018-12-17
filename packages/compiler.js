@@ -42,6 +42,12 @@ var setModule = function (modulePath, moduleDef) {
     }
 };
 
+jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
+    jsio.__preprocess(ctx, moduleDef);
+
+    return this.supr(ctx, moduleDef);
+});
+
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
     var modulePath = moduleDef.modulePath;
@@ -50,16 +56,19 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     return this.supr(possibilities);
 });
 
-jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
-    jsio.__preprocess(ctx, moduleDef);
-
-    return this.supr(ctx, moduleDef);
-});
-
 jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
     jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
     return this.supr(ctx, fromDir, fromFile, item);
 });
 
-module.exports = jsio;
+jsio.__makeContext = jsio.__makeContext.Extends(function (ctx, fromDir, fromFile) {
+    ctx = this.supr(ctx, fromDir, fromFile);
+
+    ctx.jsio = jsio.__util.bind(jsio.__require, null, ctx, fromDir, fromFile);
+    ctx.jsio.__init = jsio.__init;
+
+    return ctx;
+});
+
+module.exports = jsio.__makeContext({}).jsio;
