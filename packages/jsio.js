@@ -165,7 +165,7 @@ var jsio = (function init() {
     }
 
     function execModule(ctx, moduleDef) {
-        var fn  = eval(moduleDef.src);
+        var fn = eval(moduleDef.src);
 
         fn(ctx);
         if (moduleDef.exports != ctx.module.exports) {
@@ -196,7 +196,10 @@ var jsio = (function init() {
         return context;
     }
 
-    return makeContext({dirname: null, filename: null}).jsio;
+    var globalCtx = makeContext({dirname: null, filename: null});
+
+    globalCtx.jsio.global = globalCtx;
+    return globalCtx.jsio;
 }());
 
 jsio.__util.overrides = function (method, props) {
