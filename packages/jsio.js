@@ -175,8 +175,8 @@ var jsio = (function init() {
         return ctx.exports;
     }
 
-    function makeContext(moduleDef) {
-        var context = {},
+    function makeContext(moduleDef, ctx) {
+        var context = ctx ? ctx : {},
                 fromDir = moduleDef.dirname,
                 fromFile = moduleDef.filename;
 
@@ -196,9 +196,9 @@ var jsio = (function init() {
         return context;
     }
 
-    var globalCtx = makeContext({dirname: null, filename: null});
+    var globalCtx = {};
 
-    globalCtx.jsio.global = globalCtx;
+    makeContext({dirname: null, filename: null}, globalCtx).jsio.global = globalCtx;
     return globalCtx.jsio;
 }());
 
