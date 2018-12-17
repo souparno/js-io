@@ -195,7 +195,7 @@ var jsio = (function init() {
         return ctx;
     }
 
-    return makeContext({}, null, null).jsio;
+    return makeContext({}).jsio;
 }());
 
 jsio.__util.overrides = function (method, props) {
