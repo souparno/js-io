@@ -190,14 +190,12 @@ var jsio = (function init() {
         ctx.jsio.__init = init;
         ctx.jsio.__modules = {};
         ctx.jsio.__cache = {};
+        ctx.jsio.__global = ctx;
 
         return ctx;
     }
 
-    var globalCtx = {};
-
-    makeContext(globalCtx, null, null).jsio.global = globalCtx;
-    return globalCtx.jsio;
+    return makeContext({}, null, null).jsio;
 }());
 
 jsio.__util.overrides = function (method, props) {
