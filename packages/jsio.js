@@ -119,11 +119,13 @@ var jsio = (function init() {
         var request = resolveImportRequest(item);
         var possibilities = util.resolveModulePath(fromDir, request.from);
         var moduleDef = jsio.__loadModule(possibilities);
+        var newContext = {};
 
         // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
-            var newContext = makeContext(moduleDef);
-
+            fromDir = moduleDef.dirname;
+            fromFile = moduleDef.filename;
+            newContext = makeContext(newContext, fromDir, fromFile);
             //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
             moduleDef.exports = jsio.__execModule(newContext, moduleDef);
@@ -175,30 +177,26 @@ var jsio = (function init() {
         return ctx.exports;
     }
 
-    function makeContext(moduleDef, ctx) {
-        var context = ctx ? ctx : {},
-                fromDir = moduleDef.dirname,
-                fromFile = moduleDef.filename;
+    function makeContext(ctx, fromDir, fromFile) {
+        ctx.exports = {};
+        ctx.module = {};
+        ctx.module.exports = ctx.exports;
+        ctx.jsio = util.bind(_require, null, ctx, fromDir, fromFile);
+        ctx.jsio.__util = util;
+        ctx.jsio.__require = require;
+        ctx.jsio.__setModule = setModule;
+        ctx.jsio.__loadModule = loadModule;
+        ctx.jsio.__execModule = execModule;
+        ctx.jsio.__init = init;
+        ctx.jsio.__modules = {};
+        ctx.jsio.__cache = {};
 
-        context.exports = {};
-        context.module = {};
-        context.module.exports = context.exports;
-        context.jsio = util.bind(_require, null, context, fromDir, fromFile);
-        context.jsio.__util = util;
-        context.jsio.__require = require;
-        context.jsio.__setModule = setModule;
-        context.jsio.__loadModule = loadModule;
-        context.jsio.__execModule = execModule;
-        context.jsio.__init = init;
-        context.jsio.__modules = {};
-        context.jsio.__cache = {};
-
-        return context;
+        return ctx;
     }
 
     var globalCtx = {};
 
-    makeContext({dirname: null, filename: null}, globalCtx).jsio.global = globalCtx;
+    makeContext(globalCtx, null, null).jsio.global = globalCtx;
     return globalCtx.jsio;
 }());
 
