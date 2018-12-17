@@ -110,6 +110,7 @@ var jsio = (function init() {
 
         return match;
     });
+
     function _require() {
         return jsio.__require.apply(this, arguments);
     }
