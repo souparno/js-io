@@ -110,8 +110,11 @@ var jsio = (function init() {
 
         return match;
     });
+    function _require() {
+        return jsio.__require.apply(this, arguments);
+    }
 
-    function _require(ctx, fromDir, fromFile, item) {
+    function require(ctx, fromDir, fromFile, item) {
         var request = resolveImportRequest(item);
         var possibilities = util.resolveModulePath(fromDir, request.from);
         var moduleDef = jsio.__loadModule(possibilities);
@@ -121,7 +124,7 @@ var jsio = (function init() {
         if (!moduleDef.exports) {
             fromDir = moduleDef.dirname;
             fromFile = moduleDef.filename;
-            newContext = jsio.__makeContext(newContext, fromDir, fromFile);
+            newContext = makeContext(newContext, fromDir, fromFile);
             //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
             moduleDef.exports = jsio.__execModule(newContext, moduleDef);
@@ -178,11 +181,10 @@ var jsio = (function init() {
         ctx.module = {};
         ctx.module.exports = ctx.exports;
         ctx.jsio = util.bind(_require, null, ctx, fromDir, fromFile);
-        ctx.jsio.__require = _require;
+        ctx.jsio.__require = require;
         ctx.jsio.__setModule = setModule;
         ctx.jsio.__loadModule = loadModule;
         ctx.jsio.__execModule = execModule;
-        ctx.jsio.__makeContext = makeContext;
         ctx.jsio.__init = init;
         ctx.jsio.__util = util;
         ctx.jsio.__modules = {};
@@ -209,4 +211,4 @@ jsio.__util.overrides = function (method, props) {
     return method;
 };
 
-module.exports = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__execModule', '__makeContext']);
+module.exports = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__execModule']);
