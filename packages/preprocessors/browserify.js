@@ -31,7 +31,7 @@ exports = function (moduleDef, preprocessors, ctx) {
     var match = regex.exec(moduleDef.src);
 
     if (match && !testComment(match)) {
-        exports.run(ctx, match[2], preprocessors);
+        exports.run(ctx.jsio, match[2], preprocessors);
     }
 
     srcTable[moduleDef.modulePath] = {
@@ -44,8 +44,8 @@ exports = function (moduleDef, preprocessors, ctx) {
     moduleDef.src = moduleDef.src.replace(regexFuncBody, replace);
 };
 
-exports.run = function (ctx, request, preprocessors) {
-    ctx.jsio(request, updatePreprocessors(preprocessors));
+exports.run = function (jsio, request, preprocessors) {
+    jsio(request, updatePreprocessors(preprocessors));
 };
 
 exports.generateSrc = function (callback) {

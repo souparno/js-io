@@ -190,7 +190,6 @@ var jsio = (function init() {
         ctx.jsio.__init = init;
         ctx.jsio.__modules = {};
         ctx.jsio.__cache = {};
-        ctx.jsio.__global = ctx;
 
         return ctx;
     }
