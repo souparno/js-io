@@ -50,9 +50,8 @@ jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
 
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var moduleDef = findModule(possibilities);
-    var modulePath = moduleDef.modulePath;
 
-    setModule(modulePath, moduleDef);
+    setModule(moduleDef.modulePath, moduleDef);
     return this.supr(possibilities);
 });
 
