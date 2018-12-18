@@ -15,8 +15,8 @@ function run(imports) {
     imports = 'import ' + imports.split("/").join(".") + ';';
 
     browserify.run(jsio, imports, ['import']);
-    browserify.generateSrc(function () {
-        console.log("jsio('" + imports + "');");
+    browserify.generateSrc(function (str) {
+        console.log(str + "jsio('" + imports + "');");
     });
 }
 

@@ -6,4 +6,4 @@ exports = {
     print(a+b);
   }
 
-}
+};
