@@ -152,9 +152,11 @@ var jsio = (function init() {
     function moduleDef(modulePath, src) {
         var path = util.splitPath(modulePath);
 
+        this.modulePath = modulePath;
         this.dirname = path.dirname;
         this.filename = path.filename;
         this.src = src;
+        this.exports = null;
     }
 
     function loadModule(possibilities) {
@@ -165,7 +167,7 @@ var jsio = (function init() {
 
             if (modules[modulePath]) {
                 if (!cache[modulePath]) {
-                    cache[modulePath] = new moduleDef(modulePath, modules[modulePath].src);
+                    cache[modulePath] = new moduleDef(modulePath, modules[modulePath]);
                 }
 
                 return cache[modulePath];
@@ -259,7 +261,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setModule(modulePath, {src: "(function (__) { with (__) {" + src + "}});"});
+            setModule(modulePath, "(function (__) { with (__) {" + src + "}});");
             break;
         }
     }
