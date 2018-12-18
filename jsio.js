@@ -1,4 +1,4 @@
-var jsio = require('./packages/compiler');
+var jsio = require('./packages/jsio');
 var browserify = jsio('import packages.preprocessors.browserify');
 
 function help() {
