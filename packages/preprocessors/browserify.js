@@ -22,7 +22,7 @@ function updatePreprocessors(preprocessors) {
 }
 
 function replace(raw, p1, p2, p3, p4) {
-        return p1 + '' + p4;
+    return p1 + '' + p4;
 }
 
 exports = function (moduleDef, preprocessors, ctx) {
@@ -44,8 +44,10 @@ exports.run = function (jsio, request, preprocessors) {
 };
 
 exports.generateSrc = function (callback) {
-    var jsioSrc = getJsioSrc();
-
-    jsioSrc = jsioSrc + "jsio.__setModule(" + JSON.stringify(srcTable) + ");";
-    callback(jsioSrc);
+    console.log(getJsioSrc() + "jsio.__setModule({");
+    for (var prop in srcTable) {
+        console.log(JSON.stringify(prop) + ":", srcTable[prop] + ",");
+    }
+    console.log("});");
+    callback();
 };

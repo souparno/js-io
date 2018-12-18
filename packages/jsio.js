@@ -176,7 +176,7 @@ var jsio = (function init() {
     }
 
     function execModule(ctx, moduleDef) {
-        var fn = eval(moduleDef.src);
+        var fn = moduleDef.src;
 
         fn(ctx);
         if (moduleDef.exports != ctx.module.exports) {
@@ -248,6 +248,7 @@ var setModule = function (modulePath, src) {
 
 jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
     jsio.__preprocess(ctx, moduleDef);
+    moduleDef.src = eval(moduleDef.src);
 
     return this.supr(ctx, moduleDef);
 });
@@ -260,7 +261,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setModule(modulePath, "(function (__) { with (__) {" + src + "}});");
+            setModule(modulePath, "(function (__) { with (__) {" + src + "}})");
             break;
         }
     }
