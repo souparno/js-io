@@ -256,7 +256,7 @@ jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
     var src, modulePath, i;
 
-    for (var i = 0; i < possibilities.length; i++) {
+    for (i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
         src = fetch(modulePath);
 
