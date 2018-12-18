@@ -34,7 +34,7 @@ exports = function (moduleDef, preprocessors, ctx) {
         exports.run(ctx.jsio, match[2], preprocessors);
     }
 
-    srcTable[moduleDef.modulePath] = {
+    srcTable[moduleDef.dirname + moduleDef.filename] = {
         dirname: moduleDef.dirname,
         filename: moduleDef.filename,
         src: moduleDef.src
