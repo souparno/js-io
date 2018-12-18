@@ -26,7 +26,7 @@ function replace(raw, p1, p2, p3, p4) {
 }
 
 exports = function (moduleDef, preprocessors, ctx) {
-    var regexFuncBody = /^(\(\s*function\s*\([_]+\)\s*\{\s*with\s*\([_]+\)\s*\{)((\n*.*)*)(\n*\s*\}\n*\s*\}\n*\s*\))/gm;
+    var regexFuncBody = /^(\(\s*function\s*\([_]+\)\s*\{\s*with\s*\([_]+\)\s*\{)((\s*.*)*)(\s*\}\s*\}\s*\))/gm;
     var regex = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match = regex.exec(moduleDef.src);
 
