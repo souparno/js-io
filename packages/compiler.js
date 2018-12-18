@@ -110,7 +110,7 @@ var jsio = (function init() {
         return match;
     });
 
-    function _require(ctx, fromDir, fromFile, item, opts){
+    function _require(ctx, fromDir, fromFile, item, opts) {
         return jsio.__require(ctx, fromDir, fromFile, item, opts);
     }
 
@@ -206,7 +206,8 @@ var jsio = (function init() {
     return makeContext({}).jsio;
 }());
 
-jsio.__util.overrides = function (method, props) {
+// adds an extend property to the jsio functions passed in the array
+jsio = (function (method, props) {
     for (var i = 0; i < props.length; i++) {
         method[props[i]].Extends = (function () {
 
@@ -219,9 +220,7 @@ jsio.__util.overrides = function (method, props) {
     }
 
     return method;
-};
-
-jsio = jsio.__util.overrides(jsio, ['__require', '__loadModule', '__execModule']);
+})(jsio, ['__require', '__loadModule', '__execModule']);
 
 var fetch = function (p) {
     try {
