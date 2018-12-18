@@ -241,9 +241,9 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
     }
 };
 
-var setModule = function (modulePath, moduleDef) {
+var setModule = function (modulePath, src) {
     if (!jsio.__modules[modulePath]) {
-        jsio.__modules[modulePath] = moduleDef;
+        jsio.__modules[modulePath] = src;
     }
 };
 
