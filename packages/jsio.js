@@ -115,10 +115,10 @@ var jsio = (function init() {
     }
 
     function require(ctx, fromDir, fromFile, item) {
+        var newContext = {};
         var request = resolveImportRequest(item);
         var possibilities = util.resolveModulePath(fromDir, request.from);
         var moduleDef = jsio.__loadModule(possibilities);
-        var newContext = {};
 
         // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
@@ -160,9 +160,9 @@ var jsio = (function init() {
     }
 
     function loadModule(possibilities) {
-        var modules = jsio.__modules, cache = jsio.__cache, modulePath;
+        var modules = jsio.__modules, cache = jsio.__cache, modulePath, i;
 
-        for (var i = 0; i < possibilities.length; i++) {
+        for (i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
 
             if (modules[modulePath]) {
