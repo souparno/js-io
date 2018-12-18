@@ -207,9 +207,9 @@ var jsio = (function init() {
 }());
 
 // adds an extend property to the jsio functions passed in the array
-jsio = (function (method, props) {
+jsio = (function (jsio, props) {
     for (var i = 0; i < props.length; i++) {
-        method[props[i]].Extends = (function () {
+        jsio[props[i]].Extends = (function () {
 
             return function (fn) {
                 var context = {supr: this};
@@ -219,8 +219,8 @@ jsio = (function (method, props) {
         }());
     }
 
-    return method;
-})(jsio, ['__require', '__loadModule', '__execModule']);
+    return jsio;
+}(jsio, ['__require', '__loadModule', '__execModule']));
 
 var fetch = function (p) {
     try {
@@ -237,7 +237,8 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
 
         preprocessor = ctx.jsio(request);
         preprocessor(moduleDef, preprocessors, ctx);
-    }
+    }    
+    moduleDef.src = eval(moduleDef.src);
 };
 
 var setModule = function (modulePath, src) {
@@ -248,7 +249,6 @@ var setModule = function (modulePath, src) {
 
 jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
     jsio.__preprocess(ctx, moduleDef);
-    moduleDef.src = eval(moduleDef.src);
 
     return this.supr(ctx, moduleDef);
 });

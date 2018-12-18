@@ -13,6 +13,16 @@ function getJsioSrc() {
     return src;
 }
 
+function getModules() {
+    var str = "jsio.__setModule({";
+
+    for (var prop in srcTable) {
+        str = str + JSON.stringify(prop) + ":" + srcTable[prop] + ",";
+    }
+ 
+    return str.substring(0, str.length - 1)  + "});";
+}
+
 function updatePreprocessors(preprocessors) {
     if (preprocessors.length == 1) {
         preprocessors.push('browserify');
@@ -44,12 +54,5 @@ exports.run = function (jsio, request, preprocessors) {
 };
 
 exports.generateSrc = function (callback) {
-    var str = getJsioSrc() + "jsio.__setModule({";
-
-    for (var prop in srcTable) {
-        str = str + JSON.stringify(prop) + ":" + srcTable[prop] + ",";
-    }
-    str = str + "});";
-
-    callback(str);
+    callback(getJsioSrc() + getModules());
 };
