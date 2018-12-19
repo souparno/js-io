@@ -145,8 +145,8 @@ var jsio = (function init() {
         return imports;
     }
 
-    function setModule(modules) {
-        jsio.__modules = modules;
+    function setCache(cache) {
+        jsio.__srcCache = cache;
     }
 
     function moduleDef(modulePath, src, exports) {
@@ -160,14 +160,14 @@ var jsio = (function init() {
     }
 
     function loadModule(possibilities) {
-        var modules = jsio.__modules, cache = jsio.__cache, modulePath, i;
+        var srcCache = jsio.__srcCache, cache = jsio.__cache, modulePath, i;
 
         for (i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
 
-            if (modules[modulePath]) {
+            if (srcCache[modulePath]) {
                 if (!cache[modulePath]) {
-                    cache[modulePath] = new moduleDef(modulePath, modules[modulePath]);
+                    cache[modulePath] = new moduleDef(modulePath, srcCache[modulePath]);
                 }
 
                 return cache[modulePath];
@@ -192,12 +192,12 @@ var jsio = (function init() {
         ctx.module.exports = ctx.exports;
         ctx.jsio = util.bind(_require, null, ctx, fromDir, fromFile);
         ctx.jsio.__require = require;
-        ctx.jsio.__setModule = setModule;
+        ctx.jsio.__setCache = setCache;
         ctx.jsio.__loadModule = loadModule;
         ctx.jsio.__execModule = execModule;
         ctx.jsio.__init = init;
         ctx.jsio.__util = util;
-        ctx.jsio.__modules = {};
+        ctx.jsio.__srcCache = {};
         ctx.jsio.__cache = {};
 
         return ctx;
@@ -241,9 +241,9 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
     moduleDef.src = eval(moduleDef.src);
 };
 
-var setModule = function (modulePath, src) {
-    if (!jsio.__modules[modulePath]) {
-        jsio.__modules[modulePath] = src;
+var setCachedSrc = function (modulePath, src) {
+    if (!jsio.__srcCache[modulePath]) {
+        jsio.__srcCache[modulePath] = src;
     }
 };
 
@@ -261,7 +261,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setModule(modulePath, "(function (__) { with (__) {" + src + "}})");
+            setCachedSrc(modulePath, "(function (__) { with (__) {" + src + "}})");
 
             return this.supr(possibilities);
         }

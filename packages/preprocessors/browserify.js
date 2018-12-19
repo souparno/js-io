@@ -14,7 +14,7 @@ function getJsioSrc() {
 }
 
 function getModules() {
-    var str = "jsio.__setModule({";
+    var str = "jsio.__setCache({";
 
     for (var prop in srcTable) {
         str = str + JSON.stringify(prop) + ":" + srcTable[prop] + ",";
