@@ -160,17 +160,17 @@ var jsio = (function init() {
     }
 
     function loadModule(possibilities) {
-        var srcCache = jsio.__srcCache, cache = jsio.__cache, modulePath, i;
+        var srcCache = jsio.__srcCache, modules = jsio.__modules, modulePath, i;
 
         for (i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
 
             if (srcCache[modulePath]) {
-                if (!cache[modulePath]) {
-                    cache[modulePath] = new moduleDef(modulePath, srcCache[modulePath]);
+                if (!modules[modulePath]) {
+                    modules[modulePath] = new moduleDef(modulePath, srcCache[modulePath]);
                 }
 
-                return cache[modulePath];
+                return modules[modulePath];
             }
         }
     }
@@ -198,7 +198,7 @@ var jsio = (function init() {
         ctx.jsio.__init = init;
         ctx.jsio.__util = util;
         ctx.jsio.__srcCache = {};
-        ctx.jsio.__cache = {};
+        ctx.jsio.__modules = {};
 
         return ctx;
     }
