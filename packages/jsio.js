@@ -42,20 +42,6 @@ var jsio = (function init() {
             }
             return pieces.join('/');
         },
-        // `resolveRelativeRequest` changes the request format into file path format.  For example:
-        //     util.resolveRelativeRequest('..foo.bar') -> ../foo/bar
-        resolveRelativeRequest: function (request) {
-            var result = [],
-                    parts = request.split('.'),
-                    len = parts.length,
-                    relative = (len > 1 && !parts[0]),
-                    i = relative ? 0 : -1;
-
-            while (++i < len) {
-                result.push(parts[i] ? parts[i] : '..');
-            }
-            return result.join('/');
-        },
         // `resolveRelativePath` removes relative path indicators.  For example:
         //     util.resolveRelativePath('a/../b') -> b
         resolveRelativePath: function (path) {
@@ -72,6 +58,20 @@ var jsio = (function init() {
             while ((path = tempPath) != (tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1'))) {
             }
             return path;
+        },
+        // `resolveRelativeRequest` changes the request format into file path format.  For example:
+        //     util.resolveRelativeRequest('..foo.bar') -> ../foo/bar
+        resolveRelativeRequest: function (request) {
+            var result = [],
+                    parts = request.split('.'),
+                    len = parts.length,
+                    relative = (len > 1 && !parts[0]),
+                    i = relative ? 0 : -1;
+
+            while (++i < len) {
+                result.push(parts[i] ? parts[i] : '..');
+            }
+            return result.join('/');
         },
         resolveModulePath: function (fromDir, request) {
             if (request.charAt(0) == '.') {
@@ -237,7 +237,7 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
 
         preprocessor = ctx.jsio(request);
         preprocessor(moduleDef, preprocessors, ctx);
-    }    
+    }
     moduleDef.src = eval(moduleDef.src);
 };
 
@@ -262,11 +262,10 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
 
         if (src) {
             setModule(modulePath, "(function (__) { with (__) {" + src + "}})");
-            break;
+
+            return this.supr(possibilities);
         }
     }
-
-    return this.supr(possibilities);
 });
 
 jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
