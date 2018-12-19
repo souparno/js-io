@@ -149,14 +149,14 @@ var jsio = (function init() {
         jsio.__modules = modules;
     }
 
-    function moduleDef(modulePath, src) {
+    function moduleDef(modulePath, src, exports) {
         var path = util.splitPath(modulePath);
 
         this.modulePath = modulePath;
         this.dirname = path.dirname;
         this.filename = path.filename;
         this.src = src;
-        this.exports = null;
+        this.exports = exports;
     }
 
     function loadModule(possibilities) {
