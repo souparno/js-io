@@ -55,8 +55,11 @@ var jsio = (function init() {
              possible instances once, we may have created more instances that can
              be collapsed.
              */
-            while ((path = tempPath) != (tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1'))) {
-            }
+            do {
+                path = tempPath;
+                tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
+            } while (path != tempPath);
+
             return path;
         },
         // `resolveRelativeRequest` changes the request format into file path format.  For example:
@@ -263,7 +266,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         if (src) {
             setCachedSrc(modulePath, "(function (__) { with (__) {" + src + "}})");
 
-            return this.supr(possibilities);
+            return this.supr([modulePath]);
         }
     }
 });
