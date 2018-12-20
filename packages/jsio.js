@@ -29,19 +29,6 @@ var jsio = (function init() {
                 return method.apply(context, args.concat(util.slice.call(arguments, 0)));
             };
         },
-        // `buildPath` accepts an arbitrary number of string arguments to concatenate into a path.
-        //     util.buildPath('a', 'b', 'c/', 'd/') -> 'a/b/c/d/'
-        buildPath: function () {
-            var pieces = [], piece, i;
-
-            for (i = 0; i < arguments.length; i++) {
-                piece = arguments[i];
-                if (piece != '.' && piece != './' && piece) {
-                    pieces.push(piece);
-                }
-            }
-            return pieces.join('/');
-        },
         // `resolveRelativePath` removes relative path indicators.  For example:
         //     util.resolveRelativePath('a/../b') -> b
         resolveRelativePath: function (path) {
@@ -79,9 +66,7 @@ var jsio = (function init() {
         resolveModulePath: function (fromDir, request) {
             if (request.charAt(0) == '.') {
                 request = util.resolveRelativeRequest(request);
-                request = util.buildPath(fromDir, request);
-                request = util.resolveRelativePath(request);
-
+                request = util.resolveRelativePath(([fromDir, request]).join('/'));
             } else {
                 request = request.split('.').join('/');
             }
