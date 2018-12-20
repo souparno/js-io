@@ -126,11 +126,9 @@ var jsio = (function init() {
 
         for (var i = 0; i < commands.length; i++) {
             if (commands[i](request, imports)) {
-                break;
+                return imports;
             }
         }
-
-        return imports;
     }
 
     function setCache(cache) {
