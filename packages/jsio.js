@@ -66,7 +66,7 @@ var jsio = (function init() {
         resolveModulePath: function (fromDir, request) {
             if (request.charAt(0) == '.') {
                 request = util.resolveRelativeRequest(request);
-                request = util.resolveRelativePath(([fromDir, request]).join('/'));
+                request = util.resolveRelativePath(fromDir + request);
             } else {
                 request = request.split('.').join('/');
             }
