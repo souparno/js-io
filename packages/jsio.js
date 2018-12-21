@@ -165,7 +165,7 @@ var jsio = (function init() {
         var fn = moduleDef.src;
 
         fn(ctx);
-        if (moduleDef.exports != ctx.module.exports) {
+        if (ctx.module.exports != moduleDef.exports) {
             return ctx.module.exports;
         }
 
@@ -192,7 +192,7 @@ var jsio = (function init() {
     return makeContext({}).jsio;
 }());
 
-// adds an extend property to the jsio functions passed in the array
+// override jsio and add an extend property to the jsio functions
 jsio = (function (jsio, props) {
     for (var i = 0; i < props.length; i++) {
         jsio[props[i]].Extends = (function () {
