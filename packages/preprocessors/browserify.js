@@ -6,6 +6,7 @@ function testComment(match) {
 
 function getJsioSrc() {
     var src = jsio.__init.toString(-1);
+
     if (src.substring(0, 8) == 'function') {
         src = 'var jsio=(' + src + '());';
     }
@@ -13,14 +14,14 @@ function getJsioSrc() {
     return src;
 }
 
-function getModules() {
-    var str = "jsio.setCache({";
+function getSrcCache() {
+    var str = "{";
 
     for (var prop in srcTable) {
         str = str + JSON.stringify(prop) + ":" + srcTable[prop] + ",";
     }
- 
-    return str.substring(0, str.length - 1)  + "});";
+
+    return str.substring(0, str.length - 1) + "}";
 }
 
 function updatePreprocessors(preprocessors) {
@@ -54,5 +55,7 @@ exports.run = function (jsio, request, preprocessors) {
 };
 
 exports.generateSrc = function (callback) {
-    callback(getJsioSrc() + getModules());
+    var str = getJsioSrc() + "jsio.setCache(" + getSrcCache() + ");";
+
+    callback(str);
 };
