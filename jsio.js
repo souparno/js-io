@@ -4,12 +4,11 @@ var browserify = jsio('import packages.preprocessors.browserify', defaultPreproc
 
 function help() {
     console.log("Usage:node jsio <path>/<to>/<file>");
-    return;
 }
 
 function run(imports) {
     if (!imports) {
-        help();
+        return help();
     }
 
     imports = imports.split(".")[0];
