@@ -146,14 +146,15 @@ var jsio = (function init() {
     }
 
     function loadModule(possibilities) {
-        var srcCache = jsio.__srcCache, modules = jsio.__modules, modulePath, i;
+        var srcCache = jsio.__srcCache, modules = jsio.__modules, modulePath, src, i;
 
         for (i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
+            src = srcCache[modulePath];
 
-            if (srcCache[modulePath]) {
+            if (src) {
                 if (!modules[modulePath]) {
-                    modules[modulePath] = new moduleDef(modulePath, srcCache[modulePath]);
+                    modules[modulePath] = new moduleDef(modulePath, src);
                 }
 
                 return modules[modulePath];
