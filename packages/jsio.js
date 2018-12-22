@@ -146,7 +146,9 @@ var jsio = (function init() {
     }
 
     function loadModule(possibilities) {
-        var srcCache = jsio.__srcCache, modules = jsio.__modules, modulePath, src, i;
+        var srcCache = jsio.__srcCache,
+                modules = jsio.__modules,
+                modulePath, src, i;
 
         for (i = 0; i < possibilities.length; i++) {
             modulePath = possibilities[i];
