@@ -1,3 +1,4 @@
+var __filename = this.filename.split('.')[0];
 var srcTable = {};
 
 function testComment(match) {
@@ -26,7 +27,7 @@ function getSrcCache() {
 
 function updatePreprocessors(preprocessors) {
     if (preprocessors.length == 1) {
-        preprocessors.push('browserify');
+        preprocessors.push(__filename);
     }
 
     return preprocessors;

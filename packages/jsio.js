@@ -165,7 +165,7 @@ var jsio = (function init() {
     }
 
     function execModule(ctx, moduleDef) {
-        var fn = moduleDef.src;
+        var fn = util.bind(moduleDef.src, moduleDef);
 
         fn(ctx);
         if (ctx.module.exports != moduleDef.exports) {
