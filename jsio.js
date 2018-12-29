@@ -12,7 +12,7 @@ function run(imports) {
     }
 
     imports = imports.split(".")[0];
-    imports = 'import ' + imports.split("/").join(".") + ';';
+    imports = 'import ' + imports.split("/").join(".");
 
     browserify.run(jsio, imports, defaultPreprocessor);
     browserify.generateSrc(function (str) {
