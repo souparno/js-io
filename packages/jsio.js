@@ -219,9 +219,11 @@ var fetch = function (p) {
 };
 
 var preprocess = function (preprocessors, ctx, moduleDef) {
-    for (var key in preprocessors) {
-        var preprocessor = preprocessors[key];
-        var request = 'import packages.preprocessors.' + preprocessor;
+    var key, preprocessor, request;
+
+    for (key in preprocessors) {
+        preprocessor = preprocessors[key];
+        request = 'import packages.preprocessors.' + preprocessor;
 
         preprocessor = ctx.jsio(request);
         preprocessor(moduleDef, preprocessors, ctx);

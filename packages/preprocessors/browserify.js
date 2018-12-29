@@ -1,3 +1,5 @@
+import packages.util.underscore as _;  
+
 var filename = this.filename.split('.')[0];
 var srcTable = {};
 
@@ -26,7 +28,7 @@ function getSrcCache() {
 }
 
 function updatePreprocessors(preprocessors) {
-    if (preprocessors.length == 1) {
+    if (!_.contains(preprocessors, filename)) {
         preprocessors.push(filename);
     }
 
