@@ -73,13 +73,11 @@ var jsio = (function init() {
 
             return [request + '.js', request + '/index.js'];
 
-        }, splitPath: function (path) {
+        }, splitPath: function (path, result) {
             var i = path.lastIndexOf('/') + 1;
 
-            return {
-                dirname: path.substring(0, i),
-                filename: path.substring(i)
-            };
+            result.directory = path.substring(0, i);
+            result.flename = path.substring(i);
         }
     }, commands = [];
 
@@ -110,7 +108,7 @@ var jsio = (function init() {
 
         // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
-            fromDir = moduleDef.dirname;
+            fromDir = moduleDef.directory;
             fromFile = moduleDef.filename;
             newContext = makeContext(newContext, fromDir, fromFile);
             //stops recursive dependencies from creating an infinite callbacks
@@ -122,9 +120,9 @@ var jsio = (function init() {
     }
 
     function resolveImportRequest(request) {
-        var imports = {};
+        var imports = {}, i;
 
-        for (var i = 0; i < commands.length; i++) {
+        for (i = 0; i < commands.length; i++) {
             if (commands[i](request, imports)) {
                 return imports;
             }
@@ -136,11 +134,8 @@ var jsio = (function init() {
     }
 
     function moduleDef(modulePath, src, exports) {
-        var path = util.splitPath(modulePath);
-
+        util.splitPath(modulePath, this);
         this.modulePath = modulePath;
-        this.dirname = path.dirname;
-        this.filename = path.filename;
         this.src = src;
         this.exports = exports;
     }
