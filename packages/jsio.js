@@ -194,7 +194,7 @@ var jsio = (function init() {
     return makeContext({}).jsio;
 }());
 
-// override jsio and add an extend property to the jsio functions
+// override jsio and make its properties extendable
 jsio = (function (jsio, props) {
     for (var i = 0; i < props.length; i++) {
         jsio[props[i]].Extends = (function () {

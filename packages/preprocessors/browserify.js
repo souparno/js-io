@@ -1,6 +1,5 @@
 import packages.util.underscore as _
 
-var filename = this.filename.split('.')[0];
 var srcTable = {};
 
 function testComment(match) {
@@ -27,14 +26,6 @@ function getSrcCache() {
     return str.substring(0, str.length - 1) + "}";
 }
 
-function updatePreprocessors(preprocessors) {
-    if (!_.contains(preprocessors, filename)) {
-        preprocessors.push(filename);
-    }
-
-    return preprocessors;
-}
-
 function replace(raw, p1, p2, p3, p4) {
     return p1 + '' + p4;
 }
@@ -52,12 +43,12 @@ exports = function (moduleDef, preprocessors, ctx) {
     } while (match)
 
     srcTable[moduleDef.modulePath] = moduleDef.src;
-    // replaces the function body with ''
+    // stops eval module src by removing body
     moduleDef.src = moduleDef.src.replace(removeFuncBody, replace);
 };
 
 exports.run = function (jsio, request, preprocessors) {
-    jsio(request, updatePreprocessors(preprocessors));
+    jsio(request, preprocessors);
 };
 
 exports.generateSrc = function (callback) {
