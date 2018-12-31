@@ -44,7 +44,7 @@ exports = function (moduleDef, preprocessors, ctx) {
 
     srcTable[moduleDef.modulePath] = moduleDef.src;
     // stops eval module src by removing body
-    moduleDef.src = moduleDef.src.replace(removeFuncBody, replace);
+    return moduleDef.src.replace(removeFuncBody, replace);
 };
 
 exports.run = function (jsio, request, preprocessors) {

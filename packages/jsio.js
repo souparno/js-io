@@ -221,7 +221,7 @@ var preprocess = function (preprocessors, ctx, moduleDef) {
         request = 'import packages.preprocessors.' + preprocessor;
 
         preprocessor = ctx.jsio(request);
-        preprocessor(moduleDef, preprocessors, ctx);
+        moduleDef.src = preprocessor(moduleDef, preprocessors, ctx);
     }
     moduleDef.src = eval(moduleDef.src);
 };

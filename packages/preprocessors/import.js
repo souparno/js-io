@@ -8,5 +8,5 @@ function replace(raw, p1, p2, p3) {
 }
 
 exports = function (moduleDef) {
-    moduleDef.src = moduleDef.src.replace(importExpr, replace);
+    return moduleDef.src.replace(importExpr, replace);
 };
