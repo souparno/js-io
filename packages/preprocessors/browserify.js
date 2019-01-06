@@ -1,5 +1,3 @@
-import packages.util.underscore as _
-
 var srcTable = {};
 
 function testComment(match) {
@@ -30,7 +28,7 @@ function replace(raw, p1, p2, p3, p4) {
     return p1 + '' + p4;
 }
 
-exports = function (moduleDef, preprocessors, ctx) {
+module.exports = function (moduleDef, preprocessors, ctx) {
     var removeFuncBody = /^(\(\s*function\s*\([_]+\)\s*\{\s*with\s*\([_]+\)\s*\{)((\s*.*)*)(\s*\}\s*\}\s*\))/gm;
     var jsioNormal = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match;
@@ -38,20 +36,20 @@ exports = function (moduleDef, preprocessors, ctx) {
     do {
         match = jsioNormal.exec(moduleDef.src);
         if (match && !testComment(match)) {
-            exports.run(ctx.jsio, match[2], preprocessors);
+            module.exports.run(ctx.jsio, match[2], preprocessors);
         }
     } while (match)
 
     srcTable[moduleDef.modulePath] = moduleDef.src;
     // stops eval module src by removing body
-    return moduleDef.src.replace(removeFuncBody, replace);
+    return function() {};
 };
 
-exports.run = function (jsio, request, preprocessors) {
+module.exports.run = function (jsio, request, preprocessors) {
     jsio(request, preprocessors);
 };
 
-exports.generateSrc = function (callback) {
+module.exports.generateSrc = function (callback) {
     var str = getJsioSrc() + "jsio.setCache(" + getSrcCache() + ");";
 
     callback(str);

@@ -73,37 +73,22 @@ var jsio = (function init() {
 
             return [request + '.js', request + '/index.js'];
 
-        }, splitPath: function (path, result) {
+        },
+        splitPath: function (path, result) {
             var i = path.lastIndexOf('/') + 1;
 
             result.directory = path.substring(0, i);
             result.flename = path.substring(i);
         }
-    }, commands = [];
-
-    // import myPackage;
-    // import myPackage as myPack;
-    commands.push(function (request, imports) {
-        var match = request.match(/^\s*import\s+(.*)$/);
-
-        if (match) {
-            match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
-                imports.from = fullPath;
-                imports.as = as ? as : fullPath;
-            });
-        }
-
-        return match;
-    });
+    };
 
     function _require(ctx, fromDir, fromFile, item, opts) {
         return jsio.__require(ctx, fromDir, fromFile, item, opts);
     }
 
-    function require(ctx, fromDir, fromFile, item) {
+    function require(ctx, fromDir, fromFile, request) {
         var newContext = {};
-        var request = resolveImportRequest(item);
-        var possibilities = util.resolveModulePath(fromDir, request.from);
+        var possibilities = util.resolveModulePath(fromDir, request);
         var moduleDef = jsio.__loadModule(possibilities);
 
         // stops re-execution, if module allready executed
@@ -115,18 +100,7 @@ var jsio = (function init() {
             moduleDef.exports = newContext.exports;
             moduleDef.exports = jsio.__execModule(newContext, moduleDef);
         }
-        ctx[request.as] = moduleDef.exports;
-        return ctx[request.as];
-    }
-
-    function resolveImportRequest(request) {
-        var imports = {}, i;
-
-        for (i = 0; i < commands.length; i++) {
-            if (commands[i](request, imports)) {
-                return imports;
-            }
-        }
+        return moduleDef.exports;
     }
 
     function setCache(cache) {
@@ -160,19 +134,13 @@ var jsio = (function init() {
     }
 
     function execModule(ctx, moduleDef) {
-        moduleDef.src(ctx);
+        moduleDef.src(ctx.jsio, moduleDef);
 
-        if (ctx.module.exports != moduleDef.exports) {
-            return ctx.module.exports;
-        }
-
-        return ctx.exports;
+        return moduleDef.exports;
     }
 
     function makeContext(ctx, fromDir, fromFile) {
         ctx.exports = {};
-        ctx.module = {};
-        ctx.module.exports = ctx.exports;
         ctx.jsio = util.bind(_require, null, ctx, fromDir, fromFile);
         ctx.jsio.setCache = setCache;
         ctx.jsio.__require = require;
@@ -214,13 +182,11 @@ var fetch = function (p) {
 };
 
 var preprocess = function (preprocessors, ctx, moduleDef) {
-    var key, preprocessor, request;
+    var key, preprocessor;
 
     for (key in preprocessors) {
         preprocessor = preprocessors[key];
-        request = 'import packages.preprocessors.' + preprocessor;
-
-        preprocessor = ctx.jsio(request);
+        preprocessor = ctx.jsio('packages.preprocessors.' + preprocessor);
         moduleDef.src = preprocessor(moduleDef, preprocessors, ctx);
     }
     moduleDef.src = eval(moduleDef.src);
@@ -246,7 +212,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setCachedSrc(modulePath, "(function (__) { with (__) {" + src + "}})");
+            setCachedSrc(modulePath, "(function (jsio, module) {" + src + "})");
 
             return this.supr([modulePath]);
         }

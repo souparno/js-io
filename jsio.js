@@ -1,5 +1,5 @@
 var jsio = require('./packages/jsio');
-var browserify = jsio('import packages.preprocessors.browserify', ['import']);
+var browserify = jsio('packages.preprocessors.browserify', ['import']);
 
 function help() {
     console.log("Usage:node jsio <path>/<to>/<file>");
@@ -11,7 +11,7 @@ function run(imports) {
     }
 
     imports = imports.split(".")[0];
-    imports = 'import ' + imports.split("/").join(".");
+    imports = imports.split("/").join(".");
 
     browserify.run(jsio, imports, ['import', 'browserify']);
     browserify.generateSrc(function (str) {

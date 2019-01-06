@@ -1,6 +1,6 @@
 import .foo as foo;
 
-exports.hello = function () {
+module.exports.hello = function () {
   console.log("hello from foo");
 };
 
