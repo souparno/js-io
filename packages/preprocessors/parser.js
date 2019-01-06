@@ -30,8 +30,8 @@ function testComment(match) {
 
 function replace(raw, p1, p2, p3) {
     if (!testComment(p1)) {
-      raw = resolveImportRequest(p2);
-      raw = p1 + 'var ' + raw.as + ' = jsio(\'' + raw.from + '\');' + p3;
+        p2 = resolveImportRequest(p2);
+        return p1 + 'var ' + p2.as + ' = jsio(\'' + p2.from + '\');' + p3;
     }
 
     return raw;
