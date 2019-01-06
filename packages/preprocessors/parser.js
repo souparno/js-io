@@ -26,8 +26,12 @@ function resolveImportRequest(request) {
     }
 }
 
+function testComment(match) {
+    return /\/\//.test(match);
+}
+
 function replace(raw, p1, p2, p3) {
-    if (!/\/\//.test(p1)) {
+    if (!testComment(p1)) {
       raw = resolveImportRequest(p2)
       raw = p1 + 'var ' + raw.as + ' = jsio(\'' + raw.from + '\')' + p3;
     }
