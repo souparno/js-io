@@ -31,14 +31,14 @@ function testComment(match) {
 function replace(raw, p1, p2, p3) {
     if (!testComment(p1)) {
         p2 = resolveImportRequest(p2);
-        return p1 + 'var ' + p2.as + ' = jsio(\'' + p2.from + '\');' + p3;
+        return p1 + 'var ' + p2.as + ' = jsio(\'' + p2.from + '\')' + p3;
     }
 
     return raw;
 }
 
 module.exports = function (moduleDef) {
-    var importExpr = /^(.*)(import\s+[^=+*"'\r\n;\/]+)(;|$)/gm;
+    var importExpr = /^(.*)(import\s+[^=+*"'\r\n;\/]+)(;)/gm;
 
     return moduleDef.src.replace(importExpr, replace);
 };
