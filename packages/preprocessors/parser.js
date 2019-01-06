@@ -5,7 +5,7 @@ commands.push(function (request, imports) {
     var match = request.match(/^\s*import\s+(.*)$/);
 
     if (match) {
-        match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
+        request.replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
             imports.from = fullPath;
             imports.as = as;
         });
