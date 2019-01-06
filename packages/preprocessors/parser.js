@@ -1,7 +1,5 @@
-var importExpr = /^(.*)(import\s+[^=+*"'\r\n;\/]+|from\s+[^=+"'\r\n;\/ ]+\s+import\s+[^=+"'\r\n;\/]+)(;|\/|$)/gm;
 var commands = [];
 
-// import myPackage;
 // import myPackage as myPack;
 commands.push(function (request, imports) {
     var match = request.match(/^\s*import\s+(.*)$/);
@@ -9,7 +7,7 @@ commands.push(function (request, imports) {
     if (match) {
         match[1].replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
             imports.from = fullPath;
-            imports.as = as ? as : fullPath;
+            imports.as = as;
         });
     }
 
@@ -32,7 +30,7 @@ function testComment(match) {
 
 function replace(raw, p1, p2, p3) {
     if (!testComment(p1)) {
-      raw = resolveImportRequest(p2)
+      raw = resolveImportRequest(p2);
       raw = p1 + 'var ' + raw.as + ' = jsio(\'' + raw.from + '\');' + p3;
     }
 
@@ -40,5 +38,7 @@ function replace(raw, p1, p2, p3) {
 }
 
 module.exports = function (moduleDef) {
+    var importExpr = /^(.*)(import\s+[^=+*"'\r\n;\/]+)(;|$)/gm;
+
     return moduleDef.src.replace(importExpr, replace);
 };
