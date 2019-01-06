@@ -29,7 +29,7 @@ function replace(raw, p1, p2, p3, p4) {
 }
 
 module.exports = function (moduleDef, preprocessors, ctx) {
-    var removeFuncBody = /^(\(\s*function\s*\([_]+\)\s*\{\s*with\s*\([_]+\)\s*\{)((\s*.*)*)(\s*\}\s*\}\s*\))/gm;
+    var removeFuncBody = /^(\(\s*function\s*\(.+\){)((\s*.*)*)(\s*\}\s*\))/gm;
     var jsioNormal = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match;
 
@@ -42,7 +42,7 @@ module.exports = function (moduleDef, preprocessors, ctx) {
 
     srcTable[moduleDef.modulePath] = moduleDef.src;
     // stops eval module src by removing body
-    return function() {};
+    return moduleDef.src.replace(removeFuncBody, replace);
 };
 
 module.exports.run = function (jsio, request, preprocessors) {

@@ -82,14 +82,14 @@ var jsio = (function init() {
         }
     };
 
-    function _require(ctx, fromDir, fromFile, item, opts) {
-        return jsio.__require(ctx, fromDir, fromFile, item, opts);
+    function _require(fromDir, fromFile, item, opts) {
+        return jsio.__require(fromDir, fromFile, item, opts);
     }
 
-    function require(ctx, fromDir, fromFile, request) {
-        var newContext = {};
-        var possibilities = util.resolveModulePath(fromDir, request);
+    function require(fromDir, fromFile, item) {
+        var possibilities = util.resolveModulePath(fromDir, item);
         var moduleDef = jsio.__loadModule(possibilities);
+        var newContext = {};
 
         // stops re-execution, if module allready executed
         if (!moduleDef.exports) {
@@ -141,7 +141,7 @@ var jsio = (function init() {
 
     function makeContext(ctx, fromDir, fromFile) {
         ctx.exports = {};
-        ctx.jsio = util.bind(_require, null, ctx, fromDir, fromFile);
+        ctx.jsio = util.bind(_require, null, fromDir, fromFile);
         ctx.jsio.setCache = setCache;
         ctx.jsio.__require = require;
         ctx.jsio.__loadModule = loadModule;
@@ -212,17 +212,17 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setCachedSrc(modulePath, "(function (jsio, module) {" + src + "})");
+            setCachedSrc(modulePath, "(function (jsio, module){" + src + "})");
 
             return this.supr([modulePath]);
         }
     }
 });
 
-jsio.__require = jsio.__require.Extends(function (ctx, fromDir, fromFile, item, preprocessors) {
+jsio.__require = jsio.__require.Extends(function (fromDir, fromFile, item, preprocessors) {
     jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
-    return this.supr(ctx, fromDir, fromFile, item);
+    return this.supr(fromDir, fromFile, item);
 });
 
 module.exports = jsio;
