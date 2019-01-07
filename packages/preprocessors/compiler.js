@@ -40,7 +40,7 @@ module.exports = function (moduleDef, preprocessors, jsio) {
         }
     } while (match)
 
-    srcTable[moduleDef.modulePath] = moduleDef.src;
+    srcTable[moduleDef.path] = moduleDef.src;
     // stops eval module src by removing body
     return moduleDef.src.replace(removeFuncBody, replace);
 };

@@ -79,9 +79,9 @@ var jsio = (function init() {
         jsio.__srcCache = cache;
     }
 
-    function moduleDef(modulePath, src, exports) {
-        util.splitPath(modulePath, this);
-        this.modulePath = modulePath;
+    function ModuleDef(path, src, exports) {
+        util.splitPath(path, this);
+        this.path = path;
         this.src = src;
         this.exports = exports;
     }
@@ -97,7 +97,7 @@ var jsio = (function init() {
 
             if (src) {
                 if (!modules[modulePath]) {
-                    modules[modulePath] = new moduleDef(modulePath, src);
+                    modules[modulePath] = new ModuleDef(modulePath, src);
                 }
 
                 return modules[modulePath];
