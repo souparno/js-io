@@ -1,8 +1,8 @@
 import .app as app;
 
-module.exports.hello = function () {
-  console.log("hello from app");
+module.exports.add = function (a, b) {
+  console.log(a + b);
 };
 
-app.hello();
+app.add(2, 3);
 
