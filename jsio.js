@@ -10,8 +10,6 @@ function run(imports) {
         return help();
     }
 
-    imports = imports.substring(0, imports.lastIndexOf('.'));
-
     jsio(imports, ['parser', 'compiler']);
 
     compiler.generateSrc(function (str) {
