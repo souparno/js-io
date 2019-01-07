@@ -44,7 +44,7 @@ var jsio = (function init() {
                 request = util.resolveRelativePath([fromDir, request].join(''));
             }
 
-            return [request + '.js', request + '/index.js'];
+            return (request.indexOf('.') == -1) ? [request + '.js', request + '/index.js'] : [request];
         },
         splitPath: function (path, result) {
             var i = path.lastIndexOf('/') + 1;
