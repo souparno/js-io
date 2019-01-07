@@ -36,17 +36,13 @@ module.exports = function (moduleDef, preprocessors, jsio) {
     do {
         match = jsioNormal.exec(moduleDef.src);
         if (match && !testComment(match)) {
-            module.exports.run(jsio, match[2], preprocessors);
+            jsio(match[2], preprocessors);
         }
     } while (match)
 
     srcTable[moduleDef.path] = moduleDef.src;
     // stops eval module src by removing body
     return moduleDef.src.replace(removeFuncBody, replace);
-};
-
-module.exports.run = function (jsio, request, preprocessors) {
-    jsio(request, preprocessors);
 };
 
 module.exports.generateSrc = function (callback) {

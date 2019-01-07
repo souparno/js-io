@@ -11,7 +11,9 @@ function run(imports) {
     }
 
     imports = imports.substring(0, imports.lastIndexOf('.'));
-    compiler.run(jsio, imports, ['parser', 'compiler']);
+
+    jsio(imports, ['parser', 'compiler']);
+
     compiler.generateSrc(function (str) {
         console.log(str + "jsio('" + imports + "');");
     });
