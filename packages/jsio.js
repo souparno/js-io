@@ -29,19 +29,9 @@ var jsio = (function init() {
                 return method.apply(context, args.concat(util.slice.call(arguments, 0)));
             };
         },
-        // `resolveRelativePath` removes relative path indicators.  For example:
-        //     util.resolveRelativePath('a/../b') -> b
         resolveRelativePath: function (path) {
-            /* Remove multiple slashes and trivial dots (`/./ -> /`). */
-            var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
+            var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/').replace(/\.\//g, '');
 
-            /* Loop to collapse instances of `../` in the path by matching a previous
-             path segment.  Essentially, we find substrings of the form `/abc/../`
-             where abc is not `.` or `..` and replace the substrings with `/`.
-             We loop until the string no longer changes since after collapsing
-             possible instances once, we may have created more instances that can
-             be collapsed.
-             */
             do {
                 path = tempPath;
                 tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
@@ -49,26 +39,9 @@ var jsio = (function init() {
 
             return path;
         },
-        // `resolveRelativeRequest` changes the request format into file path format.  For example:
-        //     util.resolveRelativeRequest('..foo.bar') -> ../foo/bar
-        resolveRelativeRequest: function (request) {
-            var result = [],
-                    parts = request.split('.'),
-                    len = parts.length,
-                    relative = (len > 1 && !parts[0]),
-                    i = relative ? 0 : -1;
-
-            while (++i < len) {
-                result.push(parts[i] ? parts[i] : '..');
-            }
-            return result.join('/');
-        },
         resolveModulePath: function (fromDir, request) {
             if (request.charAt(0) == '.') {
-                request = util.resolveRelativeRequest(request);
-                request = util.resolveRelativePath(fromDir + request);
-            } else {
-                request = request.split('.').join('/');
+                request = util.resolveRelativePath([fromDir, request].join(''));
             }
 
             return [request + '.js', request + '/index.js'];
@@ -186,7 +159,7 @@ var preprocess = function (preprocessors, jsio, moduleDef) {
 
     for (key in preprocessors) {
         preprocessor = preprocessors[key];
-        preprocessor = jsio('packages.preprocessors.' + preprocessor);
+        preprocessor = jsio('packages/preprocessors/' + preprocessor);
         moduleDef.src = preprocessor(moduleDef, preprocessors, jsio);
     }
     moduleDef.src = eval(moduleDef.src);
@@ -212,7 +185,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setCachedSrc(modulePath, "(function (jsio, module){" + src + "})");
+            setCachedSrc(modulePath, "(function (require, module) {" + src + "})");
 
             return this.supr([modulePath]);
         }
