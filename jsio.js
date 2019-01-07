@@ -1,3 +1,4 @@
+"use strict";
 var jsio = require('./packages/jsio');
 var compiler = jsio('./packages/preprocessors/compiler');
 

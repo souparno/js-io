@@ -1,3 +1,4 @@
+"use strict";
 var srcTable = {};
 
 function testComment(match) {
