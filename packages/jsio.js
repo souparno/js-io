@@ -70,7 +70,7 @@ var jsio = (function init() {
             newContext = makeContext(newContext, fromDir, fromFile);
             //stops recursive dependencies from creating an infinite callbacks
             moduleDef.exports = newContext.exports;
-            moduleDef.exports = jsio.__execModule(newContext, moduleDef);
+            moduleDef.exports = jsio.__execModule(newContext.jsio, moduleDef);
         }
         return moduleDef.exports;
     }
@@ -105,8 +105,8 @@ var jsio = (function init() {
         }
     }
 
-    function execModule(ctx, moduleDef) {
-        moduleDef.src(ctx.jsio, moduleDef);
+    function execModule(jsio, moduleDef) {
+        moduleDef.src(jsio, moduleDef);
 
         return moduleDef.exports;
     }
@@ -132,14 +132,11 @@ var jsio = (function init() {
 // override jsio and make its properties extendable
 jsio = (function (jsio, props) {
     for (var i = 0; i < props.length; i++) {
-        jsio[props[i]].Extends = (function () {
+        jsio[props[i]].Extends = function (fn) {
+            var context = {jsio: jsio, supr: this};
 
-            return function (fn) {
-                var context = {supr: this};
-
-                return jsio.__util.bind(fn, context);
-            };
-        }());
+            return jsio.__util.bind(fn, context);
+        };
     }
 
     return jsio;
@@ -170,10 +167,10 @@ var setCachedSrc = function (path, src) {
     }
 };
 
-jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
-    jsio.__preprocess(ctx.jsio, moduleDef);
+jsio.__execModule = jsio.__execModule.Extends(function (jsio, moduleDef) {
+    this.jsio.__preprocess(jsio, moduleDef);
 
-    return this.supr(ctx, moduleDef);
+    return this.supr(jsio, moduleDef);
 });
 
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
@@ -192,7 +189,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
 });
 
 jsio.__require = jsio.__require.Extends(function (fromDir, fromFile, item, preprocessors) {
-    jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
+    this.jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
     return this.supr(fromDir, fromFile, item);
 });
