@@ -45,7 +45,6 @@ var jsio = (function init() {
             }
 
             return [request + '.js', request + '/index.js'];
-
         },
         splitPath: function (path, result) {
             var i = path.lastIndexOf('/') + 1;
