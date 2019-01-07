@@ -164,9 +164,9 @@ var preprocess = function (preprocessors, jsio, moduleDef) {
     moduleDef.src = eval(moduleDef.src);
 };
 
-var setCachedSrc = function (modulePath, src) {
-    if (!jsio.__srcCache[modulePath]) {
-        jsio.__srcCache[modulePath] = src;
+var setCachedSrc = function (path, src) {
+    if (!jsio.__srcCache[path]) {
+        jsio.__srcCache[path] = src;
     }
 };
 
