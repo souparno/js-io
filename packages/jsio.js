@@ -181,13 +181,13 @@ var fetch = function (p) {
     }
 };
 
-var preprocess = function (preprocessors, ctx, moduleDef) {
+var preprocess = function (preprocessors, jsio, moduleDef) {
     var key, preprocessor;
 
     for (key in preprocessors) {
         preprocessor = preprocessors[key];
-        preprocessor = ctx.jsio('packages.preprocessors.' + preprocessor);
-        moduleDef.src = preprocessor(moduleDef, preprocessors, ctx);
+        preprocessor = jsio('packages.preprocessors.' + preprocessor);
+        moduleDef.src = preprocessor(moduleDef, preprocessors, jsio);
     }
     moduleDef.src = eval(moduleDef.src);
 };
@@ -199,7 +199,7 @@ var setCachedSrc = function (modulePath, src) {
 };
 
 jsio.__execModule = jsio.__execModule.Extends(function (ctx, moduleDef) {
-    jsio.__preprocess(ctx, moduleDef);
+    jsio.__preprocess(ctx.jsio, moduleDef);
 
     return this.supr(ctx, moduleDef);
 });

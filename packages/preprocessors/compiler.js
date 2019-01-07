@@ -28,7 +28,7 @@ function replace(raw, p1, p2, p3, p4) {
     return p1 + '' + p4;
 }
 
-module.exports = function (moduleDef, preprocessors, ctx) {
+module.exports = function (moduleDef, preprocessors, jsio) {
     var removeFuncBody = /^(\(\s*function\s*\(.+\){)((\s*.*)*)(\s*\}\s*\))/gm;
     var jsioNormal = /^(.*)jsio\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match;
@@ -36,7 +36,7 @@ module.exports = function (moduleDef, preprocessors, ctx) {
     do {
         match = jsioNormal.exec(moduleDef.src);
         if (match && !testComment(match)) {
-            module.exports.run(ctx.jsio, match[2], preprocessors);
+            module.exports.run(jsio, match[2], preprocessors);
         }
     } while (match)
 
