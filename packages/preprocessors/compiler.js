@@ -30,11 +30,11 @@ function replace(raw, p1, p2, p3, p4) {
 
 module.exports = function (moduleDef, preprocessors, jsio) {
     var removeFuncBody = /^(\(\s*function\s*\([^=+*"'\r\n.;]+\)\s*\{)((\s*.*)*)(\s*\}\s*\))/gm;
-    var jsioNormal = /^(.*)require\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
+    var requireRegex = /^(.*)require\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match;
 
     do {
-        match = jsioNormal.exec(moduleDef.src);
+        match = requireRegex.exec(moduleDef.src);
         if (match && !testComment(match)) {
             jsio(match[2], preprocessors);
         }
