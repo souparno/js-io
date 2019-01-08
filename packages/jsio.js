@@ -62,14 +62,12 @@ var jsio = (function init() {
     function require(fromDir, fromFile, item) {
         var possibilities = util.resolveModulePath(fromDir, item);
         var moduleDef = jsio.__loadModule(possibilities);
-        var newContext = {};
 
         if (!moduleDef.exports) {
+            moduleDef.exports = {};
             fromDir = moduleDef.directory;
             fromFile = moduleDef.filename;
-            newContext = makeContext(newContext, fromDir, fromFile);
-            moduleDef.exports = newContext.exports;
-            jsio.__execModule(newContext.jsio, moduleDef);
+            jsio.__execModule(makeContext(fromDir, fromFile), moduleDef);
         }
         return moduleDef.exports;
     }
@@ -110,22 +108,22 @@ var jsio = (function init() {
         fn.call(exports, jsio, moduleDef);
     }
 
-    function makeContext(ctx, fromDir, fromFile) {
-        ctx.exports = {};
-        ctx.jsio = util.bind(_require, null, fromDir, fromFile);
-        ctx.jsio.setCache = setCache;
-        ctx.jsio.__require = require;
-        ctx.jsio.__loadModule = loadModule;
-        ctx.jsio.__execModule = execModule;
-        ctx.jsio.__init = init;
-        ctx.jsio.__util = util;
-        ctx.jsio.__srcCache = {};
-        ctx.jsio.__modules = {};
+    function makeContext(fromDir, fromFile) {
+        var jsio = util.bind(_require, null, fromDir, fromFile);
 
-        return ctx;
+        jsio.setCache = setCache;
+        jsio.__require = require;
+        jsio.__loadModule = loadModule;
+        jsio.__execModule = execModule;
+        jsio.__init = init;
+        jsio.__util = util;
+        jsio.__srcCache = {};
+        jsio.__modules = {};
+
+        return jsio;
     }
 
-    return makeContext({}).jsio;
+    return makeContext();
 }());
 
 // override jsio and make its properties extendable
@@ -169,7 +167,7 @@ var setCachedSrc = function (path, src) {
 jsio.__execModule = jsio.__execModule.Extends(function (JSIO, moduleDef) {
     jsio.__preprocess(JSIO, moduleDef);
 
-    return this.supr(JSIO, moduleDef);
+    this.supr(JSIO, moduleDef);
 });
 
 jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
