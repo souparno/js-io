@@ -61,7 +61,7 @@ var jsio = (function init() {
 
     function require(fromDir, fromFile, item) {
         var possibilities = util.resolveModulePath(fromDir, item);
-        var moduleDef = jsio.__loadModule(possibilities);
+        var moduleDef = jsio.__findModule(possibilities);
 
         if (!moduleDef.exports) {
             moduleDef.exports = {};
@@ -83,21 +83,21 @@ var jsio = (function init() {
         this.exports = exports;
     }
 
-    function loadModule(possibilities) {
+    function findModule(possibilities) {
         var srcCache = jsio.__srcCache,
                 modules = jsio.__modules,
-                modulePath, src, i;
+                path, cachedVersion, i;
 
         for (i = 0; i < possibilities.length; i++) {
-            modulePath = possibilities[i];
-            src = srcCache[modulePath];
+            path = possibilities[i];
+            cachedVersion = srcCache[path];
 
-            if (src) {
-                if (!modules[modulePath]) {
-                    modules[modulePath] = new ModuleDef(modulePath, src);
+            if (cachedVersion) {
+                if (!modules[path]) {
+                    modules[path] = new ModuleDef(path, cachedVersion);
                 }
 
-                return modules[modulePath];
+                return modules[path];
             }
         }
     }
@@ -113,7 +113,7 @@ var jsio = (function init() {
 
         jsio.setCache = setCache;
         jsio.__require = require;
-        jsio.__loadModule = loadModule;
+        jsio.__findModule = findModule;
         jsio.__execModule = execModule;
         jsio.__init = init;
         jsio.__util = util;
@@ -137,7 +137,7 @@ jsio = (function (jsio, props) {
     }
 
     return jsio;
-}(jsio, ['__require', '__loadModule', '__execModule']));
+}(jsio, ['__require', '__findModule', '__execModule']));
 
 var fetch = function (p) {
     try {
@@ -170,7 +170,7 @@ jsio.__execModule = jsio.__execModule.Extends(function (JSIO, moduleDef) {
     this.supr(JSIO, moduleDef);
 });
 
-jsio.__loadModule = jsio.__loadModule.Extends(function (possibilities) {
+jsio.__findModule = jsio.__findModule.Extends(function (possibilities) {
     var src, modulePath, i;
 
     for (i = 0; i < possibilities.length; i++) {
