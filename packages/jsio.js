@@ -77,7 +77,6 @@ var jsio = (function init() {
                     return util.getPossiblePaths(modulePath);
                 }
             }
-
         },
         splitPath: function(path, result) {
             var i = path.lastIndexOf('/') + 1;
