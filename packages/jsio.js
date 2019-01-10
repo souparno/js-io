@@ -51,7 +51,7 @@ var jsio = (function init() {
             var i = path.lastIndexOf('/') + 1;
 
             result.directory = path.substring(0, i);
-            result.flename = path.substring(i);
+            result.filename = path.substring(i);
         }
     };
 
