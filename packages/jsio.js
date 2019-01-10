@@ -75,7 +75,6 @@ var jsio = (function init() {
                     modulePath = util.concat(value, pathString);
 
                     return util.getPossiblePaths(modulePath);
-
                 }
             }
 
