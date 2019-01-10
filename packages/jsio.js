@@ -31,9 +31,9 @@ var jsio = (function init() {
             };
         },
         concat: function() {
-            var pieces = [];
+            var i, pieces = [];
 
-            for (var i = 0; i < arguments.length; ++i) {
+            for (i = 0; i < arguments.length; ++i) {
                 pieces.push(arguments[i]);
             }
 
