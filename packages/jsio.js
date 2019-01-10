@@ -26,19 +26,20 @@ var jsio = (function init() {
         bind: function bind(method, context) {
             var args = util.slice.call(arguments, 2);
 
-            return function () {
+            return function() {
                 return method.apply(context, args.concat(util.slice.call(arguments, 0)));
             };
         },
-        concat: function () {
+        concat: function() {
             var pieces = [];
-            for (var i = 0, n = arguments.length; i < n; ++i) {
+
+            for (var i = 0; i < arguments.length; ++i) {
                 pieces.push(arguments[i]);
             }
 
             return pieces.join('');
         },
-        getPossiblePaths: function (modulePath) {
+        getPossiblePaths: function(modulePath) {
             if (modulePath.indexOf('.') == -1) {
                 return [
                     util.concat(modulePath, '.js'),
@@ -48,7 +49,7 @@ var jsio = (function init() {
 
             return [modulePath];
         },
-        resolveRelativePath: function (path) {
+        resolveRelativePath: function(path) {
             var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/').replace(/\.\//g, '');
 
             do {
@@ -58,7 +59,7 @@ var jsio = (function init() {
 
             return path;
         },
-        resolveModulePath: function (directory, modulePath) {
+        resolveModulePath: function(directory, modulePath) {
             if (modulePath.charAt(0) == '.') {
                 modulePath = util.resolveRelativePath(util.concat(directory, modulePath));
 
@@ -79,21 +80,23 @@ var jsio = (function init() {
             }
 
         },
-        splitPath: function (path, result) {
+        splitPath: function(path, result) {
             var i = path.lastIndexOf('/') + 1;
 
             result.directory = path.substring(0, i);
             result.filename = path.substring(i);
         }
-    }, jsioPath = {
-        get: function () {
+    };
+
+    var jsioPath = {
+        get: function() {
             return jsioPath.value.slice(0);
         },
-        add: function (path) {
+        add: function(path) {
             jsioPath.value.push(path);
         },
-        setCache: function (pathCache){
-          jsioPath.cache = pathCache; 
+        setCache: function(pathCache) {
+            jsioPath.cache = pathCache;
         },
         value: [],
         cache: {}
@@ -128,8 +131,8 @@ var jsio = (function init() {
 
     function findModule(possibilities) {
         var srcCache = jsio.__srcCache,
-                modules = jsio.__modules,
-                path, cachedVersion, i;
+            modules = jsio.__modules,
+            path, cachedVersion, i;
 
         for (i = 0; i < possibilities.length; i++) {
             path = possibilities[i];
@@ -150,7 +153,8 @@ var jsio = (function init() {
     }
 
     function execModule(jsio, moduleDef) {
-        var fn = moduleDef.src, exports = moduleDef.exports;
+        var fn = moduleDef.src,
+            exports = moduleDef.exports;
 
         fn.call(exports, jsio, moduleDef);
     }
@@ -176,19 +180,20 @@ var jsio = (function init() {
 }());
 
 // override jsio and makes its properties extendable
-jsio = (function (jsio, props) {
+jsio = (function(jsio, props) {
     for (var i = 0; i < props.length; i++) {
-        jsio[props[i]].Extends = function (fn) {
-            var context = {supr: this};
+        jsio[props[i]].Extends = function(fn) {
 
-            return jsio.__util.bind(fn, context);
+            return jsio.__util.bind(fn, {
+                supr: this
+            });
         };
     }
 
     return jsio;
 }(jsio, ['__require', '__loadModule', '__findModule', '__execModule']));
 
-var fetch = function (p) {
+var fetch = function(p) {
     try {
         return fs.readFileSync(p, 'utf8');
     } catch (e) {
@@ -196,7 +201,7 @@ var fetch = function (p) {
     }
 };
 
-var preprocess = function (preprocessors, jsio, moduleDef) {
+var preprocess = function(preprocessors, jsio, moduleDef) {
     var key, preprocessor;
 
     for (key in preprocessors) {
@@ -207,28 +212,30 @@ var preprocess = function (preprocessors, jsio, moduleDef) {
     moduleDef.src = eval(moduleDef.src);
 };
 
-var setCachedSrc = function (path, src) {
+var setCachedSrc = function(path, src) {
     if (!jsio.__srcCache[path]) {
         jsio.__srcCache[path] = src;
     }
 };
 
-var setJsioPathCache = function (baseMod, modulePath) {
+var setJsioPathCache = function(baseMod, modulePath) {
     if (!(baseMod in jsio.path.cache)) {
         jsio.path.cache[baseMod] = modulePath;
     }
 };
 
-jsio.__execModule = jsio.__execModule.Extends(function (JSIO, moduleDef) {
+jsio.__execModule = jsio.__execModule.Extends(function(JSIO, moduleDef) {
     jsio.__preprocess(JSIO, moduleDef);
 
     this.supr(JSIO, moduleDef);
 });
 
-jsio.__findModule = jsio.__findModule.Extends(function (possibilities) {
+jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
     var src, modulePath, i;
 
-    if(!possibilities) return;
+    if (!possibilities) {
+        return;
+    }
 
     for (i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
@@ -242,27 +249,30 @@ jsio.__findModule = jsio.__findModule.Extends(function (possibilities) {
     }
 });
 
-jsio.__loadModule = jsio.__loadModule.Extends(function (fromDir, item) {
-    var moduleDef = this.supr(fromDir, item);
+jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
+    var moduleDef = this.supr(fromDir, item),
+        baseMod = item.split('/')[0],
+        jsioPaths, modulePath, i;
 
     if (!moduleDef) {
-        var baseMod = item.split('/')[0];
-        var jsioPaths = jsio.path.get();
-        for (var i = 0; i < jsioPaths.length; ++i) {
-            var modulePath = jsio.__util.concat(jsioPaths[i], item);
+        jsioPaths = jsio.path.get();
+
+        for (i = 0; i < jsioPaths.length; ++i) {
+            modulePath = jsio.__util.concat(jsioPaths[i], item);
             moduleDef = jsio.__findModule(jsio.__util.getPossiblePaths(modulePath));
+
             if (moduleDef) {
                 setJsioPathCache(baseMod, moduleDef.directory);
+
                 return jsio.__loadModule(fromDir, item);
             }
-
         }
     }
 
     return moduleDef;
 });
 
-jsio.__require = jsio.__require.Extends(function (fromDir, fromFile, item, preprocessors) {
+jsio.__require = jsio.__require.Extends(function(fromDir, fromFile, item, preprocessors) {
     jsio.__preprocess = jsio.__util.bind(preprocess, null, preprocessors);
 
     return this.supr(fromDir, fromFile, item);
