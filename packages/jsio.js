@@ -20,6 +20,7 @@
 // THE SOFTWARE.
 "use strict";
 var fs = require('fs');
+var vm = require('vm');
 var jsio = (function init() {
     var util = {
         slice: Array.prototype.slice,
@@ -202,10 +203,10 @@ var fetch = function(p) {
 };
 
 var Eval = function(moduleDef) {
-    moduleDef.src = eval(moduleDef.src);
+    moduleDef.src = vm.runInThisContext(moduleDef.src);
 
     return moduleDef;
-}
+};
 
 var preprocess = function(preprocessors, jsio, moduleDef) {
     var key, preprocessor;

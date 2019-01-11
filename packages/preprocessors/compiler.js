@@ -6,7 +6,7 @@ function testComment(match) {
 }
 
 function getJsioSrc() {
-    var src = jsio.__init.toString(-1);
+    var src = require.__init.toString(-1);
 
     if (src.substring(0, 8) == 'function') {
         src = 'var jsio=(' + src + '());';
