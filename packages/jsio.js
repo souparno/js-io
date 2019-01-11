@@ -78,6 +78,7 @@ var jsio = (function init() {
                 }
             }
 
+            return util.getPossiblePaths(modulePath);
         },
         splitPath: function(path, result) {
             var i = path.lastIndexOf('/') + 1;
@@ -231,10 +232,6 @@ jsio.__execModule = jsio.__execModule.Extends(function(JSIO, moduleDef) {
 
 jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
     var src, modulePath, i;
-
-    if (!possibilities) {
-        return;
-    }
 
     for (i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
