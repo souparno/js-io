@@ -2,11 +2,11 @@
 var commands = [];
 
 // import myPackage as myPack;
-commands.push(function (request, imports) {
+commands.push(function(request, imports) {
     var match = request.match(/^\s*import\s+(.*)$/);
 
     if (match) {
-        request.replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function (_, fullPath, as) {
+        request.replace(/\s*([\w.\-$]+)(?:\s+as\s+([\w.\-$]+))?,?/g, function(_, fullPath, as) {
             imports.from = fullPath;
             imports.as = as;
         });
@@ -16,7 +16,7 @@ commands.push(function (request, imports) {
 });
 
 function resolveImportRequest(request) {
-    var imports = {}, i;
+    var i, imports = {};
 
     for (i = 0; i < commands.length; i++) {
         if (commands[i](request, imports)) {
@@ -27,12 +27,12 @@ function resolveImportRequest(request) {
 
 function resolveRequest(request) {
     var result = [],
-            parts = request.split('.'),
-            len = parts.length,
-            relative = (len > 1 && !parts[0]),
-            i = relative ? 0 : -1;
+        parts = request.split('.'),
+        len = parts.length,
+        relative = (len > 1 && !parts[0]),
+        i = relative ? 0 : -1;
 
-    (relative && parts[1]) ? result.push('.') : null;
+    (relative && parts[1]) ? result.push('.'): null;
 
     while (++i < len) {
         result.push(parts[i] ? parts[i] : '..');
@@ -53,7 +53,7 @@ function replace(raw, p1, p2, p3) {
     return raw;
 }
 
-module.exports = function (moduleDef) {
+module.exports = function(moduleDef) {
     var importExpr = /^(.*)(import\s+[^=+*"'\r\n;\/]+)(;)/gm;
 
     moduleDef.src = moduleDef.src.replace(importExpr, replace);

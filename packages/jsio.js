@@ -33,7 +33,7 @@ var jsio = (function init() {
         concat: function() {
             var i, pieces = [];
 
-            for (i = 0; i < arguments.length; ++i) {
+            for (i = 0; i < arguments.length; i++) {
                 pieces.push(arguments[i]);
             }
 
@@ -222,7 +222,7 @@ var setCachedSrc = function(path, src) {
     }
 };
 
-var setJsioPathCache = function(baseMod, modulePath) {
+var setPathCache = function(baseMod, modulePath) {
     if (!(baseMod in jsio.path.cache)) {
         jsio.path.cache[baseMod] = modulePath;
     }
@@ -257,12 +257,12 @@ jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
     if (!moduleDef) {
         jsioPaths = jsio.path.get();
 
-        for (i = 0; i < jsioPaths.length; ++i) {
+        for (i = 0; i < jsioPaths.length; i++) {
             modulePath = jsio.__util.concat(jsioPaths[i], item);
             moduleDef = jsio.__findModule(jsio.__util.getPossiblePaths(modulePath));
 
             if (moduleDef) {
-                setJsioPathCache(baseMod, moduleDef.directory);
+                setPathCache(baseMod, moduleDef.directory);
 
                 return jsio.__loadModule(fromDir, item);
             }

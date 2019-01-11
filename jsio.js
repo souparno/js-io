@@ -14,7 +14,7 @@ function run(imports) {
 
     jsio(imports, ['parser', 'compiler']);
 
-    jsio('compiler').generateSrc(function (str) {
+    jsio('compiler').generateSrc(function(str) {
         console.log(str + "jsio('" + imports + "');");
     });
 }
