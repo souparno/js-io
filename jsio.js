@@ -10,11 +10,11 @@ function run(imports) {
         return help();
     }
 
-    jsio.path.add('packages/');
+    jsio.path.add('packages/preprocessors/');
 
     jsio(imports, ['parser', 'compiler']);
 
-    jsio('preprocessors/compiler').generateSrc(function (str) {
+    jsio('compiler').generateSrc(function (str) {
         console.log(str + "jsio('" + imports + "');");
     });
 }

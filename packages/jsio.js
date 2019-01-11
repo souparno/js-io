@@ -67,15 +67,15 @@ var jsio = (function init() {
             }
 
             var pathSegments = modulePath.split('/');
-            for (var i = pathSegments.length; i > 0; --i) {
-                var subpath = pathSegments.slice(0, i).join('/');
-                var value = jsio.path.cache[subpath];
-                var pathString = pathSegments.slice(i).join('/');
-                if (value) {
-                    modulePath = util.concat(value, pathString);
+            var subpath = pathSegments.slice(0, 1).join('/');
+            var pathString = pathSegments.slice(1).join('/');
+            var value = jsio.path.cache[subpath];
 
-                    return util.getPossiblePaths(modulePath);
-                }
+            if (value) {
+                pathString = pathString.length ? pathString : subpath;
+                modulePath = util.concat(value, pathString);
+
+                return util.getPossiblePaths(modulePath);
             }
 
             return util.getPossiblePaths(modulePath);
@@ -211,8 +211,7 @@ var preprocess = function(preprocessors, jsio, moduleDef) {
     var key, preprocessor;
 
     for (key in preprocessors) {
-        preprocessor = preprocessors[key];
-        preprocessor = jsio('preprocessors/' + preprocessor);
+        preprocessor = jsio(preprocessors[key]);
         preprocessor(moduleDef, preprocessors, jsio);
     }
 };
