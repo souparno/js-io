@@ -56,5 +56,5 @@ function replace(raw, p1, p2, p3) {
 module.exports = function (moduleDef) {
     var importExpr = /^(.*)(import\s+[^=+*"'\r\n;\/]+)(;)/gm;
 
-    return moduleDef.src.replace(importExpr, replace);
+    moduleDef.src = moduleDef.src.replace(importExpr, replace);
 };

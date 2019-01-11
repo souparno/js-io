@@ -1,7 +1,5 @@
 "use strict";
 var jsio = require('./packages/jsio');
-jsio.path.add('packages/');
-var compiler = jsio('./packages/preprocessors/compiler');
 
 function help() {
     console.log("Usage:node jsio <path>/<to>/<file>");
@@ -12,9 +10,11 @@ function run(imports) {
         return help();
     }
 
+    jsio.path.add('packages/');
+
     jsio(imports, ['parser', 'compiler']);
 
-    compiler.generateSrc(function (str) {
+    jsio('preprocessors/compiler').generateSrc(function (str) {
         console.log(str + "jsio('" + imports + "');");
     });
 }

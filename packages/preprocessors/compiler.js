@@ -43,7 +43,7 @@ module.exports = function (moduleDef, preprocessors, jsio) {
 
     srcTable[moduleDef.path] = moduleDef.src;
     // stops eval module src by removing body
-    return moduleDef.src.replace(removeFuncBody, replace);
+    moduleDef.src = moduleDef.src.replace(removeFuncBody, replace);
 };
 
 module.exports.generateSrc = function (callback) {

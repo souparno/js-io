@@ -201,15 +201,19 @@ var fetch = function(p) {
     }
 };
 
+var Eval = function(moduleDef) {
+    moduleDef.src = eval(moduleDef.src);
+}
+
 var preprocess = function(preprocessors, jsio, moduleDef) {
     var key, preprocessor;
 
     for (key in preprocessors) {
         preprocessor = preprocessors[key];
         preprocessor = jsio('preprocessors/' + preprocessor);
-        moduleDef.src = preprocessor(moduleDef, preprocessors, jsio);
+        preprocessor(moduleDef, preprocessors, jsio);
     }
-    moduleDef.src = eval(moduleDef.src);
+    Eval(moduleDef);
 };
 
 var setCachedSrc = function(path, src) {
