@@ -203,6 +203,8 @@ var fetch = function(p) {
 
 var Eval = function(moduleDef) {
     moduleDef.src = eval(moduleDef.src);
+
+    return moduleDef;
 }
 
 var preprocess = function(preprocessors, jsio, moduleDef) {
@@ -213,7 +215,6 @@ var preprocess = function(preprocessors, jsio, moduleDef) {
         preprocessor = jsio('preprocessors/' + preprocessor);
         preprocessor(moduleDef, preprocessors, jsio);
     }
-    Eval(moduleDef);
 };
 
 var setCachedSrc = function(path, src) {
@@ -231,7 +232,7 @@ var setJsioPathCache = function(baseMod, modulePath) {
 jsio.__execModule = jsio.__execModule.Extends(function(JSIO, moduleDef) {
     jsio.__preprocess(JSIO, moduleDef);
 
-    this.supr(JSIO, moduleDef);
+    this.supr(JSIO, Eval(moduleDef));
 });
 
 jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
