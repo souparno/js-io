@@ -9,7 +9,7 @@ function getJsioSrc() {
     var src = require.__init.toString(-1);
 
     if (src.substring(0, 8) == 'function') {
-        src = 'var jsio=(' + src + '());';
+        src = require.__util.concat('var jsio=(', src, '());');
     }
 
     return src;
@@ -19,17 +19,17 @@ function getSrcCache() {
     var str = "{";
 
     for (var prop in srcTable) {
-        str = str + JSON.stringify(prop) + ":" + srcTable[prop] + ",";
+        str = require.__util.concat(str, JSON.stringify(prop), ":", srcTable[prop], ",");
     }
 
-    return str.substring(0, str.length - 1) + "}";
+    return require.__util.concat(str.substring(0, str.length - 1), "}");
 }
 
 function replace(raw, p1, p2, p3, p4) {
-    return p1 + '' + p4;
+    return require.__util.concat(p1, '', p4);
 }
 
-module.exports = function (moduleDef, preprocessors, jsio) {
+module.exports = function(moduleDef, preprocessors, jsio) {
     var removeFuncBody = /^(\(\s*function\s*\([^=+*"'\r\n.;]+\)\s*\{)((\s*.*)*)(\s*\}\s*\))/gm;
     var requireRegex = /^(.*)require\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
     var match;
@@ -46,8 +46,8 @@ module.exports = function (moduleDef, preprocessors, jsio) {
     moduleDef.src = moduleDef.src.replace(removeFuncBody, replace);
 };
 
-module.exports.generateSrc = function (callback) {
-    var str = getJsioSrc() + "jsio.setCache(" + getSrcCache() + ");";
+module.exports.generateSrc = function(callback) {
+    var str = require.__util.concat(getJsioSrc(), "jsio.setCache(", getSrcCache(), ");");
 
     callback(str);
 };
