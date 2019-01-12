@@ -265,7 +265,7 @@ jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
             if (moduleDef) {
                 setPathCache(baseMod, moduleDef.directory);
 
-                return jsio.__loadModule(fromDir, item);
+                return this.supr(fromDir, item);
             }
         }
     }
