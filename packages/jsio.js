@@ -243,7 +243,8 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            setCachedSrc(modulePath, "(function (require, module) {" + src + "})");
+            src = jsio.__util.concat("(function (require, module) {", src, "})");
+            setCachedSrc(modulePath, src);
 
             return this.supr([modulePath]);
         }
