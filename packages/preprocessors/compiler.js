@@ -6,13 +6,9 @@ function testComment(match) {
 }
 
 function getJsioSrc() {
-    var src = require.__init.toString(-1);
+    var src = require.__init.toString();
 
-    if (src.substring(0, 8) == 'function') {
-        src = require.__util.concat('var jsio=(', src, '());');
-    }
-
-    return src;
+    return require.__util.concat('var jsio=(', src, '());');
 }
 
 function getSrcCache() {
