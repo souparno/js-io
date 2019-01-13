@@ -25,8 +25,7 @@ function getSrcCache() {
 }
 
 function setgPathList(cmd) {
-    if (!require.__util.isRelativePath(cmd) && !gPathList[cmd] && require.path.cache[cmd]) {
-        cmd = cmd.split('/')[0];
+    if (!require.__util.isRelativePath(cmd) && require.path.cache[cmd]) {
         gPathList[cmd] = require.path.cache[cmd];
     }
 }
