@@ -28,7 +28,9 @@ var jsio = (function init() {
             var args = util.slice.call(arguments, 2);
 
             return function() {
-                return method.apply(context, args.concat(util.slice.call(arguments, 0)));
+                var argv = args.concat(util.slice.call(arguments, 0));
+
+                return method.apply(context, argv);
             };
         },
         concat: function() {
