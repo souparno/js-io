@@ -12,7 +12,7 @@ function run(imports) {
 
     jsio.path.add('packages/preprocessors/');
     jsio.path.add('__tests__/');
-    jsio(imports, ['parser', 'compiler']);
+    jsio(imports, ['./packages/preprocessors/parser', './packages/preprocessors/compiler']);
 
     jsio('compiler').generateSrc(function(str) {
         console.log(jsio.__util.concat(str, "jsio('", imports, "');"));

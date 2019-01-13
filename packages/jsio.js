@@ -215,12 +215,12 @@ var Eval = function(moduleDef) {
     return moduleDef;
 };
 
-var preprocess = function(preprocessors, jsio, moduleDef) {
+var preprocess = function(preprocessors, JSIO, moduleDef) {
     var key, preprocessor;
 
     for (key in preprocessors) {
         preprocessor = jsio(preprocessors[key]);
-        preprocessor(moduleDef, preprocessors, jsio);
+        preprocessor(moduleDef, preprocessors, JSIO);
     }
 };
 
@@ -250,6 +250,7 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
         src = fetch(modulePath);
 
         if (src) {
+            //src = jsio.__util.concat("(function (exports, require, module, __filename, __dirname) {", src, "})");
             src = jsio.__util.concat("(function (require, module) {", src, "})");
             setCachedSrc(modulePath, src);
 
