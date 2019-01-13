@@ -65,7 +65,7 @@ var jsio = (function init() {
 
     var jsioSrcCache = {};
 
-    var jsioModules = {};
+    var jsioModuleCache = {};
 
     var jsioPathCache = [];
 
@@ -173,7 +173,7 @@ var jsio = (function init() {
         jsio.__findModule = findModule;
         jsio.__execModule = execModule;
         jsio.__srcCache = jsioSrcCache;
-        jsio.__modules = jsioModules;
+        jsio.__modules = jsioModuleCache;
         jsio.__pathCache = jsioPathCache;
         jsio.__init = init;
         jsio.__util = util;
