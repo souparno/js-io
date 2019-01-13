@@ -53,37 +53,6 @@ var jsio = (function init() {
 
             return [modulePath];
         },
-        resolveRelativePath: function(path) {
-            var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/').replace(/\.\//g, '');
-
-            do {
-                path = tempPath;
-                tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
-            } while (path != tempPath);
-
-            return path;
-        },
-        resolveModulePath: function(directory, modulePath) {
-            if (util.isRelativePath(modulePath)) {
-                modulePath = util.resolveRelativePath(util.concat(directory, modulePath));
-
-                return util.getPossiblePaths(modulePath);
-            }
-
-            var pathSegments = modulePath.split('/');
-            var subpath = pathSegments.slice(0, 1).join('/');
-            var pathString = pathSegments.slice(1).join('/');
-            var value = jsio.path.cache[subpath];
-
-            if (value) {
-                pathString = pathString.length ? pathString : subpath;
-                modulePath = util.concat(value, pathString);
-
-                return util.getPossiblePaths(modulePath);
-            }
-
-            return util.getPossiblePaths(modulePath);
-        },
         splitPath: function(path, result) {
             var i = path.lastIndexOf('/') + 1;
 
@@ -105,6 +74,39 @@ var jsio = (function init() {
         value: [],
         cache: {}
     };
+
+    function resolveRelativePath(path) {
+        var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/').replace(/\.\//g, '');
+
+        do {
+            path = tempPath;
+            tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
+        } while (path != tempPath);
+
+        return path;
+    }
+
+    function resolveModulePath(directory, modulePath) {
+        if (util.isRelativePath(modulePath)) {
+            modulePath = resolveRelativePath(util.concat(directory, modulePath));
+
+            return util.getPossiblePaths(modulePath);
+        }
+
+        var pathSegments = modulePath.split('/');
+        var subpath = pathSegments.slice(0, 1).join('/');
+        var pathString = pathSegments.slice(1).join('/');
+        var value = jsio.path.cache[subpath];
+
+        if (value) {
+            pathString = pathString.length ? pathString : subpath;
+            modulePath = util.concat(value, pathString);
+
+            return util.getPossiblePaths(modulePath);
+        }
+
+        return util.getPossiblePaths(modulePath);
+    }
 
     function _require(fromDir, fromFile, item, opts) {
         return jsio.__require(fromDir, fromFile, item, opts);
@@ -153,7 +155,7 @@ var jsio = (function init() {
     }
 
     function loadModule(fromDir, item) {
-        return jsio.__findModule(util.resolveModulePath(fromDir, item));
+        return jsio.__findModule(resolveModulePath(fromDir, item));
     }
 
     function execModule(jsio, moduleDef) {
