@@ -50,6 +50,7 @@ module.exports = function(moduleDef, preprocessors, jsio) {
 
         if (match && !testComment(match)) {
             cmd = match[2];
+
             jsio(cmd, preprocessors);
             setgPathList(cmd.split('/')[0]);
         }
