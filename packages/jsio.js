@@ -40,6 +40,9 @@ var jsio = (function init() {
 
             return pieces.join('');
         },
+        isRelativePath: function(path) {
+            return path.charAt(0) == '.' ? true : false;
+        },
         getPossiblePaths: function(modulePath) {
             if (modulePath.indexOf('.') == -1) {
                 return [
@@ -61,7 +64,7 @@ var jsio = (function init() {
             return path;
         },
         resolveModulePath: function(directory, modulePath) {
-            if (modulePath.charAt(0) == '.') {
+            if (util.isRelativePath(modulePath)) {
                 modulePath = util.resolveRelativePath(util.concat(directory, modulePath));
 
                 return util.getPossiblePaths(modulePath);

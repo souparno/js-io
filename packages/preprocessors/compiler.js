@@ -25,7 +25,7 @@ function getSrcCache() {
 }
 
 function setgPathList(cmd) {
-    if (isAbsolutePath(cmd) && !gPathList[cmd] && require.path.cache[cmd]) {
+    if (!require.__util.isRelativePath(cmd) && !gPathList[cmd] && require.path.cache[cmd]) {
         cmd = cmd.split('/')[0];
         gPathList[cmd] = require.path.cache[cmd];
     }
@@ -39,12 +39,6 @@ function getPathJS() {
 
 function replace(raw, p1, p2, p3, p4) {
     return require.__util.concat(p1, '', p4);
-}
-
-function isAbsolutePath(path) {
-    var PROTOCOL = /^[a-z][a-z0-9+\-\.]*/gm;
-
-    return PROTOCOL.test(path);
 }
 
 module.exports = function(moduleDef, preprocessors, jsio) {
