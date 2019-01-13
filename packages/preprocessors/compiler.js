@@ -1,5 +1,6 @@
 "use strict";
-var srcTable = {};
+var gSrcTable = {};
+var gPathList = {};
 
 function testComment(match) {
     return /\/\//.test(match[1]);
@@ -14,36 +15,60 @@ function getJsioSrc() {
 function getSrcCache() {
     var str = "{";
 
-    for (var prop in srcTable) {
-        str = require.__util.concat(str, JSON.stringify(prop), ":", srcTable[prop], ",");
+    for (var prop in gSrcTable) {
+        str = require.__util.concat(str, JSON.stringify(prop), ":", gSrcTable[prop], ",");
     }
 
-    return require.__util.concat(str.substring(0, str.length - 1), "}");
+    str = require.__util.concat(str.substring(0, str.length - 1), "}");
+
+    return require.__util.concat("jsio.setCache(", str, ");");
+}
+
+function setgPathList(cmd) {
+    if (isAbsolutePath(cmd) && !gPathList[cmd] && require.path.cache[cmd]) {
+        cmd = cmd.split('/')[0];
+        gPathList[cmd] = require.path.cache[cmd];
+    }
+}
+
+function getPathJS() {
+    var str = JSON.stringify(gPathList);
+
+    return require.__util.concat("jsio.path.setCache(", str, ");");
 }
 
 function replace(raw, p1, p2, p3, p4) {
     return require.__util.concat(p1, '', p4);
 }
 
+function isAbsolutePath(path) {
+    var PROTOCOL = /^[a-z][a-z0-9+\-\.]*/gm;
+
+    return PROTOCOL.test(path);
+}
+
 module.exports = function(moduleDef, preprocessors, jsio) {
-    var removeFuncBody = /^(\(\s*function\s*\([^=+*"'\r\n.;]+\)\s*\{)((\s*.*)*)(\s*\}\s*\))/gm;
-    var requireRegex = /^(.*)require\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm;
-    var match;
+    var removeFuncBody = /^(\(\s*function\s*\([^=+*"'\r\n.;]+\)\s*\{)((\s*.*)*)(\s*\}\s*\))/gm,
+        requireRegex = /^(.*)require\s*\(\s*['"](.+?)['"]\s*(,\s*\{[^}]+\})?\)/gm,
+        match, cmd;
 
     do {
         match = requireRegex.exec(moduleDef.src);
+
         if (match && !testComment(match)) {
-            jsio(match[2], preprocessors);
+            cmd = match[2];
+            jsio(cmd, preprocessors);
+            setgPathList(cmd.split('/')[0]);
         }
     } while (match)
 
-    srcTable[moduleDef.path] = moduleDef.src;
+    gSrcTable[moduleDef.path] = moduleDef.src;
     // stops eval module src by removing body
     moduleDef.src = moduleDef.src.replace(removeFuncBody, replace);
 };
 
 module.exports.generateSrc = function(callback) {
-    var str = require.__util.concat(getJsioSrc(), "jsio.setCache(", getSrcCache(), ");");
+    var str = require.__util.concat(getJsioSrc(), getPathJS(), getSrcCache());
 
     callback(str);
 };

@@ -11,7 +11,7 @@ function run(imports) {
     }
 
     jsio.path.add('packages/preprocessors/');
-
+    jsio.path.add('__tests__/');
     jsio(imports, ['parser', 'compiler']);
 
     jsio('compiler').generateSrc(function(str) {
