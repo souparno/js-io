@@ -25,15 +25,15 @@ function getSrcCache() {
 }
 
 function setgPathList(cmd) {
-    if (!require.__util.isRelativePath(cmd) && require.path.cache[cmd]) {
-        gPathList[cmd] = require.path.cache[cmd];
+    if (!require.__util.isRelativePath(cmd) && require.__pathCache[cmd]) {
+        gPathList[cmd] = require.__pathCache[cmd];
     }
 }
 
 function getPathJS() {
     var str = JSON.stringify(gPathList);
 
-    return require.__util.concat("jsio.path.setCache(", str, ");");
+    return require.__util.concat("jsio.setCachePath(", str, ");");
 }
 
 function replace(raw, p1, p2, p3, p4) {
