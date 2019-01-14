@@ -158,9 +158,11 @@ var jsio = (function init() {
 
     function execModule(jsio, moduleDef) {
         var fn = moduleDef.src,
-            exports = moduleDef.exports;
-
-        fn.call(exports, jsio, moduleDef);
+            exports = moduleDef.exports,
+            filename = moduleDef.filename,
+            directory = moduleDef.directory;
+            
+        fn.call(exports, exports, jsio, moduleDef, filename, directory);
     }
 
     function makeContext(fromDir, fromFile) {
@@ -247,8 +249,7 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
         src = fetch(modulePath);
 
         if (src) {
-            //src = jsio.__util.concat("(function (exports, require, module, __filename, __dirname) {", src, "})");
-            src = jsio.__util.concat("(function (require, module) {", src, "})");
+            src = jsio.__util.concat("(function (exports, require, module, __filename, __dirname) {", src, "})");
             setCachedSrc(modulePath, src);
 
             return this.supr([modulePath]);
