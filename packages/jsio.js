@@ -109,6 +109,10 @@ var jsio = (function init() {
     function require(fromDir, fromFile, item) {
         var moduleDef = jsio.__loadModule(fromDir, item);
 
+        if(!moduleDef){
+          return console.log(util.concat("Error: couldnot find module '", item ,"' from '", fromDir, fromFile, "'")); 
+        }
+
         if (!moduleDef.exports) {
             moduleDef.exports = {};
             fromDir = moduleDef.directory;
