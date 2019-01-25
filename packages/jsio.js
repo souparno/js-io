@@ -49,7 +49,8 @@ var jsio = (function init() {
             if (modulePath.indexOf('.') == -1) {
                 return [
                     util.concat(modulePath, '.js'),
-                    util.concat(modulePath, '/index.js')
+                    util.concat(modulePath, '/index.js'),
+                    util.concat(modulePath, '/lib/index.js')
                 ];
             }
 
@@ -93,7 +94,6 @@ var jsio = (function init() {
         var value = jsio.__pathCache[subpath];
 
         if (value) {
-            pathString = pathString.length ? pathString : subpath;
             modulePath = util.concat(value, pathString);
 
             return util.getPossiblePaths(modulePath);
@@ -115,6 +115,7 @@ var jsio = (function init() {
             fromFile = moduleDef.filename;
             jsio.__execModule(makeContext(fromDir, fromFile), moduleDef);
         }
+
         return moduleDef.exports;
     }
 
@@ -153,7 +154,9 @@ var jsio = (function init() {
     }
 
     function loadModule(fromDir, item) {
-        return jsio.__findModule(resolveModulePath(fromDir, item));
+      var possibilities = resolveModulePath(fromDir, item);
+
+      return jsio.__findModule(possibilities);
     }
 
     function execModule(jsio, moduleDef) {
@@ -260,14 +263,15 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
 jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
     var moduleDef = this.supr(fromDir, item),
         baseMod = item.split('/')[0],
-        jsioPaths, modulePath, i;
+        possibilities, jsioPaths, modulePath, i;
 
     if (!moduleDef) {
         jsioPaths = jsio.path.get();
 
         for (i = 0; i < jsioPaths.length; i++) {
             modulePath = jsio.__util.concat(jsioPaths[i], item);
-            moduleDef = jsio.__findModule(jsio.__util.getPossiblePaths(modulePath));
+            possibilities = jsio.__util.getPossiblePaths(modulePath);
+            moduleDef = jsio.__findModule(possibilities);
 
             if (moduleDef) {
                 setPathCache(baseMod, moduleDef.directory);
