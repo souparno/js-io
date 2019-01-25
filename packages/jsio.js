@@ -71,14 +71,14 @@ var jsio = (function init() {
     var jsioPathCache = [];
 
     function resolveRelativePath(path) {
-        var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/').replace(/\.\//g, '');
+        var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
 
         do {
             path = tempPath;
             tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
         } while (path != tempPath);
-
-        return path;
+      
+        return path.replace(/\.\//g, '');
     }
 
     function resolveModulePath(directory, modulePath) {
@@ -94,12 +94,12 @@ var jsio = (function init() {
         var value = jsio.__pathCache[subpath];
 
         if (value) {
-            modulePath = util.concat(value, pathString);
+            modulePath = resolveRelativePath(util.concat(value, pathString));
 
             return util.getPossiblePaths(modulePath);
         }
 
-        return util.getPossiblePaths(modulePath);
+        return util.getPossiblePaths(resolveRelativePath(util.concat(modulePath)));
     }
 
     function _require(fromDir, fromFile, item, opts) {
