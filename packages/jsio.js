@@ -81,22 +81,18 @@ var jsio = (function init() {
         return path.replace(/\.\//g, '');
     }
 
-    function resolveModulePath(directory, modulePath) {
-        if (util.isRelativePath(modulePath)) {
-            modulePath = resolveRelativePath(util.concat(directory, modulePath));
-
-            return util.getPossiblePaths(modulePath);
-        }
-
+    function resolveModulePath(directory, modulePath) { 
         var pathSegments = modulePath.split('/');
         var subpath = pathSegments.slice(0, 1).join('/');
         var pathString = pathSegments.slice(1).join('/');
         var value = jsio.__pathCache[subpath];
 
         if (value) {
-            modulePath = resolveRelativePath(util.concat(value, pathString));
-
-            return util.getPossiblePaths(modulePath);
+            return util.getPossiblePaths(resolveRelativePath(util.concat(value, pathString)));
+        }
+   
+        if (util.isRelativePath(modulePath)) {
+            return util.getPossiblePaths(resolveRelativePath(util.concat(directory, modulePath)));
         }
 
         return util.getPossiblePaths(resolveRelativePath(util.concat(modulePath)));
