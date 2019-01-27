@@ -45,16 +45,30 @@ var jsio = (function init() {
         isRelativePath: function(path) {
             return path.charAt(0) == '.' ? true : false;
         },
-        getPossiblePaths: function(modulePath) {
-            if (modulePath.indexOf('.') == -1) {
-                return [
-                    util.concat(modulePath, '.js'),
-                    util.concat(modulePath, '/index.js'),
-                    util.concat(modulePath, '/lib/index.js')
-                ];
+        getExtension: function(modulePath) {
+            var moduleSegments = modulePath.split('.');
+            var ext = moduleSegments[moduleSegments.length - 1];
+
+            if (ext == "js" || ext == "json") {
+                return ext;
             }
 
-            return [modulePath];
+            return false;
+        },
+        getPossiblePaths: function(directory, filename) {
+            var modulePath = util.concat(directory, filename);
+
+            if (util.getExtension(modulePath)) {
+                return [resolveRelativePath(modulePath)];
+            }
+
+            return [
+                resolveRelativePath(util.concat(modulePath, '.js')),
+                resolveRelativePath(util.concat(modulePath, '/index.js')),
+                resolveRelativePath(util.concat(modulePath, '/', filename, '.js')),
+                resolveRelativePath(util.concat(modulePath, '/lib/index.js')),
+                resolveRelativePath(util.concat(modulePath, '/lib/', filename, '.js'))
+            ];
         },
         splitPath: function(path, result) {
             var i = path.lastIndexOf('/') + 1;
@@ -77,25 +91,25 @@ var jsio = (function init() {
             path = tempPath;
             tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
         } while (path != tempPath);
-      
+
         return path.replace(/\.\//g, '');
     }
 
-    function resolveModulePath(directory, modulePath) { 
+    function resolveModulePath(directory, modulePath) {
         var pathSegments = modulePath.split('/');
         var subpath = pathSegments.slice(0, 1).join('/');
         var pathString = pathSegments.slice(1).join('/');
         var value = jsio.__pathCache[subpath];
 
         if (value) {
-            return util.getPossiblePaths(resolveRelativePath(util.concat(value, pathString)));
-        }
-   
-        if (util.isRelativePath(modulePath)) {
-            return util.getPossiblePaths(resolveRelativePath(util.concat(directory, modulePath)));
+            return util.getPossiblePaths(value, pathString);
         }
 
-        return util.getPossiblePaths(resolveRelativePath(util.concat(modulePath)));
+        if (util.isRelativePath(modulePath)) {
+            return util.getPossiblePaths(directory, modulePath);
+        }
+
+        return util.getPossiblePaths(modulePath);
     }
 
     function _require(fromDir, fromFile, item, opts) {
@@ -105,8 +119,8 @@ var jsio = (function init() {
     function require(fromDir, fromFile, item) {
         var moduleDef = jsio.__loadModule(fromDir, item);
 
-        if(!moduleDef){
-          return console.log(util.concat("Error: couldnot find module '", item ,"' from '", fromDir, fromFile, "'")); 
+        if (!moduleDef) {
+            console.log(util.concat("Error: couldnot find module '", item, "' from '", fromDir, fromFile, "'"));
         }
 
         if (!moduleDef.exports) {
@@ -154,9 +168,9 @@ var jsio = (function init() {
     }
 
     function loadModule(fromDir, item) {
-      var possibilities = resolveModulePath(fromDir, item);
+        var possibilities = resolveModulePath(fromDir, item);
 
-      return jsio.__findModule(possibilities);
+        return jsio.__findModule(possibilities);
     }
 
     function execModule(jsio, moduleDef) {
@@ -164,7 +178,7 @@ var jsio = (function init() {
             exports = moduleDef.exports,
             filename = moduleDef.filename,
             directory = moduleDef.directory;
-            
+
         fn.call(exports, exports, jsio, moduleDef, filename, directory);
     }
 
@@ -263,20 +277,19 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
 jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
     var moduleDef = this.supr(fromDir, item),
         baseMod = item.split('/')[0],
-        possibilities, jsioPaths, modulePath, i;
+        possibilities, jsioPaths, i;
 
     if (!moduleDef) {
         jsioPaths = jsio.path.get();
 
         for (i = 0; i < jsioPaths.length; i++) {
-            modulePath = jsio.__util.concat(jsioPaths[i], item);
-            possibilities = jsio.__util.getPossiblePaths(modulePath);
+            possibilities = jsio.__util.getPossiblePaths(jsioPaths[i], item);
             moduleDef = jsio.__findModule(possibilities);
 
             if (moduleDef) {
                 setPathCache(baseMod, moduleDef.directory);
 
-                return this.supr(fromDir, item);
+                return moduleDef;
             }
         }
     }

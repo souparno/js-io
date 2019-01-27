@@ -89,4 +89,15 @@ describe('jsio.js', () => {
             });
         });
     });
+
+    describe('test case #9', () => {
+        it('jsio should be able to handle recursive dependencies without file entenstion in the request', done => {
+            shelljs.exec('node jsio.js ./__tests__/test9/app.js | node', {
+                silent: true
+            }, (code, stdout, stderr) => {
+                assert.equal(stdout, 5);
+                done();
+            });
+        });
+    });
 });
