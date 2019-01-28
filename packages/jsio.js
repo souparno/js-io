@@ -56,18 +56,16 @@ var jsio = (function init() {
             return false;
         },
         getPossiblePaths: function(directory, filename) {
-            var modulePath = util.concat(directory, filename);
-
-            if (util.getExtension(modulePath)) {
-                return [resolveRelativePath(modulePath)];
+            if (filename && util.getExtension(filename)) {
+                return [resolveRelativePath(util.concat(directory, filename))];
             }
 
             return [
-                resolveRelativePath(util.concat(modulePath, '.js')),
-                resolveRelativePath(util.concat(modulePath, '/index.js')),
-                resolveRelativePath(util.concat(modulePath, '/', filename, '.js')),
-                resolveRelativePath(util.concat(modulePath, '/lib/index.js')),
-                resolveRelativePath(util.concat(modulePath, '/lib/', filename, '.js'))
+                resolveRelativePath(util.concat(directory, filename, '.js')),
+                resolveRelativePath(util.concat(directory, filename, '/index.js')),
+                resolveRelativePath(util.concat(directory, filename, '/', filename, '.js')),
+                resolveRelativePath(util.concat(directory, filename, '/lib/index.js')),
+                resolveRelativePath(util.concat(directory, filename, '/lib/', filename, '.js'))
             ];
         },
         splitPath: function(path, result) {
@@ -102,6 +100,8 @@ var jsio = (function init() {
         var value = jsio.__pathCache[subpath];
 
         if (value) {
+            pathString = pathString ? pathString : subpath;
+
             return util.getPossiblePaths(value, pathString);
         }
 
@@ -120,7 +120,7 @@ var jsio = (function init() {
         var moduleDef = jsio.__loadModule(fromDir, item);
 
         if (!moduleDef) {
-            console.log(util.concat("Error: couldnot find module '", item, "' from '", fromDir, fromFile, "'"));
+            return console.log(util.concat("Error: couldnot find module '", item, "' from '", fromDir, fromFile, "'"));
         }
 
         if (!moduleDef.exports) {
