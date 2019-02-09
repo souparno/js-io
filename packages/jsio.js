@@ -94,7 +94,7 @@ var jsio = (function init() {
 
     var jsioModuleCache = {};
 
-    var jsioPathCache = [];
+    var jsioPathCache = {};
 
     function resolveModulePath(fromDir, modulePath) {
         var pathSegments = modulePath.split('/');
