@@ -19,8 +19,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 "use strict";
-var fs = require('fs');
-var vm = require('vm');
 var jsio = (function init() {
     var util = {
         slice: Array.prototype.slice,
@@ -42,6 +40,15 @@ var jsio = (function init() {
 
             return pieces.join('');
         },
+        buildPath: function (){
+            var i, pieces = [];
+
+            for (i = 0; i < arguments.length; i++) {
+                pieces.push(arguments[i]);
+            }
+
+            return util.resolveRelativePath(pieces.join('/')); 
+        },
         isRelativePath: function(path) {
             return path.charAt(0) == '.' ? true : false;
         },
@@ -55,18 +62,25 @@ var jsio = (function init() {
 
             return false;
         },
-        getPossiblePaths: function(directory, filename) {
-            if (filename && util.getExtension(filename)) {
-                return [resolveRelativePath(util.concat(directory, filename))];
+        getPossiblePaths: function(modulePath) {
+            if (util.getExtension(modulePath)) {
+                return [util.buildPath(modulePath)];
             }
 
             return [
-                resolveRelativePath(util.concat(directory, filename, '.js')),
-                resolveRelativePath(util.concat(directory, filename, '/index.js')),
-                resolveRelativePath(util.concat(directory, filename, '/', filename, '.js')),
-                resolveRelativePath(util.concat(directory, filename, '/lib/index.js')),
-                resolveRelativePath(util.concat(directory, filename, '/lib/', filename, '.js'))
+                util.concat(util.resolveRelativePath(modulePath), '.js'),
+                util.buildPath(modulePath, 'index.js'),
             ];
+        },
+        resolveRelativePath: function(path) {
+            var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
+
+            do {
+                path = tempPath;
+                tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\/*/g, '$1');
+            } while (path != tempPath);
+
+            return path.replace(/\.\//g, '').replace(/\/$/g, '');
         },
         splitPath: function(path, result) {
             var i = path.lastIndexOf('/') + 1;
@@ -82,41 +96,36 @@ var jsio = (function init() {
 
     var jsioPathCache = [];
 
-    function resolveRelativePath(path) {
-        var tempPath = path.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
-
-        do {
-            path = tempPath;
-            tempPath = tempPath.replace(/(^|\/)(?!\.?\.\/)([^\/]+)\/\.\.\//g, '$1');
-        } while (path != tempPath);
-
-        return path.replace(/\.\//g, '');
-    }
-
-    function resolveModulePath(directory, modulePath) {
+    function resolveModulePath(fromDir, modulePath) {
         var pathSegments = modulePath.split('/');
         var subpath = pathSegments.slice(0, 1).join('/');
         var pathString = pathSegments.slice(1).join('/');
         var value = jsio.__pathCache[subpath];
 
         if (value) {
-            pathString = pathString ? pathString : subpath;
-
-            return util.getPossiblePaths(value, pathString);
+            modulePath = pathString ? util.buildPath(value, pathString) : value;
         }
 
         if (util.isRelativePath(modulePath)) {
-            return util.getPossiblePaths(directory, modulePath);
+            modulePath = util.buildPath(fromDir, modulePath);
+        }
+
+        if (jsio.__pathCache[modulePath]) {
+            modulePath = jsio.__pathCache[modulePath];
         }
 
         return util.getPossiblePaths(modulePath);
     }
 
-    function _require(fromDir, fromFile, item, opts) {
+    function loader(fromDir, fromFile, item, opts) {
+        if (process.binding('natives')[item]) {
+            return require(item);
+        }
+
         return jsio.__require(fromDir, fromFile, item, opts);
     }
 
-    function require(fromDir, fromFile, item) {
+    function _require(fromDir, fromFile, item) {
         var moduleDef = jsio.__loadModule(fromDir, item);
 
         if (!moduleDef) {
@@ -183,11 +192,11 @@ var jsio = (function init() {
     }
 
     function makeContext(fromDir, fromFile) {
-        var jsio = util.bind(_require, null, fromDir, fromFile);
+        var jsio = util.bind(loader, null, fromDir, fromFile);
 
         jsio.setCachePath = setCachePath;
         jsio.setCache = setCache;
-        jsio.__require = require;
+        jsio.__require = _require;
         jsio.__loadModule = loadModule;
         jsio.__findModule = findModule;
         jsio.__execModule = execModule;
@@ -219,14 +228,16 @@ jsio = (function(jsio, props) {
 
 var fetch = function(p) {
     try {
-        return fs.readFileSync(p, 'utf8');
+        return jsio('fs').readFileSync(p, 'utf8');
     } catch (e) {
         return false;
     }
 };
 
 var Eval = function(moduleDef) {
-    moduleDef.src = vm.runInThisContext(moduleDef.src);
+    moduleDef.src = jsio('vm').runInThisContext(moduleDef.src, {
+        filename: moduleDef.path
+    });
 
     return moduleDef;
 };
@@ -247,7 +258,7 @@ var setCachedSrc = function(path, src) {
 };
 
 var setPathCache = function(baseMod, modulePath) {
-    if (!(baseMod in jsio.__pathCache)) {
+    if (!jsio.__pathCache[baseMod]) {
         jsio.__pathCache[baseMod] = modulePath;
     }
 };
@@ -263,10 +274,19 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
 
     for (i = 0; i < possibilities.length; i++) {
         modulePath = possibilities[i];
+
+        if (jsio.__srcCache[modulePath]) {
+            return this.supr([modulePath]);
+        }
+
         src = fetch(modulePath);
 
         if (src) {
-            src = jsio.__util.concat("(function (exports, require, module, __filename, __dirname) {", src, "})");
+            if (jsio.__util.getExtension(modulePath) == "json") {
+                src = jsio.__util.concat("module.exports =", src);
+            }
+
+            src = jsio.__util.concat("(function (exports, require, module, __filename, __dirname) {\n", src, "\n})");
             setCachedSrc(modulePath, src);
 
             return this.supr([modulePath]);
@@ -277,24 +297,43 @@ jsio.__findModule = jsio.__findModule.Extends(function(possibilities) {
 jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
     var moduleDef = this.supr(fromDir, item),
         baseMod = item.split('/')[0],
-        possibilities, jsioPaths, i;
+        jsioPaths = jsio.path.get(),
+        util = jsio.__util,
+        modulePath, entryFile, packageDotJson, possibilities, i;
 
-    if (!moduleDef) {
-        jsioPaths = jsio.path.get();
-
-        for (i = 0; i < jsioPaths.length; i++) {
-            possibilities = jsio.__util.getPossiblePaths(jsioPaths[i], item);
-            moduleDef = jsio.__findModule(possibilities);
-
-            if (moduleDef) {
-                setPathCache(baseMod, moduleDef.directory);
-
-                return moduleDef;
-            }
-        }
+    if (moduleDef) {
+        return moduleDef;
     }
 
-    return moduleDef;
+    for (i = 0; i < jsioPaths.length; i++) {
+        modulePath = util.buildPath(jsioPaths[i], baseMod); 
+        possibilities = util.getPossiblePaths(util.buildPath(jsioPaths[i], item));
+        moduleDef = jsio.__findModule(possibilities);
+
+        if (moduleDef) {
+            setPathCache(baseMod, modulePath);
+
+            return jsio.__loadModule(fromDir, item);
+        }
+
+        packageDotJson = fetch(util.buildPath(jsioPaths[i], item, "package.json"));
+
+        if (packageDotJson) {
+            entryFile = JSON.parse(packageDotJson).main;
+        }
+
+        if (entryFile) {
+            entryFile = util.getPossiblePaths(util.buildPath(jsioPaths[i], item, entryFile));
+            moduleDef = jsio.__findModule(entryFile);
+        }
+
+        if (moduleDef) {
+            setPathCache(baseMod, modulePath);
+            setPathCache(modulePath, moduleDef.path);
+
+            return jsio.__loadModule(fromDir, item);
+        }
+    }
 });
 
 jsio.__require = jsio.__require.Extends(function(fromDir, fromFile, item, preprocessors) {
