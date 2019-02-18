@@ -103,7 +103,7 @@ var jsio = (function init() {
         var value = jsio.__pathCache[subpath];
 
         if (value) {
-            modulePath = pathString ? util.buildPath(value, pathString) : value;
+            modulePath = util.buildPath(value, pathString);
         }
 
         if (util.isRelativePath(modulePath)) {
