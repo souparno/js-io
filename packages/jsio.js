@@ -40,14 +40,14 @@ var jsio = (function init() {
 
             return pieces.join('');
         },
-        buildPath: function (){
+        buildPath: function() {
             var i, pieces = [];
 
             for (i = 0; i < arguments.length; i++) {
                 pieces.push(arguments[i]);
             }
 
-            return util.resolveRelativePath(pieces.join('/')); 
+            return util.resolveRelativePath(pieces.join('/'));
         },
         isRelativePath: function(path) {
             return path.charAt(0) == '.' ? true : false;
@@ -157,22 +157,27 @@ var jsio = (function init() {
         this.exports = exports;
     }
 
-    function findModule(possibilities) {
-        var srcCache = jsio.__srcCache,
-            modules = jsio.__modules,
-            path, cachedVersion, i;
-
-        for (i = 0; i < possibilities.length; i++) {
-            path = possibilities[i];
+    function getModuleDef(path) {
+        var modules = jsio.__modules,
+            srcCache = jsio.__srcCache,
             cachedVersion = srcCache[path];
 
-            if (cachedVersion) {
-                if (!modules[path]) {
-                    modules[path] = new ModuleDef(path, cachedVersion);
-                }
-
-                return modules[path];
+        if (cachedVersion) {
+            if (!modules[path]) {
+                modules[path] = new ModuleDef(path, cachedVersion);
             }
+
+            return modules[path];
+        }
+    }
+
+    function findModule(possibilities) {
+        var i, moduleDef;
+
+        for (i = 0; i < possibilities.length; i++) {
+            moduleDef = getModuleDef(possibilities[i]);
+
+            if (moduleDef) return moduleDef;
         }
     }
 
@@ -301,12 +306,10 @@ jsio.__loadModule = jsio.__loadModule.Extends(function(fromDir, item) {
         util = jsio.__util,
         modulePath, entryFile, packageDotJson, possibilities, i;
 
-    if (moduleDef) {
-        return moduleDef;
-    }
+    if (moduleDef) return moduleDef;
 
     for (i = 0; i < jsioPaths.length; i++) {
-        modulePath = util.buildPath(jsioPaths[i], baseMod); 
+        modulePath = util.buildPath(jsioPaths[i], baseMod);
         possibilities = util.getPossiblePaths(util.buildPath(jsioPaths[i], item));
         moduleDef = jsio.__findModule(possibilities);
 
